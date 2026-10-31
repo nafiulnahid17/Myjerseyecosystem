@@ -146,6 +146,7 @@ function artboardPageV4(){
    '<div class="recovery-actions">'+
    '<button type="button" class="outline-button" data-action="diagnoseArtboard" '+(!state.lastError&&!failed?'disabled':'')+'>Diagnose Error</button>'+
    '<button type="button" class="outline-button" data-action="retryArtboardExport" '+(failed&&!state.busy?'':'disabled')+'>Retry Failed Export Only</button>'+
+   '<button type="button" class="outline-button" data-action="retryArtboardProduction" '+(state.failedStage==='production'&&o?.ai_reconstruction?.complete&&!state.busy?'':'disabled')+'>Resume Failed Vector Stage · No AI Calls</button>'+
    '</div>'+
    (state.diagnosis?'<p class="mini-note">'+esc(state.diagnosis)+'</p>':'')+
    '</section></div>'+
@@ -244,6 +245,35 @@ function diagnoseArtboardFailure(){
  else log('Recovery: review source/provider/model result before explicit paid retry. No automatic AI retry.');
  render();
 }
+
+async function resumeFailedArtboardProduction(){
+ if(state.busy||state.failedStage!=='production'||!state.artboardProject?.project_id)return;
+ if(!state.artboardResult?.ai_reconstruction?.complete){
+  notify('No saved complete AI artwork exists. This job cannot be resumed without another paid generation.');
+  return;
+ }
+ const id=state.artboardProject.project_id;
+ const mode=state.artboardResult.ai_reconstruction.processing_mode||state.lastMode||state.mode.artboard;
+ const requested=[...state.formats.artboard];
+ await run('Resume deterministic Artboard stages',async()=>{
+  log('Resuming from saved generated image. No new AI provider requests.');
+  let j=await call('artboard','api/artboard/production',{
+   method:'POST',json:{project_id:id,processing_mode:mode,
+    ai_reconstruction:true,resume_from_ai:true}
+  });
+  captureJob('Artboard safe resume',j);
+  j=await jobPoll('artboard','api/artboard/jobs/'+j.job_id,'Production');
+  log('Validated deterministic stages completed without AI generation.');
+  j=await call('artboard','api/artboard/export',{
+   method:'POST',json:{project_id:id,formats:requested,
+    bundle:requested.includes('zip')?'production_pack':'selected_files'}
+  });
+  captureJob('Artboard resumed export',j);
+  await jobPoll('artboard','api/artboard/jobs/'+j.job_id,'Export');
+  state.artboardResult=await call('artboard','api/artboard/projects/'+id);
+  state.failedStage='';
+ });
+}
 async function retryFailedArtboardStage(){
  if(state.busy||!state.artboardProject?.project_id) return;
  if(state.failedStage!=='export'||!state.failedFormats.length){
@@ -267,7 +297,7 @@ document.addEventListener('change',e=>{const el=e.target;if(el.closest('#mainCon
 document.addEventListener('dragover',e=>{const dz=e.target.closest('[data-droptool]');if(dz){e.preventDefault();dz.classList.add('over')}});
 document.addEventListener('dragleave',e=>{const dz=e.target.closest('[data-droptool]');if(dz)dz.classList.remove('over')});
 document.addEventListener('drop',e=>{const dz=e.target.closest('[data-droptool]');if(dz){e.preventDefault();dz.classList.remove('over');newFile(dz.dataset.droptool,e.dataTransfer.files[0])}});
-document.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.tool){state.tool=b.dataset.tool;resetJob();render();if(innerWidth<=870)closeMenu();return}if(b.dataset.localAction){notify(b.dataset.localAction==='support'?'Support API is not connected; no ticket was sent.':'This section will activate after its verified backend is connected.');return}if(b.dataset.mode){if(state.busy){notify('Mode is locked while a job is running');return}state.mode[state.tool]=b.dataset.mode;render();return}if(b.dataset.format){const s=state.formats[state.tool];if(s){if(s.includes(b.dataset.format))s.splice(s.indexOf(b.dataset.format),1);else s.push(b.dataset.format)}render();return}if(b.dataset.template){if(b.dataset.templatekind==='mockup')state.selectedMockup=b.dataset.template;else state.selectedVideo=b.dataset.template;render();return}if(b.dataset.workflow){state.autoflyWorkflow=b.dataset.workflow;render();return}if(b.dataset.download){const split=b.dataset.download.indexOf('|');return download(b.dataset.download.slice(0,split),b.dataset.download.slice(split+1))}if(b.id==='refreshStatus'){await statusCheck();return}if(b.dataset.action==='diagnoseArtboard'){diagnoseArtboardFailure();return}if(b.dataset.action==='retryArtboardExport'){await retryFailedArtboardStage();return}if(b.dataset.action){try{if(b.dataset.action==='startArtboard')await startArtboard();if(b.dataset.action==='startFrame')await startFrame();if(b.dataset.action==='startVideo')await startVideo();if(b.dataset.action==='startAutofly')await startAutofly();if(b.dataset.action==='analyzeAssets')await analyzeAssets();if(b.dataset.action==='startAssets')await startAssets()}catch(err){state.lastError=err.message;log('ERROR: '+err.message);notify(err.message);render()}return}});
+document.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.tool){state.tool=b.dataset.tool;resetJob();render();if(innerWidth<=870)closeMenu();return}if(b.dataset.localAction){notify(b.dataset.localAction==='support'?'Support API is not connected; no ticket was sent.':'This section will activate after its verified backend is connected.');return}if(b.dataset.mode){if(state.busy){notify('Mode is locked while a job is running');return}state.mode[state.tool]=b.dataset.mode;render();return}if(b.dataset.format){const s=state.formats[state.tool];if(s){if(s.includes(b.dataset.format))s.splice(s.indexOf(b.dataset.format),1);else s.push(b.dataset.format)}render();return}if(b.dataset.template){if(b.dataset.templatekind==='mockup')state.selectedMockup=b.dataset.template;else state.selectedVideo=b.dataset.template;render();return}if(b.dataset.workflow){state.autoflyWorkflow=b.dataset.workflow;render();return}if(b.dataset.download){const split=b.dataset.download.indexOf('|');return download(b.dataset.download.slice(0,split),b.dataset.download.slice(split+1))}if(b.id==='refreshStatus'){await statusCheck();return}if(b.dataset.action==='diagnoseArtboard'){diagnoseArtboardFailure();return}if(b.dataset.action==='retryArtboardExport'){await retryFailedArtboardStage();return}if(b.dataset.action==='retryArtboardProduction'){await resumeFailedArtboardProduction();return}if(b.dataset.action){try{if(b.dataset.action==='startArtboard')await startArtboard();if(b.dataset.action==='startFrame')await startFrame();if(b.dataset.action==='startVideo')await startVideo();if(b.dataset.action==='startAutofly')await startAutofly();if(b.dataset.action==='analyzeAssets')await analyzeAssets();if(b.dataset.action==='startAssets')await startAssets()}catch(err){state.lastError=err.message;log('ERROR: '+err.message);notify(err.message);render()}return}});
 function closeMenu(){document.body.classList.remove('menu-open');document.querySelector('#menuBackdrop').hidden=true;document.querySelector('#menuButton').setAttribute('aria-expanded','false')}
 document.querySelector('#menuButton').addEventListener('click',()=>{if(innerWidth>870){document.body.classList.toggle('sidebar-collapsed');document.querySelector('#menuButton').setAttribute('aria-expanded',String(!document.body.classList.contains('sidebar-collapsed')))}else{const open=!document.body.classList.contains('menu-open');document.body.classList.toggle('menu-open',open);document.querySelector('#menuBackdrop').hidden=!open;document.querySelector('#menuButton').setAttribute('aria-expanded',String(open))}});
 document.querySelector('#menuClose').addEventListener('click',closeMenu);
