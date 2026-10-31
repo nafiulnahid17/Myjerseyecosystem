@@ -79,10 +79,20 @@ def test_standalone_builder_embeds_reference_images():
     assert 'assets/media/' in script
 
 
-def test_gateway_connection_indicator_does_not_fabricate_ai_or_fallback_health():
-    assert "Gateway connected" in source
-    assert "Key entered · Check failed" in source
+def test_public_testing_has_no_manual_key_dialog_and_does_not_fabricate_health():
+    assert 'Private Workspace' not in shell
+    assert 'gatewayDialog' not in shell
+    assert 'workspaceKey' not in shell
+    assert "statusCheck();" in source
+    assert "credentials:'same-origin'" in source
     assert "ai_configured" in source
-    assert "AI Config" in source
-    assert "Not tested" in source
-    assert "Workspace key rejected (401)" in source
+    assert 'AI Config' in source
+    assert 'Not tested' in source
+    assert 'function artboardPreview()' in source
+    assert 'function updateArtboardPreview()' in source
+    assert 'retryFailedArtboardStage' in source
+    assert 'artboard-console' in source
+    assert 'function jobPoll(' in source
+    assert 'j.preview_path' in source
+    assert 'j.progress' in source
+    assert 'state.lastMode' in source
