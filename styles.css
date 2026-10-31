@@ -113,3 +113,25 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{
 @media(prefers-reduced-motion:reduce){
  .scan-beam::before,.artboard-console .progress.indeterminate #progressValue{animation:none!important}
 }
+
+/* Artboard telemetry uses natural proportions; panels are never forced to stretch. */
+.stepper .complete b{border-color:#24dcb0;background:#075344;color:#baffed}.stepper .complete strong,.stepper .complete small{color:#3fe5b9}
+.artboard-console{height:auto;max-width:1380px;margin:0 auto;grid-template-rows:auto auto auto}
+.artboard-console .workspace-grid.artboard-layout{grid-template-columns:minmax(245px,290px) minmax(360px,1fr) minmax(330px,390px);align-items:start}
+.artboard-console .tool-panel{height:auto;overflow:visible}
+.artboard-console .compact-output{max-height:650px;overflow:auto}
+.artboard-console .pipeline{min-height:220px;height:220px;overflow:hidden}
+.production-live-dialog{padding:9px;border:1px solid #105d88;border-radius:9px;background:#041327;margin-bottom:7px}
+.live-dialog-head{display:flex;gap:8px;align-items:center;padding-bottom:7px;border-bottom:1px solid #103d5e}.live-dialog-head>div{display:flex;flex-direction:column}.live-dialog-head b{font-size:11px}.live-dialog-head small{font-size:8px;color:#75a6c4}.live-dot{width:9px;height:9px;border-radius:50%;background:#31536a}.live-dot.on{background:#21e4b2;box-shadow:0 0 10px #21e4b2;animation:live-pulse 1.2s ease-in-out infinite}
+.live-dialog-list{display:grid;gap:4px;margin:7px 0}.live-dialog-list>div{display:grid;grid-template-columns:16px 1fr;gap:5px;align-items:start;color:#577b93}.live-dialog-list>div>span{font-size:10px;margin-top:2px}.live-dialog-list p{margin:0;display:flex;flex-direction:column}.live-dialog-list b{font-size:9px}.live-dialog-list small{font-size:7px;line-height:1.35}.live-dialog-list .done{color:#38ddb5}.live-dialog-list .active{color:#57dfff}.live-dialog-list .active>span{animation:live-pulse 1.2s ease-in-out infinite}
+.engine-events{max-height:72px;overflow:auto;border-top:1px solid #103d5e;border-bottom:1px solid #103d5e;padding:4px 0}.engine-events p{display:grid;grid-template-columns:48px 1fr;gap:5px;margin:2px 0;font:7px/1.35 ui-monospace,SFMono-Regular,Consolas,monospace;color:#81abc3}.engine-events time{color:#34dfb3}
+.production-facts{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:7px}.production-facts span{min-width:0;padding:5px;border:1px solid #10466e;border-radius:6px;background:#061b32}.production-facts small,.production-facts b{display:block;overflow-wrap:anywhere}.production-facts small{font-size:7px;color:#6895b2}.production-facts b{margin-top:2px;font-size:8px;color:#d9f3ff}
+.validation-checks{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:7px}.validation-checks span{display:flex;align-items:center;gap:3px;padding:4px;border:1px solid #17486a;border-radius:5px;color:#7399b2;font-size:7px}.validation-checks i{font-style:normal}.validation-checks .pass{color:#38ddb5;border-color:#17745e}.validation-checks .fail{color:#ff8096;border-color:#82334b}
+.illustrator-button{width:100%;margin-top:7px;padding:8px;border:1px solid #bb7dff;border-radius:7px;background:linear-gradient(135deg,#5f1dd2,#8c35ff);color:#fff;font-weight:800;font-size:9px}.illustrator-button:disabled{opacity:.38;cursor:not-allowed}.compact-output .output-list{max-height:80px;overflow:auto}
+@keyframes live-pulse{50%{opacity:.45}}
+@media(min-width:1000px) and (min-height:650px){
+ .workspace:has(.artboard-console) .content{height:auto;min-height:calc(100dvh - 128px);max-height:none;overflow:auto;padding:8px 12px}
+ .workspace:has(.artboard-console){height:auto;overflow:visible}
+}
+@media(max-width:1150px){.artboard-console .workspace-grid.artboard-layout{grid-template-columns:1fr 1fr}.artboard-console .workspace-grid.artboard-layout>.compact-output{grid-column:1/-1;max-height:none}}
+@media(max-width:640px){.production-facts{grid-template-columns:1fr}.validation-checks{grid-template-columns:1fr 1fr}.artboard-console .pipeline{height:260px}}

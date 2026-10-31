@@ -96,3 +96,29 @@ def test_public_testing_has_no_manual_key_dialog_and_does_not_fabricate_health()
     assert 'j.preview_path' in source
     assert 'j.progress' in source
     assert 'state.lastMode' in source
+
+
+def test_artboard_live_pipeline_and_production_telemetry_contract():
+    for marker in [
+        'function artboardStageIndex()',
+        'data-live-steps=',
+        'state.activePipeline=terminal',
+        "state.artboardJob=j",
+        'function liveProductionDetails()',
+        'function validationChecklist()',
+        'AI model',
+        'Vectorizer',
+        'PostScript',
+        'Continue with Illustrator',
+        'navigator.canShare',
+    ]:
+        assert marker in source
+    assert "i===0?'current'" not in source
+    assert 'state.artboardResult=await call(\'artboard\',\'api/artboard/projects/\'+p.project_id)' in source
+
+
+def test_artboard_layout_uses_natural_panel_proportions():
+    css=(root/'styles.css').read_text()
+    assert 'align-items:start' in css
+    assert '.artboard-console{height:auto' in css
+    assert '.production-live-dialog' in css

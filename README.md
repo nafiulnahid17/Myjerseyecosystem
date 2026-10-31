@@ -12,13 +12,15 @@ This project replaces the former screenshot-overlay frontend. The UI is native H
 - Quality and Fast & Cost-Effective modes on all four tools; both map to the engines' existing `quality` and `cost_effective` values.
 - Frame Forge retains its three real mockup and three real video template IDs, now illustrated with optimized WebP crops from the user's approved design references. These are static reference artwork, not generated output.
 - Autofly remains a one-click Artboard orchestration workflow and does not duplicate Frame Forge templates.
+- Artboard's terminal follows the engine's real Upload → Analyze → AI Artwork → Vectorize → Validate → Export events instead of pinning the first step. The live production panel exposes only returned analysis, model/provider, trace backend, validation counts, physical-size checks and real downloads.
+- **Continue with Illustrator** hands a validated SVG to the operating-system app chooser where browser support exists; otherwise it downloads the SVG and opens Adobe's official Illustrator page. It does not fabricate native-app detection.
 - Credits, users, history, emergency and support submission screens fail closed until their real backends are connected; they do not show invented balances, members, jobs, providers or ticket confirmations.
 
 ## Backend contract mapping
 
 | Workspace | Source | Real user-facing operations |
 | --- | --- | --- |
-| Artboard AI | `nafiulnahid17/Artboard-AI---Resolution-Independent-` commit `0e82efe` (v0.3.1) | `POST /api/artboard/projects`, `/upload`, `/prepare`, `/production`, `/export`, then `GET /api/artboard/jobs/{id}` and project outputs. Supports one or two independently visible surfaces; real SVG/EPS/PDF/PNG/ZIP options. |
+| Artboard AI | `nafiulnahid17/Artboard-AI---Resolution-Independent-` commit `d169917` | `POST /api/artboard/projects`, `/upload`, `/prepare`, `/production`, `/export`, then `GET /api/artboard/jobs/{id}` and project outputs. Supports one or two independently visible surfaces; real SVG/EPS/PDF/PNG/ZIP options. Its AI reconstruction prompt is ported from the previous `artboardai-engine` flat-art workflow. |
 | Frame Forge AI | `nafiulnahid17/Frameforge_myjerseyengine` commit `3e9b262` | `POST /api/frameforge/jobs/mockup` using 1 of **3** real bundled mockup templates; optional `POST /api/frameforge/jobs/{id}/video` using 1 of **3** real bundled video templates. 10–30-second duration. File download only after `output_ready`. |
 | AssetsX AI | `nafiulnahid17/assetxengine` commit `4e7b09d` (v0.1.0) | `POST /v1/assets` → `GET /v1/assets/{id}` analysis → optional selected-element and basic edit operations → `POST /v1/jobs` → validated outputs. Does not claim advanced generative editing or native font modification. |
 | Autofly | `nafiulnahid17/autoflyengine_myjersey` commit `ddfd75e` | One-click Artboard orchestration from a text brief, one image clearly containing front+back, or separately uploaded front+back. Actual endpoints `/api/autofly/jobs/from-brief`, `/from-combined`, `/from-panels`. **No template picker, no separate mockup/video engine.** |
@@ -30,6 +32,7 @@ This project replaces the former screenshot-overlay frontend. The UI is native H
 - **Before any backend connection:** status says not checked/not configured, generated-output areas are empty, processing is disabled.
 - **Real live health checks:** the gateway requests each engine's actual health endpoint using server-side credentials; only matching health payloads are shown as reachable.
 - **After a real job submission:** only actual job ID, state, progress, trace and generated file names returned by the API are displayed. Session Jobs only contains jobs submitted during that browser session.
+- **Artboard AI artwork:** the engine uses the previous `artboardai-engine` full-canvas reconstruction contract, adapted for independently selected front/back surfaces. It locks output to a straight-on 22 × 31 inch portrait artboard and rejects garment/mockup/fabric presentation.
 - **Frame Forge template images:** the six SVG previews are copied from the engine's actual source. They are static built-in template artwork, not fabricated generated results.
 - **Original artwork previews:** read locally from a file the operator selects. Never labeled as AI-generated output.
 - **No credits or billing UI:** those features require a real, separate backend contract.
