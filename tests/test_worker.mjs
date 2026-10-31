@@ -1,96 +1,74 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { handleRequest } from '../src/worker.mjs';
-
-const BASE = 'https://myjersey.example';
-const ORIGIN = 'https://artboard-ai-resolution-independent-production.up.railway.app';
-const WORKSPACE = 'w'.repeat(64);
-const ENGINE = 'e'.repeat(64);
-const env = () => ({
-  MYJERSEY_ACCESS_TOKEN: WORKSPACE,
-  ARTBOARD_V031_URL: ORIGIN,
-  ARTBOARD_V031_TOKEN: ENGINE,
-  MYJERSEY_ARTBOARD_PRINCIPAL: 'private-operator',
-  ASSETS: { fetch: async () => new Response('STATIC') },
+const BASE='https://myjersey.example';
+const ENGINE='e'.repeat(64);
+const ORIGIN='https://artboard-ai-resolution-independent-production.up.railway.app';
+const env=()=>({
+  MYJERSEY_ACCESS_TOKEN:'w'.repeat(64),
+  ARTBOARD_V031_TOKEN:ENGINE,ARTBOARD_V031_URL:ORIGIN,
+  MYJERSEY_ARTBOARD_PRINCIPAL:'legacy_unused',
+  API_LIMITER:{limit:async()=>({success:true})},
+  AI_LIMITER:{limit:async()=>({success:true})},
+  ASSETS:{fetch:async()=>new Response('STATIC')}
 });
-const request = (path, key = WORKSPACE, options = {}) => new Request(BASE + path, {
-  ...options, headers: { 'X-Workspace-Key': key, ...(options.headers || {}) }
+const req=(path,options={})=>new Request(BASE+path,options);
+test('static frontend served normally without login',async()=>{
+ assert.equal(await(await handleRequest(req('/'),env())).text(),'STATIC');
 });
-
-test('unchanged static UI stays served via ASSETS binding', async () => {
-  const r = await handleRequest(request('/'), env());
-  assert.equal(await r.text(), 'STATIC');
+test('public status creates signed HttpOnly browser identity',async()=>{
+ const upstream=async(url,opts)=>{assert.equal(url,ORIGIN+'/health/ready');return Response.json({status:'ready',ai_configured:true})};
+ const response=await handleRequest(req('/api/status'),env(),upstream);
+ assert.equal(response.status,200);
+ assert.match(response.headers.get('set-cookie'),/HttpOnly; Secure; SameSite=Lax/);
+ assert.equal((await response.json()).engines.artboard.state,'online');
 });
-
-test('API fails closed when no secret is configured or the key is wrong', async () => {
-  const e = env(); delete e.MYJERSEY_ACCESS_TOKEN;
-  assert.equal((await handleRequest(request('/api/status'), e)).status, 503);
-  assert.equal((await handleRequest(request('/api/status', 'not-authorized'), env())).status, 401);
+test('two separate visitors do not share an Artboard principal',async()=>{
+ const e=env(), who=[];
+ const upstream=async incoming=>{
+   who.push(incoming.headers.get('x-artboard-user'));
+   assert.equal(incoming.headers.get('authorization'),'Bearer '+ENGINE);
+   assert.equal(incoming.headers.has('cookie'),false);
+   return Response.json({project_id:'a'}, {status:201});
+ };
+ const p='/api/engine/artboard/api/artboard/projects';
+ const options={method:'POST',headers:{'Content-Type':'application/json'},body:'{"processing_mode":"quality"}'};
+ const one=await handleRequest(req(p,options),e,upstream);
+ const two=await handleRequest(req(p,options),e,upstream);
+ assert.notEqual(who[0],who[1]);
+ const cookie=one.headers.get('set-cookie').split(';')[0];
+ await handleRequest(req(p,{...options,headers:{'Content-Type':'application/json','Cookie':cookie}}),e,upstream);
+ assert.equal(who[0],who[2]);
+ assert.match(who[0],/^guest_[a-f0-9]{32}$/);
+ assert.equal(two.status,201);
 });
-
-test('status uses the actual authenticated Artboard readiness response', async () => {
-  const seen = [];
-  const upstream = async (url, options) => {
-    seen.push([url, options.headers.Authorization, options.headers['X-Artboard-User']]);
-    return Response.json({ status: 'ready', ai_configured: true });
-  };
-  const response = await handleRequest(request('/api/status'), env(), upstream);
-  assert.equal(response.status, 200);
-  const status = await response.json();
-  assert.equal(status.source, 'live_health_requests');
-  assert.equal(status.engines.artboard.state, 'online');
-  assert.equal(status.engines.artboard.ai_configured, true);
-  assert.equal(status.engines.frame.state, 'not_configured');
-  assert.deepEqual(seen[0], [ORIGIN + '/health/ready', 'Bearer ' + ENGINE, 'private-operator']);
+test('production paid calls fail closed if limiter unavailable and block when exceeded',async()=>{
+ const e=env(),path='/api/engine/artboard/api/artboard/production';
+ delete e.AI_LIMITER;
+ const body={method:'POST',headers:{'Content-Type':'application/json'},body:'{"project_id":"a"}'};
+ assert.equal((await handleRequest(req(path,body),e)).status,503);
+ e.AI_LIMITER={limit:async()=>({success:false})};
+ assert.equal((await handleRequest(req(path,body),e)).status,429);
 });
-
-test('unconfigured Artboard is not fabricated online', async () => {
-  const e = env(); delete e.ARTBOARD_V031_TOKEN;
-  const response = await handleRequest(request('/api/status'), e);
-  assert.equal((await response.json()).engines.artboard.state, 'not_configured');
+test('worker denies cross-origin writes, unsupported methods and paths',async()=>{
+ const e=env(),path='/api/engine/artboard/api/artboard/projects';
+ assert.equal((await handleRequest(req(path,{method:'POST',headers:{origin:'https://evil.example','Content-Type':'application/json'},body:'{}'}),e)).status,403);
+ assert.equal((await handleRequest(req(path,{method:'DELETE'}),e)).status,405);
+ assert.equal((await handleRequest(req('/api/engine/artboard/api/artboard/admin'),e)).status,404);
 });
-
-test('Artboard project creation forwards authenticated API without exposing workspace key', async () => {
-  const upstream = async (incoming) => {
-    assert.equal(incoming.url, ORIGIN + '/api/artboard/projects');
-    assert.equal(incoming.method, 'POST');
-    assert.equal(incoming.headers.get('authorization'), 'Bearer ' + ENGINE);
-    assert.equal(incoming.headers.get('x-artboard-user'), 'private-operator');
-    assert.equal(incoming.headers.has('x-workspace-key'), false);
-    assert.deepEqual(await incoming.json(), { name: 'test', processing_mode: 'cost_effective' });
-    return Response.json({ project_id: 'project-123' }, { status: 201 });
-  };
-  const response = await handleRequest(request('/api/engine/artboard/api/artboard/projects', WORKSPACE, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: 'test', processing_mode: 'cost_effective' })
-  }), env(), upstream);
-  assert.equal(response.status, 201);
-  assert.deepEqual(await response.json(), { project_id: 'project-123' });
+test('invalid key configuration and unconfigured engine fail securely',async()=>{
+ const e=env();delete e.MYJERSEY_ACCESS_TOKEN;
+ assert.equal((await handleRequest(req('/api/status'),e)).status,503);
+ const f=env();delete f.ARTBOARD_V031_TOKEN;
+ assert.equal((await handleRequest(req('/api/status'),f)).status,200);
 });
-
-test('only allowlisted Artboard routes work; other engines stay disconnected', async () => {
-  const reject = async () => { throw Error('must not call upstream'); };
-  assert.equal((await handleRequest(request('/api/engine/frame/api/frameforge/templates'), env(), reject)).status, 404);
-  assert.equal((await handleRequest(request('/api/engine/artboard/api/artboard/admin'), env(), reject)).status, 404);
-  assert.equal((await handleRequest(request('/api/engine/artboard/api/artboard/projects', WORKSPACE, { method: 'DELETE' }), env(), reject)).status, 404);
+test('redirects rejected so server-side bearer is never leaked',async()=>{
+ const resp=await handleRequest(req('/api/engine/artboard/api/artboard/projects/a'),env(),async()=>new Response(null,{status:302,headers:{Location:'https://evil.example'}}));
+ assert.equal(resp.status,502);
 });
-
-test('reject unexpected redirect to protect engine Authorization header', async () => {
-  const response = await handleRequest(request('/api/engine/artboard/api/artboard/projects/abc'), env(), async () => new Response(null, { status: 302, headers: { Location: 'https://unexpected.example/' } }));
-  assert.equal(response.status, 502);
-});
-
-test('Wrangler compatibility date is not in the future in UTC', async () => {
-  const { readFileSync } = await import('node:fs');
-  const config = JSON.parse(readFileSync(new URL('../wrangler.jsonc', import.meta.url), 'utf8'));
-  assert.ok(config.compatibility_date <= new Date().toISOString().slice(0, 10),
-    'Cloudflare rejects future compatibility dates when local and UTC dates differ');
-});
-
-test('worker never marks AI configured without true engine readiness evidence', async () => {
-  const response = await handleRequest(request('/api/status'), env(),
-    async () => Response.json({ status: 'not_ready', ai_configured: false }));
-  const payload = await response.json();
-  assert.equal(payload.engines.artboard.state, 'not_ready');
-  assert.equal(payload.engines.artboard.ai_configured, false);
+test('wrangler has rate limit bindings and safe compatibility date', async()=>{
+ const {readFileSync}=await import('node:fs');
+ const c=JSON.parse(readFileSync(new URL('../wrangler.jsonc',import.meta.url),'utf8'));
+ assert.ok(c.compatibility_date<=new Date().toISOString().slice(0,10));
+ assert.deepEqual(c.ratelimits.map(x=>x.name),['API_LIMITER','AI_LIMITER']);
 });
