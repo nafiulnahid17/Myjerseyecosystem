@@ -87,7 +87,10 @@ def test_public_testing_has_no_manual_key_dialog_and_does_not_fabricate_health()
     assert "credentials:'same-origin'" in source
     assert "ai_configured" in source
     assert 'AI Config' in source
-    assert 'Not tested' in source
+    assert '<small>Server</small>' not in shell
+    assert '<small>Fallback AI</small>' not in shell
+    assert '<small>Server</small>' not in source
+    assert '<small>Fallback AI</small>' not in source
     assert 'function artboardPreview()' in source
     assert 'function updateArtboardPreview()' in source
     assert 'retryFailedArtboardStage' in source
@@ -106,15 +109,22 @@ def test_artboard_live_pipeline_and_production_telemetry_contract():
         "state.artboardJob=j",
         'function liveProductionDetails()',
         'function validationChecklist()',
-        'AI model',
+        "['Model',d.provider.model",
         'Vectorizer',
-        'PostScript',
+        'EPSF 3.0 · PS Level ≤ 2 · CMYK',
         'Continue with Illustrator',
         'navigator.canShare',
+        'function artboardExportPanel()',
+        'function artboardProgressDock()',
+        "{summary:false}",
     ]:
         assert marker in source
     assert "i===0?'current'" not in source
     assert 'state.artboardResult=await call(\'artboard\',\'api/artboard/projects/\'+p.project_id)' in source
+    assert 'class="live-dialog-list"' not in source
+    assert 'Current stage intelligence only' in source
+    assert 'Requested export formats' in source
+    assert source.index('Export & Delivery') < source.index('Continue with Illustrator')
 
 
 def test_artboard_layout_uses_natural_panel_proportions():
@@ -122,3 +132,8 @@ def test_artboard_layout_uses_natural_panel_proportions():
     assert 'align-items:start' in css
     assert '.artboard-console{height:auto' in css
     assert '.production-live-dialog' in css
+    assert '.artboard-workbench' in css
+    assert '.artboard-progress-dock' in css
+    assert '.artboard-console .terminal-dock' in css
+    assert '.artboard-export-page' in css
+    assert 'grid-template-columns:minmax(245px,285px) minmax(450px,1fr) minmax(300px,360px)' in css
