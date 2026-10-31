@@ -34,3 +34,82 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{
 .template-card .text{min-height:52px}
 @media(max-width:1450px){.alltools-main .toolcard{min-height:380px}}
 @media(max-width:780px){.alltools-main .toolcard{min-height:auto}.toolcard-art{height:190px}.bonus-art{height:190px}}
+
+
+/* Artboard AI live cockpit – main desktop viewport contains terminal and all controls. */
+.artboard-console{display:grid;grid-template-rows:auto minmax(0,1fr) minmax(160px,23vh);gap:8px;height:100%;min-height:0}
+.artboard-console-top{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:50px}
+.artboard-console-top .console-heading{display:flex;flex-direction:column;gap:2px;flex-shrink:0}
+.console-heading strong{font-size:17px;letter-spacing:.01em;color:#ddf7ff}
+.console-heading small{font-size:10px;color:#8ebacf}
+.artboard-console-top .mode-choice{display:flex;flex-wrap:nowrap;gap:7px;max-width:670px;flex:1}
+.artboard-console-top .mode-choice button{padding:6px 10px;min-height:45px;flex:1;border-radius:8px}
+.artboard-console-top .mode-choice small{font-size:9px}
+.artboard-console .workspace-grid.artboard-layout{display:grid;grid-template-columns:minmax(220px,27%) minmax(260px,1fr) minmax(235px,27%);gap:8px;min-height:0}
+.artboard-console .tool-panel{padding:10px;min-height:0;overflow:auto;scrollbar-width:thin}
+.artboard-console .tool-panel-title{margin-bottom:6px}
+.artboard-console .subhead{margin-top:8px;margin-bottom:5px}
+.artboard-console .dropzone{min-height:108px;padding:10px}
+.artboard-console .dropzone .upload-icon{font-size:18px}
+.artboard-console .mini-note{margin:7px 0;font-size:10px}
+.artboard-console .option-chips{gap:5px}
+.artboard-console .option-chips button{padding:6px 8px}
+.artboard-console .preview-box{height:clamp(190px,36vh,410px);max-height:100%}
+.artboard-live-preview{display:flex;flex-direction:column;min-height:0}
+.artboard-live-preview .preview-box{position:relative;isolation:isolate}
+.artboard-live-preview .preview-box img{width:100%;height:100%;object-fit:contain}
+.artboard-live-preview .preview-caption{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;margin:7px 0;flex-wrap:wrap}
+.artboard-live-preview .preview-caption small{color:#79afca}
+.scan-beam{pointer-events:none;position:absolute;z-index:2;inset:0;display:none;border:1px solid #00e6d5;border-radius:9px;box-shadow:inset 0 0 35px #17afff25}
+.is-scanning .scan-beam,.is-generating .scan-beam,.is-vectorizing .scan-beam{display:block}
+.is-scanning .scan-beam::before,.is-generating .scan-beam::before,.is-vectorizing .scan-beam::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:3px;
+  background:linear-gradient(90deg,transparent,#50ffe8 40%,#a0f7ff,transparent);
+  box-shadow:0 0 20px 5px #29eafa90;animation:artboard-sweep 2.4s ease-in-out infinite alternate
+}
+.is-generating .scan-beam{border-color:#9682ff;box-shadow:inset 0 0 38px #9573ff35}
+.is-vectorizing .scan-beam{border-color:#ffc66a}
+@keyframes artboard-sweep{0%{top:1%;opacity:.35}100%{top:98%;opacity:1}}
+.artboard-console .metric-row{gap:6px;margin-top:4px}
+.artboard-console .metric{padding:5px;min-width:0}
+.artboard-console .metric strong{overflow-wrap:anywhere}
+.artboard-console .pipeline{margin:0;min-height:0;overflow:hidden;padding:8px 10px}
+.artboard-console .pipeline-head{padding-bottom:5px}
+.artboard-console .processing-shell{height:calc(100% - 32px);min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(150px,210px);gap:10px}
+.artboard-console .processing-shell>div:first-child{min-height:0;display:flex;flex-direction:column}
+.artboard-console .processing-shell .stepper{margin:0 0 5px;flex:none}
+.artboard-console .processing-shell .log{min-height:0;max-height:none;flex:1;font-size:10px;line-height:1.45}
+.artboard-console .processing-summary{min-height:0;overflow:auto;padding:5px}
+.artboard-console .progress-orb{width:54px;height:54px;margin:auto}
+.artboard-console .progress-orb .orb-value{font-size:12px}
+.artboard-console .processing-summary p{margin:4px 0}
+.artboard-console .recovery-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}
+.artboard-console .recovery-actions button{font-size:10px;min-height:33px;padding:5px 7px;flex:1}
+.artboard-console .recovery-actions button:disabled{opacity:.42;cursor:not-allowed}
+.artboard-console .progress.indeterminate #progressValue{width:26%!important;animation:artboard-indeterminate 1.8s ease-in-out infinite}
+@keyframes artboard-indeterminate{0%{transform:translateX(-110%)}100%{transform:translateX(400%)}}
+@media(min-width:1000px) and (min-height:650px){
+ .workspace:has(.artboard-console) .content{height:calc(100dvh - 128px);min-height:0;max-height:calc(100dvh - 128px);overflow:hidden;padding:8px 12px}
+ .workspace:has(.artboard-console){height:calc(100dvh - 86px);overflow:hidden}
+ .workspace:has(.artboard-console) .app-footer{flex-shrink:0}
+}
+@media(max-width:999px), (max-height:649px){
+ .artboard-console{display:flex;flex-direction:column;height:auto;min-height:auto}
+ .artboard-console-top{flex-wrap:wrap}
+ .artboard-console-top .mode-choice{min-width:100%;max-width:none}
+ .artboard-console .workspace-grid.artboard-layout{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .artboard-console .workspace-grid.artboard-layout>.tool-panel:last-child{grid-column:1/-1}
+ .artboard-console .pipeline{height:220px;min-height:220px}
+ .artboard-console .tool-panel{overflow:visible}
+}
+@media(max-width:640px){
+ .artboard-console .workspace-grid.artboard-layout{display:flex;flex-direction:column}
+ .artboard-console .preview-box{height:260px}
+ .artboard-console .processing-shell{grid-template-columns:1fr}
+ .artboard-console .processing-summary{display:none}
+ .artboard-console .pipeline{height:230px}
+ .artboard-console-top .mode-choice small{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+ .scan-beam::before,.artboard-console .progress.indeterminate #progressValue{animation:none!important}
+}
