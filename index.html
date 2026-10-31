@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#030b1c">
+<title>My Jersey Ecosystem · Atherious Labs</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar"><div class="brands"><span class="lab-mark" aria-hidden="true">◢</span><div class="lab-text"><strong>Atherious Labs</strong><small>Design · Create · Dominate</small></div><span class="brand-divider"></span><span class="jersey-mark">↗</span><div class="product-text"><strong>My Jersey Ecosystem</strong><small>AI-Powered Design & Creative Suite</small></div></div><div class="header-right"><div id="serviceIndicators" class="service-indicators"><span class="live-icon"></span><span>Engine status not checked</span></div><button type="button" id="connectButton" class="outline-button">⚙ &nbsp; Connect Gateway</button><div class="userbox"><span class="usericon">◇</span><span>Private workspace</span></div></div></header>
+<div class="shell"><aside class="sidebar" id="sidebar"><div class="sectionlabel">WORKSPACE</div><nav id="mainNav" aria-label="Main tools"><button data-tool="overview" class="nav-item selected"><span>▦</span> All Tools</button><button data-tool="artboard" class="nav-item"><span>✧</span> Artboard AI</button><button data-tool="frame" class="nav-item"><span>▣</span> Frame Forge AI</button><button data-tool="assets" class="nav-item"><span>⬡</span> AssetsX AI</button><button data-tool="autofly" class="nav-item"><span>➤</span> Autofly <em>BONUS</em></button></nav><div class="nav-separator"></div><button data-tool="history" class="nav-item"><span>◷</span> Session Jobs</button><div class="side-bottom"><span>DESIGN</span><span>CREATE</span><span>DOMINATE</span><div class="mini-brand">◢ &nbsp; Atherious Labs</div></div></aside>
+<main id="mainContent" class="content" tabindex="-1"></main></div>
+<div id="notification" class="notification" aria-live="polite" role="status" hidden></div>
+<dialog id="gatewayDialog" class="modal"><form method="dialog" id="gatewayForm"><div class="modal-head"><h2>Connect private engine gateway</h2><button class="xbtn" value="cancel" aria-label="Close">×</button></div><p>The frontend uses a same-origin backend gateway. Engine API tokens must remain server-side. The workspace key entered here is held only in this page's memory; it is not included in the source files or saved.</p><label class="field"><span>Workspace access key</span><input id="workspaceKey" type="password" autocomplete="off" placeholder="Access key from your gateway" /></label><div class="modal-actions"><button value="cancel" type="button" id="gatewayClear" class="outline-button">Disconnect</button><button value="default" class="primary-button" id="gatewaySave" type="button">Check live engine status</button></div><p class="footnote">Launch the included gateway.py after configuring its .env on a private server. This browser preview does not invent API results.</p></form></dialog>
+<script src="app.js" defer></script>
+</body></html>
