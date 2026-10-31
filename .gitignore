@@ -1,0 +1,15 @@
+# Keep credentials and local runtime data out of source control
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+__pycache__/
+.pytest_cache/
+*.py[cod]
+.venv/
+venv/
+node_modules/
+.DS_Store
+*.log
