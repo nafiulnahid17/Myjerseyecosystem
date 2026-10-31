@@ -78,3 +78,10 @@ test('reject unexpected redirect to protect engine Authorization header', async 
   const response = await handleRequest(request('/api/engine/artboard/api/artboard/projects/abc'), env(), async () => new Response(null, { status: 302, headers: { Location: 'https://unexpected.example/' } }));
   assert.equal(response.status, 502);
 });
+
+test('Wrangler compatibility date is not in the future in UTC', async () => {
+  const { readFileSync } = await import('node:fs');
+  const config = JSON.parse(readFileSync(new URL('../wrangler.jsonc', import.meta.url), 'utf8'));
+  assert.ok(config.compatibility_date <= new Date().toISOString().slice(0, 10),
+    'Cloudflare rejects future compatibility dates when local and UTC dates differ');
+});
