@@ -9,7 +9,7 @@ from gateway import app, PATHS
 
 def test_public_assets_and_private_file_blocking():
     with TestClient(app) as client:
-        for p in ('/', '/index.html', '/styles.css', '/app.js', '/templates/mockup_luxury_float.svg'):
+        for p in ('/', '/index.html', '/styles.css', '/app.js', '/templates/mockup_luxury_float.svg', '/assets/atherious-labs.svg'):
             assert client.get(p).status_code == 200
         for p in ('/gateway.py','/.env.example','/requirements.txt','/tests/test_gateway.py'):
             assert client.get(p).status_code == 404

@@ -188,3 +188,4 @@ def frontend_js():
     return FileResponse(ROOT / "app.js", media_type="application/javascript")
 
 app.mount("/templates", StaticFiles(directory=str(ROOT / "templates")), name="templates")
+app.mount("/assets", StaticFiles(directory=str(ROOT / "assets")), name="assets")

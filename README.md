@@ -1,18 +1,18 @@
-# My Jersey Ecosystem — Engine-Aligned Frontend v3
+# My Jersey Ecosystem — Reference-Aligned Frontend v4
 
 **Atherious Labs · Frontend + private backend gateway · 31 October 2026**
 
-This project replaces the former screenshot-overlay frontend. The UI is native HTML, CSS and JavaScript styled after the provided dark-neon design references. It does **not** include fabricated jobs, sample usage, credit balances, generated outputs, server-online badges, or artificial progress animation.
+This project replaces the former screenshot-overlay frontend. The UI is native HTML, CSS and JavaScript, rebuilt against the supplied My Jersey/Atherious Labs reference screens with the same deep-navy, electric-cyan, violet and gold visual language. It does **not** include fabricated jobs, sample usage, credit balances, generated outputs, server-online badges, recent files, or artificial progress animation.
 
-## v3 UI structure
+## v4 UI structure
 
-- Responsive hamburger navigation with Home, Overview, Tool Overview, Add Credits, Users, Session Jobs, Support, Get Support and Report a Problem.
-- Dedicated Home page and live-data-only main dashboard.
-- Original Atherious Labs, My Jersey, Artboard AI, Frame Forge AI, AssetsX AI and Autofly SVG brand assets.
+- Reference-aligned responsive navigation with Overview, All Tools, Tool Overview, all four workspaces, Emergency Tools, Work History, Add Credits, Users, Support, Get Support, Report a Problem and Settings. It becomes a hamburger drawer on compact screens.
+- Dedicated All Tools landing page and live-data-only Overview dashboard.
+- Atherious Labs, My Jersey, Artboard AI, Frame Forge AI, AssetsX AI and Autofly SVG brand assets used throughout the header, sidebar, workspace ribbons and footer.
 - Quality and Fast & Cost-Effective modes on all four tools; both map to the engines' existing `quality` and `cost_effective` values.
 - Frame Forge keeps its three real mockup templates and three real video templates.
 - Autofly remains a one-click Artboard orchestration workflow and does not duplicate Frame Forge templates.
-- Credits, users and support submission screens fail closed until their real backends are connected; they do not show invented balances, members or ticket confirmations.
+- Credits, users, history, emergency and support submission screens fail closed until their real backends are connected; they do not show invented balances, members, jobs, providers or ticket confirmations.
 
 ## Backend contract mapping
 
@@ -62,7 +62,7 @@ python -m pytest -q tests
 node --check app.js
 ```
 
-Gateway, source-contract, navigation and brand/mode tests are included. Pixel-perfect matching is **not** claimed for this native UI.
+Gateway, source-contract, navigation, brand/mode and honest-empty-state tests are included. The layouts are tuned to the supplied 1536px desktop references and remain usable at tablet and mobile widths.
 
 ## Files
 
