@@ -1,16 +1,16 @@
-# My Jersey Ecosystem — Reference-Aligned Frontend v4
+# My Jersey Ecosystem — Reference-Aligned Frontend v5
 
 **Atherious Labs · Frontend + private backend gateway · 31 October 2026**
 
 This project replaces the former screenshot-overlay frontend. The UI is native HTML, CSS and JavaScript, rebuilt against the supplied My Jersey/Atherious Labs reference screens with the same deep-navy, electric-cyan, violet and gold visual language. It does **not** include fabricated jobs, sample usage, credit balances, generated outputs, server-online badges, recent files, or artificial progress animation.
 
-## v4 UI structure
+## v5 UI structure
 
-- Reference-aligned responsive navigation with Overview, All Tools, Tool Overview, all four workspaces, Emergency Tools, Work History, Add Credits, Users, Support, Get Support, Report a Problem and Settings. It becomes a hamburger drawer on compact screens.
-- Dedicated All Tools landing page and live-data-only Overview dashboard.
+- Reference-aligned responsive navigation with Home first, Overview immediately below Home, and all four workspaces, Emergency Tools, Work History, Add Credits, Users, Support, Get Support, Report a Problem and Settings. It becomes a hamburger drawer on compact screens.
+- The default Home landing page now features four highlighted tool-card illustrations, small explanatory workflow strips and real engine-aligned labels; Overview appears immediately below Home in navigation. The redundant Tool Overview route is removed.
 - Atherious Labs, My Jersey, Artboard AI, Frame Forge AI, AssetsX AI and Autofly SVG brand assets used throughout the header, sidebar, workspace ribbons and footer.
 - Quality and Fast & Cost-Effective modes on all four tools; both map to the engines' existing `quality` and `cost_effective` values.
-- Frame Forge keeps its three real mockup templates and three real video templates.
+- Frame Forge retains its three real mockup and three real video template IDs, now illustrated with optimized WebP crops from the user's approved design references. These are static reference artwork, not generated output.
 - Autofly remains a one-click Artboard orchestration workflow and does not duplicate Frame Forge templates.
 - Credits, users, history, emergency and support submission screens fail closed until their real backends are connected; they do not show invented balances, members, jobs, providers or ticket confirmations.
 
@@ -71,6 +71,7 @@ Gateway, source-contract, navigation, brand/mode and honest-empty-state tests ar
 - `app.js` — actual engine workflow UI, no mock responses
 - `gateway.py` — private authenticated, allowlisted API gateway
 - `templates/*.svg` — exact six SVG template previews bundled with Frame Forge
-- `assets/*.svg` — original product and tool branding used by the navigation, Home and dashboard screens
+- `assets/*.svg` — original product and tool branding used by navigation, Home and dashboard screens
+- `assets/media/*.webp` — ten optimized illustration crops (four tool cards, three mockup and three video templates), all from the user-provided design screenshots.
 - `.env.example` — environment variable names only, no secrets
 - `tests/` — gateway security and contract checks

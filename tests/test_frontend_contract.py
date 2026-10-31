@@ -25,15 +25,16 @@ def test_no_demo_job_status_and_has_fail_closed_mode():
         assert fabricated not in source
 
 def test_navigation_dashboard_and_support_surfaces_exist():
-    for route in ['home','overview','tool-overview','emergency','credits','users','support','get-support','report','settings']:
+    for route in ['home','overview','emergency','credits','users','support','get-support','report','settings']:
         assert f'data-tool="{route}"' in shell
     assert 'function home()' in source
     assert 'function overview()' in source
-    assert 'function toolOverview()' in source
+    assert 'data-tool="tool-overview"' not in shell
+    assert "'tool-overview':toolOverview" not in source
     assert 'Credit system is not connected yet' in source
     assert 'User directory is not connected yet' in source
     assert 'Support submission backend is not connected' in source
-    for label in ['Overview','All Tools','Tool Overview','Add Credits','Support','Get Support','Report a Problem','Users']:
+    for label in ['Home','Overview','Add Credits','Support','Get Support','Report a Problem','Users']:
         assert label in shell
 
 def test_all_tools_have_two_real_mode_values_and_brand_assets():
@@ -52,3 +53,27 @@ def test_reference_aligned_v4_workspaces_and_honest_empty_states():
     for text in ['No workspace files loaded','No engine analysis yet','No production files returned yet']:
         assert text in source
 
+
+def test_home_navigation_order_and_no_tool_overview_route():
+    nav=shell.split('<nav id="mainNav"')[1].split('</nav>')[0]
+    assert nav.index('data-tool="home"') < nav.index('data-tool="overview"') < nav.index('data-tool="artboard"')
+    assert 'data-tool="tool-overview"' not in nav
+    assert "tool:'home'" in source
+
+def test_ten_real_reference_webp_assets_and_template_source_ids():
+    visuals=['tool-artboard','tool-frame','tool-assets','tool-autofly']
+    templates=['mockup_luxury_float','mockup_stadium_hero','mockup_editorial_launch',
+               'video_luxury_360','video_stadium_reveal','video_kinetic_social']
+    for n in visuals+templates:
+        p=root/'assets'/'media'/f'{n}.webp'
+        assert p.is_file() and 1000 < p.stat().st_size < 120000
+        data=p.read_bytes()
+        assert data[:4]==b'RIFF' and data[8:12]==b'WEBP'
+    assert 'illustrative template artwork, not a generated output' in source
+    assert 'class="template-tabs"' not in source
+    assert 'function simulation(' not in source.lower()
+
+def test_standalone_builder_embeds_reference_images():
+    script=(root/'scripts'/'build-standalone.mjs').read_text()
+    assert 'data:image/webp;base64,' in script
+    assert 'assets/media/' in script

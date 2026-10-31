@@ -25,5 +25,9 @@ jobs:
         run: python -m pytest -q tests
       - name: Verify JavaScript syntax
         run: node --check app.js
+      - name: Build standalone offline preview
+        run: |
+          node scripts/build-standalone.mjs
+          python -c "from pathlib import Path; s=Path('Standalone_Interactive_Preview.html').read_text(); assert 'data:image/webp;base64,' in s and len(s)>100000"
       - name: Compile gateway
         run: python -m compileall -q gateway.py

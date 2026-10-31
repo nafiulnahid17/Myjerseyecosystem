@@ -24,6 +24,18 @@ for (const name of assets) {
   js = js.replaceAll(`assets/${name}`, uri);
 }
 
+const webpAssets=['tool-artboard','tool-frame','tool-assets','tool-autofly',
+'mockup_luxury_float','mockup_stadium_hero','mockup_editorial_launch',
+'video_luxury_360','video_stadium_reveal','video_kinetic_social'];
+const standaloneMediaData=Object.fromEntries(webpAssets.map(name=>[name,
+  'data:image/webp;base64,'+readFileSync(resolve(root,'assets/media/'+name+'.webp')).toString('base64')]));
+for(const [name,uri] of Object.entries(standaloneMediaData)){
+  html=html.replaceAll('assets/media/'+name+'.webp',uri);
+  js=js.replaceAll('assets/media/'+name+'.webp',uri);
+}
+js=js.replace('src="assets/media/tool-${t}.webp"','src="${standaloneMediaData[\'tool-\'+t]||\'\'}"');
+js=js.replace('src="assets/media/${encodeURIComponent(id)}.webp"','src="${standaloneMediaData[id]||\'\'}"');
+js=`const standaloneMediaData=${JSON.stringify(standaloneMediaData)};\n${js}`;
 const templates = [
   'mockup_luxury_float',
   'mockup_stadium_hero',
