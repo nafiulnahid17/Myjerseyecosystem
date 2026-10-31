@@ -24,7 +24,13 @@ jobs:
       - name: Verify backend and frontend contracts
         run: python -m pytest -q tests
       - name: Verify JavaScript syntax
-        run: node --check app.js
+        run: |
+          node --check app.js
+          node --check src/worker.mjs
+      - name: Verify Cloudflare Worker and safe static asset manifest
+        run: |
+          node --test tests/test_worker.mjs
+          node scripts/build-cloudflare.mjs --check
       - name: Build standalone offline preview
         run: |
           node scripts/build-standalone.mjs

@@ -75,3 +75,25 @@ Gateway, source-contract, navigation, brand/mode and honest-empty-state tests ar
 - `assets/media/*.webp` — ten optimized illustration crops (four tool cards, three mockup and three video templates), all from the user-provided design screenshots.
 - `.env.example` — environment variable names only, no secrets
 - `tests/` — gateway security and contract checks
+
+
+## Cloudflare deployment — same Worker, private Artboard bridge (1 Nov 2026)
+
+The existing Cloudflare Worker is named \`myjerseyecosystem\`. It now has a real JavaScript Worker entrypoint (\`src/worker.mjs\`) and an explicitly curated static-assets directory (\`dist/\`). It serves all approved UI files unchanged; no Python gateway, tests, secrets, or internal source are published as static assets.
+
+**Deployment:** Cloudflare Workers Builds must be connected to this GitHub repository's \`main\` branch, with project root \`/\` and deploy command \`npx wrangler deploy\`. The approved \`dist/\` files are committed, so no Cloudflare build command is required. For future UI changes, run \`node scripts/build-cloudflare.mjs\` and commit matching \`dist/\` updates; GitHub CI fails if the mirror is stale.
+
+**Runtime variables and secrets — set in Cloudflare > Workers & Pages > myjerseyecosystem > Settings > Variables and Secrets, after the first Worker-script deployment:**
+
+| Name | Type | Purpose |
+| --- | --- | --- |
+| \`ARTBOARD_V031_URL\` | Text | \`https://artboard-ai-resolution-independent-production.up.railway.app\` |
+| \`ARTBOARD_V031_TOKEN\` | **Secret** | Same secret as Railway's \`ARTBOARD_API_KEY\` (never commit or paste publicly) |
+| \`MYJERSEY_ACCESS_TOKEN\` | **Secret** | Separate 32+ character private workspace access key, entered into the existing frontend Connect Gateway dialog |
+| \`MYJERSEY_ARTBOARD_PRINCIPAL\` | Text | Stable, server-configured authenticated operator identity (for private single-operator testing, e.g. \`myjersey-operator\`) |
+
+No additional Railway \`Myjersey-Gateway\` is needed **for Artboard only**: the Cloudflare Worker implements the existing \`/api/status\` and Artboard-only \`/api/engine/artboard/...\` contract, forwarding a server-side bearer token and principal. Other engines remain \`not_configured\`, and unsupported routes are rejected. A legacy \`gateway.py\` is still available for local tests or a separate future backend.
+
+**Important:** The workspace access key in an operator's browser is sufficient only for a private prototype. For public multi-user launch, replace it with per-user authenticated sessions, rate limits, durable queues and per-user authorization. A green build proves only deployment readiness, not live OpenRouter image-generation quality.
+
+**Verify:** Open the Cloudflare frontend, click Connect Gateway, enter the *workspace* key (not Artboard's token), confirm Artboard shows online from a live readiness check, then test a real artwork project. Without runtime secrets \`/api/status\` responds with 503 rather than faking an online engine.
