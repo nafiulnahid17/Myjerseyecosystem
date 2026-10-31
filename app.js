@@ -15,7 +15,7 @@ const realTemplates = {
 };
 const engineMeta={artboard:{name:'Artboard AI',icon:'assets/artboard-ai.svg',desc:'AI Artwork Reconstruction & Editable Vector Production',tag:'One or two independently visible jersey surfaces'},frame:{name:'Frame Forge AI',icon:'assets/frame-forge-ai.svg',desc:'Template-Driven Mockup & Video Generation',tag:'3 mockup templates · 3 video templates'},assets:{name:'AssetsX AI',icon:'assets/assetsx-ai.svg',desc:'Visual Asset Analysis, Editing & Vectorization',tag:'Universal asset workflow · basic editing v0.1.0'},autofly:{name:'Autofly',icon:'assets/autofly.svg',desc:'One-Click Artboard AI Orchestration',tag:'Brief · Separate Panels · Combined Image'}};
 const toolCardSteps={artboard:['Upload','Analyze','Artwork','Vectorize','Export'],frame:['Input','Template','Mockup','Video','Download'],assets:['Input','Analyze','Edit','Vectorize','Export'],autofly:['Input','Artboard','One Click','Export']};
-const state={tool:'home',mode:{artboard:'quality',frame:'quality',assets:'quality',autofly:'quality'},status:{},files:{artboard:null,frame:null,assets:null,autofly:null,autofly_back:null,logo:null},objectURLs:{},selectedMockup:'mockup_luxury_float',selectedVideo:'video_luxury_360',templates:structuredClone(realTemplates),formats:{artboard:['eps','svg','pdf'],assets:['png','transparent_png','svg','eps','pdf','zip'],autofly:['svg','eps']},assetInfo:null,assetsJob:null,assetElements:new Set(),editing:'none',frames:{mockup:null,video:null},formValues:{},artboardProject:null,artboardResult:null,autoflyJob:null,autoflyWorkflow:'combined',jobs:[],busy:false,stage:'',progress:null,output:null,logs:[],lastError:'',lastTask:'',artboardPreviewPath:'',failedStage:'',failedFormats:[],lastMode:'',lastJobId:''};
+const state={tool:'home',mode:{artboard:'quality',frame:'quality',assets:'quality',autofly:'quality'},status:{},files:{artboard:null,frame:null,assets:null,autofly:null,autofly_back:null,logo:null},objectURLs:{},selectedMockup:'mockup_luxury_float',selectedVideo:'video_luxury_360',templates:structuredClone(realTemplates),formats:{artboard:['eps','svg','pdf'],assets:['png','transparent_png','svg','eps','pdf','zip'],autofly:['svg','eps']},assetInfo:null,assetsJob:null,assetElements:new Set(),editing:'none',frames:{mockup:null,video:null},formValues:{},artboardProject:null,artboardResult:null,autoflyJob:null,autoflyWorkflow:'combined',jobs:[],busy:false,stage:'',progress:null,output:null,logs:[],lastError:'',lastTask:'',artboardPreviewPath:'',failedStage:'',failedFormats:[],lastMode:'',lastJobId:'',restoredArtboardJob:false};
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtSize=n=>n==null?'':n<1048576?`${(n/1024).toFixed(1)} KB`:`${(n/1048576).toFixed(2)} MB`;
 const m=()=>state.mode[state.tool]||'quality';
@@ -43,6 +43,37 @@ async function statusCheck(){
   if(connected('frame')){try{const c=await call('frame','api/frameforge/templates');if(Array.isArray(c.mockup)&&Array.isArray(c.video))state.templates=c}catch(e){log('Frame Forge catalog unavailable: '+e.message)}}
  }catch(e){state.status={};log('Gateway unavailable: '+e.message);notify(e.message)}
  render();
+ if(!state.restoredArtboardJob){state.restoredArtboardJob=true;await restoreArtboardSession()}
+}
+async function restoreArtboardSession(){
+ let saved=null;
+ try{saved=JSON.parse(sessionStorage.getItem('mj_artboard_job')||'null')}catch{return}
+ if(!saved?.project_id||!saved?.job_id)return;
+ try{
+  const project=await call('artboard','api/artboard/projects/'+encodeURIComponent(saved.project_id));
+  state.artboardProject=project;
+  state.artboardResult=project;
+  state.lastMode=saved.mode||project.processing_mode||state.mode.artboard;
+  const j=await call('artboard','api/artboard/jobs/'+encodeURIComponent(saved.job_id));
+  state.tool='artboard';
+  state.lastJobId=j.job_id;
+  state.stage=j.step||j.stage||'Previous job';
+  state.progress=typeof j.progress==='number'?j.progress:null;
+  log('Restored Artboard job '+j.job_id+' · '+j.status);
+  if(j.preview_path)await loadArtboardPreview(j.project_id,j.preview_path);
+  if(['queued','processing'].includes(j.status)){
+   state.busy=true;render();
+   try{await jobPoll('artboard','api/artboard/jobs/'+j.job_id,j.stage==='export'?'Export':j.stage==='artboard-prepare'?'Prepare':'Production')}
+   catch(e){state.lastError=e.message;log('Recovered job error: '+e.message)}
+   finally{state.busy=false;state.artboardResult=await call('artboard','api/artboard/projects/'+saved.project_id);render()}
+  }else if(j.status==='failed'){
+   state.failedStage=j.stage==='artboard-production'?'production':j.stage==='export'?'export':'prepare';
+   state.lastError=j.error?.message||'Previous Artboard job failed';
+   state.lastExportErrors=j.result?.export_errors||null;
+   state.failedFormats=[...new Set(Object.values(state.lastExportErrors||{}).map(x=>x.format).filter(Boolean))];
+   render();
+  }else{render()}
+ }catch(e){log('Saved job could not be restored: '+e.message)}
 }
 function resetJob(){if(state.busy)return;state.logs=[];state.progress=null;state.stage='';state.lastError='';state.lastTask=''}
 function toolIcon(t,cls='tool-icon'){const x=engineMeta[t];return `<img class="${cls}" src="${x.icon}" alt="${esc(x.name)} logo">`}
@@ -206,7 +237,15 @@ async function jobPoll(engine,path,terminal,limitMs=600000){
  }
  throw Error(terminal+' still processing; inspect the job before resubmitting. No automatic paid retry was started.');
 }
-function captureJob(engine,obj){if(!obj?.job_id)return;state.jobs.unshift({engine,job_id:obj.job_id,status:obj.status||obj.state||'queued',created_at:obj.created_at||new Date().toISOString()})}
+function captureJob(engine,obj){
+ if(!obj?.job_id)return;
+ state.jobs.unshift({engine,job_id:obj.job_id,status:obj.status||obj.state||'queued',created_at:obj.created_at||new Date().toISOString()});
+ if(engine.toLowerCase().includes('artboard')&&obj.project_id){
+  try{sessionStorage.setItem('mj_artboard_job',JSON.stringify({
+   project_id:obj.project_id,job_id:obj.job_id,stage:obj.stage,mode:state.lastMode||state.mode.artboard
+  }))}catch(e){log('Could not persist current job reference: '+e.message)}
+ }
+}
 async function run(name,fn){
  if(state.busy)return;
  state.busy=true;state.lastError='';state.lastTask=name;state.stage='Submitting';state.progress=null;
