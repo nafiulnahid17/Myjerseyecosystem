@@ -81,7 +81,7 @@ async function statusResponse(env, fetchImpl) {
       });
       if (response.ok) {
         const report = await response.json();
-        engines.artboard = { state: report && report.status === 'ready' ? 'online' : 'not_ready' };
+        engines.artboard = { state: report && report.status === 'ready' ? 'online' : 'not_ready', ai_configured: report?.ai_configured === true };
       } else {
         engines.artboard = { state: 'not_ready', http_status: response.status };
       }

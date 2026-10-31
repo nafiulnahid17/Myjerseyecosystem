@@ -32,13 +32,14 @@ test('status uses the actual authenticated Artboard readiness response', async (
   const seen = [];
   const upstream = async (url, options) => {
     seen.push([url, options.headers.Authorization, options.headers['X-Artboard-User']]);
-    return Response.json({ status: 'ready' });
+    return Response.json({ status: 'ready', ai_configured: true });
   };
   const response = await handleRequest(request('/api/status'), env(), upstream);
   assert.equal(response.status, 200);
   const status = await response.json();
   assert.equal(status.source, 'live_health_requests');
   assert.equal(status.engines.artboard.state, 'online');
+  assert.equal(status.engines.artboard.ai_configured, true);
   assert.equal(status.engines.frame.state, 'not_configured');
   assert.deepEqual(seen[0], [ORIGIN + '/health/ready', 'Bearer ' + ENGINE, 'private-operator']);
 });
@@ -84,4 +85,12 @@ test('Wrangler compatibility date is not in the future in UTC', async () => {
   const config = JSON.parse(readFileSync(new URL('../wrangler.jsonc', import.meta.url), 'utf8'));
   assert.ok(config.compatibility_date <= new Date().toISOString().slice(0, 10),
     'Cloudflare rejects future compatibility dates when local and UTC dates differ');
+});
+
+test('worker never marks AI configured without true engine readiness evidence', async () => {
+  const response = await handleRequest(request('/api/status'), env(),
+    async () => Response.json({ status: 'not_ready', ai_configured: false }));
+  const payload = await response.json();
+  assert.equal(payload.engines.artboard.state, 'not_ready');
+  assert.equal(payload.engines.artboard.ai_configured, false);
 });

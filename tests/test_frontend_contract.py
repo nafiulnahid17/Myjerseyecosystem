@@ -77,3 +77,12 @@ def test_standalone_builder_embeds_reference_images():
     script=(root/'scripts'/'build-standalone.mjs').read_text()
     assert 'data:image/webp;base64,' in script
     assert 'assets/media/' in script
+
+
+def test_gateway_connection_indicator_does_not_fabricate_ai_or_fallback_health():
+    assert "Gateway connected" in source
+    assert "Key entered · Check failed" in source
+    assert "ai_configured" in source
+    assert "AI Config" in source
+    assert "Not tested" in source
+    assert "Workspace key rejected (401)" in source
