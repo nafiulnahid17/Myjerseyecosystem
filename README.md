@@ -1,8 +1,18 @@
-# My Jersey Ecosystem — Engine-Aligned Frontend v2
+# My Jersey Ecosystem — Engine-Aligned Frontend v3
 
 **Atherious Labs · Frontend + private backend gateway · 31 October 2026**
 
-This project replaces the former screenshot-overlay frontend. The UI is native HTML, CSS and JavaScript styled after the five provided dark-neon design references. It does **not** include fabricated jobs, sample usage, credit balances, generated outputs, server-online badges, or artificial progress animation. The visual design is close to the reference concept but has **not** been certified pixel-perfect against it.
+This project replaces the former screenshot-overlay frontend. The UI is native HTML, CSS and JavaScript styled after the provided dark-neon design references. It does **not** include fabricated jobs, sample usage, credit balances, generated outputs, server-online badges, or artificial progress animation.
+
+## v3 UI structure
+
+- Responsive hamburger navigation with Home, Overview, Tool Overview, Add Credits, Users, Session Jobs, Support, Get Support and Report a Problem.
+- Dedicated Home page and live-data-only main dashboard.
+- Original Atherious Labs, My Jersey, Artboard AI, Frame Forge AI, AssetsX AI and Autofly SVG brand assets.
+- Quality and Fast & Cost-Effective modes on all four tools; both map to the engines' existing `quality` and `cost_effective` values.
+- Frame Forge keeps its three real mockup templates and three real video templates.
+- Autofly remains a one-click Artboard orchestration workflow and does not duplicate Frame Forge templates.
+- Credits, users and support submission screens fail closed until their real backends are connected; they do not show invented balances, members or ticket confirmations.
 
 ## Backend contract mapping
 
@@ -52,7 +62,7 @@ python -m pytest -q tests
 node --check app.js
 ```
 
-Six gateway/source-contract tests pass in the development environment. Browser screenshot-level regression testing could not be run in this environment because its Chromium is centrally configured to block all navigation. Pixel-perfect matching is **not** claimed for this v2 native UI.
+Gateway, source-contract, navigation and brand/mode tests are included. Pixel-perfect matching is **not** claimed for this native UI.
 
 ## Files
 
@@ -61,5 +71,6 @@ Six gateway/source-contract tests pass in the development environment. Browser s
 - `app.js` — actual engine workflow UI, no mock responses
 - `gateway.py` — private authenticated, allowlisted API gateway
 - `templates/*.svg` — exact six SVG template previews bundled with Frame Forge
+- `assets/*.svg` — original product and tool branding used by the navigation, Home and dashboard screens
 - `.env.example` — environment variable names only, no secrets
 - `tests/` — gateway security and contract checks

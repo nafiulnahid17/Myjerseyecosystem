@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Atherious Labs">
+  <defs><linearGradient id="a" x1="8" y1="54" x2="55" y2="8" gradientUnits="userSpaceOnUse"><stop stop-color="#0a78ff"/><stop offset="1" stop-color="#5cf4ff"/></linearGradient></defs>
+  <path d="M8 53 27 10h14l15 43H44l-3.6-10H23.2L19 53H8Zm19-20h10l-4.7-14.6L27 33Z" fill="url(#a)"/>
+  <path d="m19 53 14-20h11l12 20H44l-6.4-10H26l-7 10Z" fill="#b9fbff" opacity=".72"/>
+</svg>

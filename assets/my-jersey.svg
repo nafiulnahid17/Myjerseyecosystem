@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="My Jersey Ecosystem">
+  <defs><linearGradient id="j" x1="12" y1="8" x2="52" y2="56" gradientUnits="userSpaceOnUse"><stop stop-color="#b6ff5b"/><stop offset="1" stop-color="#20c981"/></linearGradient></defs>
+  <path d="m21 9 11 6 11-6 12 11-8 10-5-4v29H22V26l-5 4-8-10L21 9Z" fill="url(#j)" stroke="#e9ffd0" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M25 14c1.3 5 12.7 5 14 0" fill="none" stroke="#083b2b" stroke-width="3" stroke-linecap="round"/><path d="m27 41 6-15h7l-5 10h6L28 51l4-10h-5Z" fill="#05281f"/>
+</svg>
