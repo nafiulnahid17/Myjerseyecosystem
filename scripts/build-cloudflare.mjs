@@ -4,7 +4,7 @@ import { resolve, join, relative, extname } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
 const output = resolve(root, 'dist');
-const files = ['index.html', 'styles.css', 'app.js'];
+const files = ['index.html', 'styles.css', 'app.js', 'artboard-v2.css', 'artboard-v2.js'];
 for (const folder of ['assets', 'templates']) {
   const walk = dir => {
     for (const entry of readdirSync(resolve(root, dir), { withFileTypes: true })) {
