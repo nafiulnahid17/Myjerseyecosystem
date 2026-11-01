@@ -1,0 +1,69 @@
+/* V2 workflow corrections, Artboard scope only. */
+.abv2{gap:11px;padding:12px;max-width:1540px;min-height:calc(100dvh - 128px)}
+.abv2-top{gap:8px}
+.abv2-health>span{padding:8px 5px;font-size:11px}
+.abv2-header{padding:5px 9px 8px;gap:10px}
+.abv2-header img{width:44px;height:44px}
+.abv2-header h1,.abv2 .abv2-card h2,.abv2 .abv2-modes>b{font-size:14px;line-height:1.35}
+.abv2-header p,.abv2 .abv2-card header>small,.abv2 .abv2-card header>span,.abv2 .abv2-step-label,.abv2 .abv2-modes small{font-size:11px;line-height:1.45}
+.abv2-card{padding:11px;border-radius:14px}
+.abv2-card>header{margin-bottom:8px;padding-bottom:8px}
+.abv2-btn{font-size:12px;padding:9px 13px;min-height:39px;border-radius:11px}
+.abv2-process-grid,.abv2-art-grid-layout,.abv2-export-grid{gap:11px}
+.abv2-preview{min-height:0}
+.abv2-visual{height:clamp(240px,45vh,445px);min-height:240px}
+.abv2-log{min-height:0;max-height:565px}
+.abv2-log li{padding:7px 4px;font-size:11px}
+.abv2-log ol{min-height:125px;margin:8px 0}
+.abv2-current{padding:9px}
+.abv2-artwork{min-height:340px}
+.abv2-art-canvas{min-height:260px}
+.abv2-art-grid-layout.single{grid-template-columns:minmax(0,1.8fr) minmax(255px,.9fr)}
+.abv2-select-actions{gap:9px;align-items:center;flex-wrap:wrap}
+.abv2-select-actions .abv2-nav{flex:1;min-width:195px}
+.abv2-select-actions .abv2-btn.primary{min-width:210px}
+.abv2-drop{min-height:210px;isolation:isolate;overflow:hidden}
+.abv2-drop:has(.abv2-upload-preview){padding:20px}
+.abv2-upload-preview{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#010b1de8;opacity:.55;z-index:-1;filter:drop-shadow(0 0 11px #0099ff88)}
+.abv2-drop:has(.abv2-upload-preview)::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;background:linear-gradient(180deg,#000714b9,#04163176,#000714b9)}
+.abv2-drop>strong,.abv2-drop>small,.abv2-drop>.abv2-upload-icon,.abv2-drop>p{position:relative;z-index:1}
+.abv2-drop>input{z-index:2}
+.abv2-pdf-preview{z-index:0;max-width:95%;overflow-wrap:anywhere;font-size:11px;color:#7ce8ff}
+.abv2-input-shell{gap:11px;padding-bottom:34px}
+.abv2-input-shell .abv2-drop{min-height:210px}
+.abv2-input-shell .abv2-commands{padding:7px 4%}
+.abv2-nav{justify-content:flex-start;gap:9px}
+.abv2-nav>.abv2-btn{flex:0 1 180px}
+.abv2-result-summary{margin-top:8px;padding:9px 11px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border:1px solid #157ab0;border-radius:11px;color:#b2e5f8;font-size:11px}
+.abv2-result-summary b{font-size:12px;color:#3bf5c9}
+.abv2-path-status{position:absolute;bottom:12px;left:10px;right:10px;text-align:center;color:#a0e0fc;font-size:11px;background:#04182ac8;border:1px solid #2071aa;padding:7px;border-radius:8px;z-index:4}
+.abv2-art-canvas.validation-overlay .abv2-beam{background:#7bffc4;box-shadow:0 0 19px 6px #04f38f,0 0 30px #02cd7c}
+.abv2-visual .abv2-beam{background:#00f3ff;box-shadow:0 0 18px 6px #00e5ff,0 0 34px 12px #008fff66}
+.abv2-info{color:#a7d9ef;font-size:11px;line-height:1.5}
+.abv2-format-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.abv2-format{padding:11px 5px;font-size:11px}
+.abv2-format:disabled{opacity:.3;cursor:not-allowed}
+.abv2-format-downloads{min-height:40px;display:flex;gap:8px;flex-wrap:wrap;align-content:start;margin-top:12px}
+.abv2-export-grid{grid-template-columns:minmax(0,1.5fr) minmax(230px,.9fr) minmax(190px,.7fr)}
+.abv2-export-preview,.abv2-export-settings,.abv2-package{min-height:0}
+.abv2-export-arts{min-height:270px}
+.abv2-export-arts img{height:240px;max-height:250px}
+.abv2-package .abv2-btn{width:100%}
+.abv2-current-message{font-size:11px;color:#7be8ff}
+@media(max-width:1100px){.abv2-art-grid-layout.single{grid-template-columns:1fr 1fr}.abv2-art-grid-layout.single>.abv2-log{grid-column:1/-1}.abv2-export-grid{grid-template-columns:1fr 1fr}.abv2-export-grid>.abv2-export-preview{grid-column:1/-1}}
+@media(max-width:760px){.abv2-art-grid-layout.single,.abv2-export-grid{grid-template-columns:1fr}.abv2-art-grid-layout.single>.abv2-log,.abv2-export-grid>.abv2-export-preview{grid-column:auto}.abv2-header img{width:38px;height:38px}.abv2-visual{height:300px}.abv2-log{max-height:410px}.abv2-nav>.abv2-btn{flex:1}.abv2-export-arts{flex-wrap:wrap}}
+@media(prefers-reduced-motion:reduce){.abv2 .abv2-beam,.abv2 .abv2-progress.indeterminate>span{animation:none!important}}
+.abv2-real-paths{position:absolute;inset:3% 2%;height:94%;width:96%;z-index:4;overflow:visible;pointer-events:none;opacity:.72;filter:drop-shadow(0 0 3px #00e5ff)}
+.abv2-real-paths .abv2-trace-path{animation:abv2-trace 3.8s ease-in-out infinite alternate;stroke-linecap:round}
+@keyframes abv2-trace{0%{stroke-dashoffset:var(--path-length,1500);opacity:.25}100%{stroke-dashoffset:0;opacity:1}}
+@media(prefers-reduced-motion:reduce){.abv2-real-paths .abv2-trace-path{animation:none;stroke-dashoffset:0!important}}
+/* Overrides the earlier premium-input selectors without affecting other tools. */
+.abv2:has(.abv2-input-shell) .abv2-header h1{font-size:14px!important;letter-spacing:-.015em}
+.abv2:has(.abv2-input-shell) .abv2-header p{font-size:11px!important;letter-spacing:.06em}
+.abv2:has(.abv2-input-shell) .abv2-header img{width:42px!important;height:42px!important}
+.abv2:has(.abv2-input-shell) .abv2-input-shell .abv2-drop{min-height:214px!important}
+.abv2:has(.abv2-input-shell) .abv2-input-shell .abv2-commands .abv2-btn{min-height:45px!important;font-size:12px!important}
+.abv2-input-shell .abv2-drop strong{font-size:14px!important}
+.abv2-input-shell .abv2-upload-icon{font-size:28px!important}
+.abv2 .abv2-modes>b,.abv2 .abv2-modes strong{font-size:14px!important}
+.abv2 .abv2-modes button small{font-size:11px!important}
