@@ -108,3 +108,46 @@ body.artboard-workspace #menuButton{display:grid!important;flex:0 0 40px;cursor:
 @media(max-width:780px){.abv2-export-grid>.abv2-export-left,.abv2-export-actions{grid-column:auto}.abv2-tech-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:480px){.abv2-tech-grid{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.abv2 .abv2-genuine-image,.abv2-creation-orb{animation:none!important;clip-path:none!important}}
+
+/* Export delivery corrections: preview expanded; ZIP below formats; independent
+   Illustrator and New Production actions; production metrics in right column. */
+.abv2 .abv2-export-grid{display:grid;grid-template-columns:minmax(0,1.50fr) minmax(260px,.83fr) minmax(220px,.68fr);align-items:start;gap:12px}
+.abv2 .abv2-export-left,.abv2 .abv2-export-center,.abv2 .abv2-export-right{min-width:0;display:grid;gap:12px;align-content:start}
+.abv2 .abv2-export-preview{min-height:0}
+.abv2 .abv2-export-arts{min-height:clamp(360px,53vh,640px);gap:12px;align-items:stretch}
+.abv2 .abv2-export-arts>div{min-height:340px;justify-content:center}
+.abv2 .abv2-export-arts img{display:block;width:100%;height:clamp(320px,48vh,550px);max-height:550px;object-fit:contain;object-position:center}
+.abv2 .abv2-export-center .abv2-card{min-height:0}
+.abv2 .abv2-export-center .abv2-btn{width:100%;min-height:40px}
+.abv2 .abv2-export-right .abv2-production-details{min-height:0}
+.abv2 .abv2-export-right .abv2-tech-grid{grid-template-columns:1fr;gap:7px}
+.abv2 .abv2-export-right .abv2-tech-grid>div{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:9px}
+.abv2 .abv2-export-right .abv2-tech-grid b{text-align:right;max-width:60%}
+.abv2 .abv2-new-production{border-color:#167caf}
+.abv2 .abv2-new-production .abv2-btn{margin-top:6px}
+.abv2 .abv2-package [data-abv2-zip-status]{min-height:30px;overflow-wrap:anywhere}
+.abv2 .abv2-export-bottom{justify-content:flex-start;gap:9px;margin-top:2px}
+.abv2 .abv2-export-bottom .abv2-btn{flex:0 1 190px;min-height:38px}
+@media(max-width:1250px){.abv2 .abv2-export-grid{grid-template-columns:minmax(0,1.3fr) minmax(280px,.85fr)}.abv2 .abv2-export-right{grid-column:1/-1}.abv2 .abv2-export-right .abv2-tech-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.abv2 .abv2-export-right .abv2-tech-grid>div{flex-direction:column;align-items:flex-start}.abv2 .abv2-export-right .abv2-tech-grid b{text-align:left;max-width:none}}
+@media(max-width:800px){.abv2 .abv2-export-grid{grid-template-columns:minmax(0,1fr)}.abv2 .abv2-export-right{grid-column:auto}.abv2 .abv2-export-arts{min-height:310px}.abv2 .abv2-export-arts>div{min-height:275px}.abv2 .abv2-export-arts img{height:clamp(240px,41vh,400px)}.abv2 .abv2-export-right .abv2-tech-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:500px){.abv2 .abv2-export-right .abv2-tech-grid{grid-template-columns:1fr}.abv2 .abv2-export-bottom .abv2-btn{flex:1 1 45%}}
+/* Artwork selection is a deliberate checkpoint after genuine AI artwork previews. */
+.abv2 .abv2-artwork .abv2-select{margin-top:9px;border-top:1px solid #12698e;font-size:12px;line-height:1.4}
+.abv2 .abv2-artwork .abv2-select input:disabled{opacity:.42}
+.abv2 .abv2-select-summary{padding:10px 12px;border:1px solid #1272ae;border-radius:10px;background:#031e38;line-height:1.55;font-size:11px}
+.abv2 .abv2-select-actions [data-abv2="continue-vectorization"]{min-width:220px;background:linear-gradient(130deg,#006eb6,#02c8e7);box-shadow:0 0 23px #03aeff53;color:#f1ffff}
+.abv2 .abv2-select-actions [data-abv2="continue-vectorization"]:disabled{background:#11334a;box-shadow:none;color:#8a9caf}
+/* Vectorization: actual returned vector paths, never a drawn fake pattern. */
+.abv2 .abv2-art-canvas.vector-overlay{background:radial-gradient(ellipse at center,#023e7166,transparent 72%),url("assets/artboard-v2/scan-hud.svg") center / contain no-repeat,#010b1c}
+.abv2 .abv2-art-canvas.vector-overlay:after{content:none}
+.abv2 .abv2-art-canvas.vector-overlay .abv2-real-paths{inset:2%;height:96%;width:96%;opacity:.95;mix-blend-mode:screen}
+/* Validation: true green scanning rather than a decorative oversized crosshair. */
+.abv2 .abv2-art-canvas.validation-overlay{background:radial-gradient(ellipse at center,#046f5766,transparent 72%),url("assets/artboard-v2/scan-hud.svg") center / contain no-repeat,#021c23;border-color:#04dda2}
+.abv2 .abv2-art-canvas.validation-overlay:after{content:none}
+.abv2 .abv2-validation-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:10px}
+.abv2 .abv2-validation-results>span{display:flex;align-items:center;justify-content:space-between;gap:7px;border:1px solid #0c6f66;background:#042b33;border-radius:7px;padding:7px}
+.abv2 .abv2-validation-results small{font-size:10px;color:#8fced7}
+.abv2 .abv2-validation-results b{font-size:10px;color:#dafafe}
+.abv2 .abv2-validation-results b.pass{color:#2df6b0}.abv2 .abv2-validation-results b.fail{color:#ffb087}
+@media(max-width:780px){.abv2 .abv2-select-actions [data-abv2="continue-vectorization"]{min-width:0;width:100%}}
+@media(prefers-reduced-motion:reduce){.abv2 .abv2-art-canvas.vector-overlay .abv2-trace-path{animation:none!important;stroke-dashoffset:0!important}}

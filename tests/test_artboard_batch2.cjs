@@ -17,7 +17,7 @@ const context={state,Date,setTimeout:(fn)=>setTimeout(fn,1),URL:{revokeObjectURL
  jobPoll:async(engine,path,terminal)=>{
    assert.equal(engine,'artboard');assert.equal(currentJob.job_id,path.split('/').at(-1));
    if(terminal==='Production' && process.env.BATCH2_NO_STAGE_EVENTS !== '1'){
-     for(const [step,stage] of [['Generating AI artwork','Artwork Creation'],['VTracer tracing vector paths','Vectorization'],['Validating vector fidelity','Validation']]){
+     for(const [step,stage] of [['Generating AI artwork','Artwork Creation'],['VTracer tracing vector paths','Artwork Creation'],['Validating vector fidelity','Artwork Creation']]){
        state.stage=step;state.artboardEvents.push({step,at:'2026-11-01T00:00:00Z',stage_progress:12});context.render();context.updateMonitor();
        assert(screens.at(-1).includes(stage),`Missing stage while real engine sends ${step}: ${stage}`);
      }
@@ -30,6 +30,7 @@ const context={state,Date,setTimeout:(fn)=>setTimeout(fn,1),URL:{revokeObjectURL
   if(path==='api/artboard/prepare'){serverProject.surfaces=opts.json.surfaces.map(x=>({type:x,name:x,part_id:x,exports:{},validation:{path_count:x==='front_body'?123:287,color_mode:'CMYK',postscript_level:2,dpi:300}}));return currentJob={job_id:'j'+(++jobN),project_id:'p1',status:'queued'};}
   if(path==='api/artboard/production'){serverProject.true_vector_ready=true;return currentJob={job_id:'j'+(++jobN),project_id:'p1',status:'queued'};}
   if(path==='api/artboard/export'){serverProject.exports={zip:'projects/p1/export/master.zip'};for(const item of serverProject.surfaces)item.exports={eps:`projects/p1/export/${item.type}.eps`,svg:`projects/p1/export/${item.type}.svg`,pdf:`projects/p1/export/${item.type}.pdf`,png:`projects/p1/export/${item.type}.png`};return currentJob={job_id:'j'+(++jobN),project_id:'p1',status:'queued'};}
+  if(path.startsWith('api/artboard/projects/p1/artifacts/')&&opts.response==='blob')return new Blob(['real engine bytes'],{type:path.endsWith('.svg')?'image/svg+xml':'image/png'});
   if(path==='api/artboard/projects/p1')return serverProject;
   throw Error('Unexpected '+path);
  }};
@@ -44,14 +45,27 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   await handler(click('start'));
   test(27,src.includes('originalPreview()')&&css.includes('.abv2 .abv2-visual>img'));
   test(28,src.includes('interimPreview(side)')&&css.includes('abv2-reveal-real-image')&&screens.at(-1).includes('Artwork Creation'));
-  await handler(click('produce'));
+  test('no-vectorization-before-selection',screens.at(-1).includes('Continue to Vectorization')); 
+  test('artwork-no-early-vectorization',!screens.some(v=>v.includes('<h1>Vectorization</h1>')));
+  test('real-previews',screens.at(-1).includes('Real Front engine-produced artwork preview')&&screens.at(-1).includes('Real Back engine-produced artwork preview'));
+  const selection=listeners.change.find(f=>f.toString().includes("const b=e.target.closest('[data-abv2-select]')"));
+  const chosen=process.env.ARTBOARD_TEST_PARTS==='both'?['front_body','back_body']:[process.env.ARTBOARD_TEST_PARTS==='back'?'back_body':'front_body'];
+  for(const side of chosen)selection({target:{closest:(sel)=>sel==='[data-abv2-select]'?{dataset:{abv2Select:side},checked:true}:null}});
+  test('select-'+chosen.join('+'),screens.at(-1).includes('Continue to Vectorization')&&screens.at(-1).includes(chosen.length+' selected'));
+  await handler(click('continue-vectorization'));
   const displayed=screens.map(s=>s.match(/abv2-header[\s\S]*?<h1>(.*?)<\/h1>/)?.[1]||'').filter(Boolean);
   test(29,displayed.includes('Vectorization')&&src.includes('abv2-real-paths'));
   test(30,displayed.includes('Validation')&&src.includes('validation-overlay'));
   test(31,screens.at(-1).includes('Production Details')&&screens.at(-1).includes('Vector paths')&&screens.at(-1).includes('PostScript level')&&screens.at(-1).includes('Raster DPI'));
-  test(32,screens.at(-1).includes('<h2>Master ZIP</h2>')&&screens.at(-1).includes('master.zip'));
+  test(32,screens.at(-1).includes('<h2>Master ZIP</h2>')&&screens.at(-1).includes('data-abv2="download-master-zip"'));
+  test('export-order',screens.at(-1).indexOf('abv2-export-settings')<screens.at(-1).indexOf('abv2-package')&&screens.at(-1).indexOf('abv2-package')<screens.at(-1).indexOf('abv2-illustrator')&&screens.at(-1).indexOf('abv2-illustrator')<screens.at(-1).indexOf('abv2-new-production'));
+  test('production-details-right',screens.at(-1).indexOf('abv2-export-right')<screens.at(-1).indexOf('Production Details'));
+  await handler(click('select-format:svg'));
+  test('selected-export-only',screens.at(-1).includes('Download Front')===chosen.includes('front_body')&&screens.at(-1).includes('Download Back')===chosen.includes('back_body'));
+  test('zip-fallback',src.includes('assembleMasterZip(entries)')&&src.includes('download-master-zip')&&src.includes("response:'blob'")&&src.includes('new Blob([...local,...central,end]'));
   test(33,screens.at(-1).includes('<h2>Adobe Illustrator</h2>')&&screens.at(-1).includes('Continue to Illustrator')&&!screens.at(-1).includes('Master ZIP & Illustrator'));
   test('scope',!requests.some(r=>r.path.startsWith('api/revector')));
   test('auto-flow',displayed.indexOf('Vectorization')>=0&&displayed.indexOf('Validation')>displayed.indexOf('Vectorization')&&displayed.indexOf('Export Production')>displayed.indexOf('Validation'));
+  if(process.env.EXPORT_SNAPSHOT==='1')fs.writeFileSync('/mnt/data/artboard_final_work/export-qa.html','<!doctype html><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><style>'+fs.readFileSync('/mnt/data/artboard_v2_draft/artboard-v2.css','utf8')+'\\n'+css+'</style><body style=\"margin:0;background:#010b1b;color:white\">'+screens.at(-1)+'</body>');
   console.log('PASS Batch 02 frontend mocked integration & static checks');
 })().catch(e=>{console.error(e);process.exitCode=1});
