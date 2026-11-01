@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="680" viewBox="0 0 560 680" role="img" aria-label="Back futuristic illustrative jersey">
+<defs><linearGradient id="cloth" x1="0" x2="1" y1="0" y2=".4"><stop stop-color="#010916"/><stop offset=".18" stop-color="#07152c"/><stop offset=".51" stop-color="#020711"/><stop offset=".8" stop-color="#102d5e"/><stop offset="1" stop-color="#020714"/></linearGradient><linearGradient id="blue" x1="0" x2="1" y1=".2" y2="1"><stop stop-color="#00fff6"/><stop offset=".18" stop-color="#046cff"/><stop offset=".55" stop-color="#0738bd"/><stop offset=".82" stop-color="#00e9ff"/><stop offset="1" stop-color="#e6ffff"/></linearGradient><linearGradient id="shine" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#16ffff" stop-opacity=".9"/><stop offset=".16" stop-color="#0266ff" stop-opacity=".06"/><stop offset=".65" stop-color="#006bfe" stop-opacity=".08"/><stop offset="1" stop-color="#83fff9" stop-opacity=".48"/></linearGradient><linearGradient id="panel" x1="0" x2="1"><stop stop-color="#000614" stop-opacity=".8"/><stop offset=".5" stop-color="#071c36" stop-opacity=".03"/><stop offset="1" stop-color="#000309" stop-opacity=".6"/></linearGradient><filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="shadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="12" stdDeviation="17" flood-color="#00aeff" flood-opacity=".47"/></filter><clipPath id="shirt"><path d="M184 108 L231 86 Q280 107 329 86 L376 108 L456 136 L516 247 L445 286 L407 221 L407 596 Q280 620 153 596 L153 221 L115 286 L44 247 L104 136 Z"/></clipPath></defs>
+<ellipse cx="280" cy="630" rx="175" ry="23" fill="#047bff" opacity=".16" filter="url(#glow)"/>
+<g filter="url(#shadow)"><path d="M184 108 L231 86 Q280 107 329 86 L376 108 L456 136 L516 247 L445 286 L407 221 L407 596 Q280 620 153 596 L153 221 L115 286 L44 247 L104 136 Z" fill="url(#cloth)" stroke="#00d9ff" stroke-opacity=".74" stroke-width="2.5"/>
+<g clip-path="url(#shirt)">
+<path d="M120 95 L158 606 L241 611 L215 82" fill="#00050e" opacity=".5"/><path d="M392 90 L422 603 L358 610 L345 87" fill="#0370b8" opacity=".2"/>
+<path d="M-20 190 L132 147 L147 241 L33 275 Z M411 156 L555 187 L517 268 L435 239 Z" fill="url(#blue)" opacity=".93"/>
+<path d="M57 252 L146 207 L142 227 L89 277 Z M423 227 L494 255 L470 273 L415 244Z" fill="#aafcff"/>
+<path d="M-16 183 L130 155 L126 180 L18 229 Z M439 164 L560 190 L540 231 L431 196Z" fill="#03122e" opacity=".55"/>
+<path d="M185 604 L407 365 L399 418 L250 604Z" fill="#004ce0"/><path d="M155 548 L408 294 L404 326 L173 590Z" fill="url(#blue)"/><path d="M192 599 L414 427 L404 461 L244 613Z" fill="#62f9ff"/><path d="M360 114 L410 141 L410 211 L336 177Z" fill="#0079ff" opacity=".7"/><path d="M129 394 L411 559 L412 584 L124 435Z" fill="#0344d7" opacity=".9"/><path d="M143 412 L407 564 L404 575 L143 428Z" fill="#54ecff"/>
+<path d="M172 105 L191 598 M376 108 L393 593" stroke="#8cfbff" stroke-width="4" opacity=".22"/><path d="M145 173 L153 595 M413 174 L406 598" stroke="#008fff" stroke-width="3" opacity=".36"/>
+<path d="M152 229 Q190 220 229 234 M332 237 Q375 224 407 225" stroke="#0f2857" stroke-opacity=".6" stroke-width="2" fill="none"/>
+<path d="M153 120 L408 118 L409 602 L154 602Z" fill="url(#panel)"/><path d="M179 115 L208 597" fill="none" stroke="#75fcff" stroke-opacity=".12" stroke-width="38"/>
+<path d="M45 252 L109 276 M452 282 L516 250" stroke="#62faff" stroke-width="9" opacity=".95"/>
+</g>
+<path d="M230 89 Q279 140 330 89 L309 123 Q280 152 250 124Z" fill="#0af6ff" stroke="#5ffcfe" stroke-width="2.5"/>
+<path d="M245 93 Q280 115 314 93 Q300 124 280 134 Q260 123 245 93Z" fill="#020817" stroke="#0269ff" stroke-width="2"/>
+<path d="M45 247 L116 283 L151 221 M408 221 L445 285 L514 247" fill="none" stroke="#91faff" stroke-opacity=".5" stroke-width="2"/>
+<path d="M154 598 Q280 617 405 598" fill="none" stroke="#11cfff" stroke-opacity=".85" stroke-width="4"/>
+</g>
+<g filter="url(#glow)" fill="#04e4ff" transform="translate(280 174) scale(.77)"><path d="M0 -24 L31 30 L12 21 L0 0 L-19 30 L-42 35Z"/><path d="M-14 10 L30 6 L45 21 L3 23Z" fill="#9bffff"/></g>
+<g fill="#89faff" opacity=".87"><path d="M276 127 l-7 -12 7 5 7-5 -7 12Z"/></g>
+<path d="M184 108 L231 86 Q280 107 329 86 L376 108 L456 136 L516 247 L445 286 L407 221 L407 596 Q280 620 153 596 L153 221 L115 286 L44 247 L104 136 Z" fill="none" stroke="url(#shine)" stroke-width="3" opacity=".9"/>
+</svg>
