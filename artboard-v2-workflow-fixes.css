@@ -67,3 +67,44 @@
 .abv2-input-shell .abv2-upload-icon{font-size:28px!important}
 .abv2 .abv2-modes>b,.abv2 .abv2-modes strong{font-size:14px!important}
 .abv2 .abv2-modes button small{font-size:11px!important}
+
+/* Batch 02 / Artboard AI only. Supports the existing header hamburger. */
+body.artboard-workspace #menuButton{display:grid!important;flex:0 0 40px;cursor:pointer;z-index:52}
+@media(min-width:871px){
+  body.artboard-workspace.sidebar-collapsed .shell{grid-template-columns:0 minmax(0,1fr)}
+  body.artboard-workspace.sidebar-collapsed .sidebar{width:0;min-width:0;padding:0!important;border:0;opacity:0;pointer-events:none;overflow:hidden}
+  body.artboard-workspace .shell{transition:grid-template-columns .22s ease}
+  body.artboard-workspace .sidebar{transition:opacity .2s ease,padding .2s ease}
+}
+/* Issue #27: preserve the entire original image including portrait and panorama uploads. */
+.abv2 .abv2-visual{display:flex;align-items:center;justify-content:center;min-width:0;min-height:240px;overflow:hidden;padding:8px}
+.abv2 .abv2-visual>img{display:block!important;position:relative!important;flex:0 1 auto;max-width:100%!important;max-height:100%!important;width:100%!important;height:100%!important;object-fit:contain!important;object-position:center!important;transform:none!important;margin:auto;filter:none}
+.abv2 .abv2-visual:after{opacity:.32;z-index:0}
+.abv2 .abv2-visual .abv2-beam{z-index:6}
+/* Issue #28: reveal real image assets as delivered; never invent image pixels. */
+.abv2 .abv2-art-canvas .abv2-genuine-image{display:block;width:100%;height:100%;max-height:100%;object-fit:contain;object-position:center;animation:abv2-reveal-real-image 2s ease-out both}
+@keyframes abv2-reveal-real-image{0%{opacity:.15;clip-path:inset(0 0 99% 0)}100%{opacity:1;clip-path:inset(0 0 0 0)}}
+.abv2-generation-placeholder{position:relative;z-index:2;display:grid;align-content:center;justify-items:center;gap:18px;text-align:center;max-width:90%;padding:15px;color:#aee5f5}
+.abv2-creation-orb{display:block;width:80px;height:80px;border-radius:50%;border:3px dotted #00cfff;box-shadow:0 0 25px #009eff5e,inset 0 0 25px #00deff18;animation:abv2-creation-spin 3s linear infinite}
+@keyframes abv2-creation-spin{to{transform:rotate(360deg)}}
+.abv2-creating .abv2-beam{display:block;animation:abv2-sweep 3.2s ease-in-out infinite alternate}
+/* Issues #29–30: distinct usable Vectorization/Validation preview surfaces. */
+.abv2 .abv2-art-canvas.vector-overlay{min-height:300px;border-color:#11bdfa}
+.abv2 .abv2-art-canvas.validation-overlay{min-height:300px;border-color:#1ae7ad;background-color:#052437}
+.abv2 .abv2-art-canvas.validation-overlay .abv2-beam{background:#13ffab;box-shadow:0 0 18px #1decb8}
+/* Issues #31–33: detailed strip below the preview, distinct ZIP and Illustrator cards. */
+.abv2-export-left{min-width:0;display:grid;gap:10px;align-content:start}
+.abv2-export-actions{min-width:0;display:grid;gap:10px;align-content:start}
+.abv2-production-details{border:1px solid #168dbe;background:linear-gradient(155deg,#08233c,#021327);border-radius:13px;padding:11px 13px;box-shadow:inset 0 1px #85e9ff31}
+.abv2-production-details h2{font-size:14px;margin:0 0 10px;color:#b9faff}
+.abv2-tech-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.abv2-tech-grid>div{min-width:0;display:flex;flex-direction:column;gap:4px;padding:8px;border:1px solid #115079;background:#04192d;border-radius:8px}
+.abv2-tech-grid span{font-size:10px;color:#73b5d7}
+.abv2-tech-grid b{font-size:11px;color:#e1faff;overflow-wrap:anywhere}
+.abv2-illustrator{border-color:#92632b!important}
+.abv2-export-actions .abv2-btn{width:100%}
+.abv2 .abv2-export-arts img{height:245px;max-height:255px;object-fit:contain}
+@media(max-width:1100px){.abv2-export-grid>.abv2-export-left{grid-column:1/-1}.abv2-export-actions{grid-column:2}}
+@media(max-width:780px){.abv2-export-grid>.abv2-export-left,.abv2-export-actions{grid-column:auto}.abv2-tech-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.abv2-tech-grid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.abv2 .abv2-genuine-image,.abv2-creation-orb{animation:none!important;clip-path:none!important}}
