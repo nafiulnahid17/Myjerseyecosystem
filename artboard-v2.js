@@ -483,7 +483,7 @@
       // When selection follows completion, show only its real, saved vector geometry
       // and confirmed historical events. Never pretend this is a new engine job.
       ui.phase='processing';ui.processingStage='Vectorization';ui.stageStatus='completed';state.activePipeline='Vectorization';
-      state.stage='Engine-confirmed vector result — showing saved geometry';render();await loadSideAssets(true);await paintVectorOverlay();await sleep(3500);
+      state.stage='Engine-confirmed vector result — showing saved geometry';render();await loadSideAssets(true);if(typeof document.querySelectorAll==='function')await paintVectorOverlay();await sleep(3500);
       if(ui.cancelRequested||ui.workspaceEpoch!==epoch)return;
       ui.processingStage='Validation';ui.visitedStages.add('Validation');state.activePipeline='Validation';
       state.stage='Engine-confirmed validation — reviewing quality';render();await sleep(2500);
