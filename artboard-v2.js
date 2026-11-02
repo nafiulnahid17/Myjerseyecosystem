@@ -451,11 +451,62 @@
       if(state.lastError)ui.exportStarted=false;
     }finally{ui.finishing=false;render()}
   }
-  async function stop(){if(!state.busy||!state.artboardJob?.job_id){notify('No cancellable Artboard job is currently active');return;}
-    try {const j=state.artboardJob;await call('artboard','api/artboard/jobs/'+encodeURIComponent(j.job_id)+'/cancel',{method:'POST'});ui.cancelRequested=true;notify('Cancellation requested. Waiting for engine confirmation.');}
-    catch(e){notify('Cancellation failed: '+e.message)}
+
+  let cancellationPollInFlight=false;
+  async function refreshSavedJob(){
+    const j=savedJob();if(!j?.job_id)return;
+    try{
+      const latest=await call('artboard','api/artboard/jobs/'+encodeURIComponent(j.job_id));
+      state.artboardJob=latest;state.pendingArtboardJob=latest;
+      state.stage=latest.step||latest.status;state.progress=typeof latest.progress==='number'?latest.progress:null;
+      if(latest.status==='cancelled'&&ui.cancelRequested){reset(true);return}
+      render();
+    }catch(e){notify('Job status unavailable: '+e.message)}
   }
-  function reset(){if(state.busy)return notify('Stop the running job before returning to input');ui.phase='input';ui.view=null;ui.analysisDone=false;ui.generationStarted=false;ui.processingStage='';ui.downloadFormat='';ui.prepared=[];ui.selected.clear();ui.visitedStages.clear();ui.stageStatus='';ui.lastPreviewPath='';ui.continued=false;ui.productionDone=false;ui.finishing=false;ui.exportStarted=false;ui.generationStarted=false;ui.assetBusy.clear();ui.assetRetry={};for(const url of Object.values({...ui.generatedUrls,...ui.vectorUrls}))URL.revokeObjectURL(url);ui.generatedUrls={};ui.vectorUrls={};state.artboardPreviewPath='';state.files.artboard=null;state.artboardProject=null;state.artboardResult=null;state.artboardJob=null;for(const key of ['artboard','artboard_live']){if(state.objectURLs[key])URL.revokeObjectURL(state.objectURLs[key]);delete state.objectURLs[key];}state.stage='';state.progress=null;state.lastError='';state.logs=[];try{sessionStorage.removeItem('mj_artboard_job')}catch{}render();}
+  async function stop(){
+    if(cancellationPollInFlight)return;
+    const job=savedJob();
+    if(!job?.job_id){
+      if(state.busy){ui.cancelRequested=true;state.stage='Stopping current upload before next job';render();notify('Stop requested; new AI jobs will not start');return}
+      reset();return;
+    }
+    if(['cancelled','completed','failed'].includes(job.status)){reset(true);return}
+    ui.cancelRequested=true;ui.stageStatus='cancelling';state.stage='Cancelling job…';render();
+    cancellationPollInFlight=true;
+    try{
+      const id=encodeURIComponent(job.job_id);
+      const response=await call('artboard','api/artboard/jobs/'+id+'/cancel',{method:'POST'});
+      if(!response.cancellation_requested&&!['cancelled','completed','failed'].includes(response.status))notify('Worker unavailable; checking its stored state');
+      for(let attempt=0;attempt<45;attempt++){
+        const latest=await call('artboard','api/artboard/jobs/'+id);
+        state.artboardJob=latest;state.pendingArtboardJob=latest;
+        if(['cancelled','completed','failed'].includes(latest.status)){
+          reset(true);notify('Previous job closed. New input is ready.');return;
+        }
+        state.stage='Cancelling — waiting for engine safe boundary';
+        if(attempt%4===0)render();
+        await sleep(2000);
+      }
+      ui.phase='input';ui.view=null;render();
+      notify('Still cancelling on server. Use Check Status; no new paid job started.');
+    }catch(e){ui.phase='input';ui.view=null;render();notify('Could not confirm cancellation: '+e.message)}
+    finally{cancellationPollInFlight=false}
+  }
+  function reset(force=false){
+    if(state.busy&&!force)return notify('Cancel the active job before starting a new input');
+    ui.phase='input';ui.view=null;ui.analysisDone=false;ui.generationStarted=false;ui.processingStage='';ui.downloadFormat='';ui.prepared=[];
+    ui.selected.clear();ui.visitedStages.clear();ui.stageStatus='';ui.lastPreviewPath='';ui.continued=false;
+    ui.productionDone=false;ui.finishing=false;ui.exportStarted=false;ui.cancelRequested=false;
+    ui.generationError='';ui.assetBusy.clear();ui.assetRetry={};
+    for(const url of Object.values({...ui.generatedUrls,...ui.vectorUrls}))URL.revokeObjectURL(url);
+    ui.generatedUrls={};ui.vectorUrls={};state.artboardPreviewPath='';state.files.artboard=null;
+    state.artboardProject=null;state.artboardResult=null;state.artboardJob=null;state.pendingArtboardJob=null;
+    for(const key of ['artboard','artboard_live']){if(state.objectURLs[key])URL.revokeObjectURL(state.objectURLs[key]);delete state.objectURLs[key]}
+    state.activePipeline='';state.busy=false;state.stage='';state.progress=null;state.lastError='';state.logs=[];
+    state.artboardEvents=[];state.artboardEventKeys.clear();
+    try{sessionStorage.removeItem('mj_artboard_job')}catch{}
+    render();
+  }
   // Protect all ecosystem buttons: intercept only Artboard V2-specific actions in capture phase.
   document.addEventListener('click',async e=>{
     const b=e.target.closest('button[data-abv2]');if(!b)return;
