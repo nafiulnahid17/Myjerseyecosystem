@@ -103,7 +103,7 @@
       ${jobNotice()}<div class="abv2-commands">${button('▤ Clear Input','clear','danger',!file||state.busy)}${button('▷ Start Production','start','primary',!file||state.busy||!connected('artboard')||['queued','processing','cancelling'].includes(savedJob()?.status))}</div>
     </div>`;
   }
-  function analyze(){return `${top('Artwork Creation','Image model prepares the source and builds the print artwork')}${workflowRail()}<div class="abv2-process-grid"><div class="abv2-primary"><section class="abv2-card abv2-preview"><header><h2>Live Input Scan</h2><span>${esc(statusText())}</span></header>${originalPreview()}<div class="abv2-preview-foot"><span>Original input • ${esc(state.files.artboard?.name||'No file')}</span><span>${ui.analysisDone?'Analysis complete':state.busy?'Scanning source':'Awaiting analysis'}</span></div>${ui.analysisDone?`<div class="abv2-result-summary"><b>Analysis report</b><span>${available().length} actual independently visible ${available().length===1?'side':'sides'} prepared</span></div>`:''}</section>${navigation('Analyze')}</div>${liveLog()}</div>`;}
+  function analyze(){return `${top('Artwork Creation','Image model prepares the source and builds the print artwork')}${workflowRail()}<div class="abv2-process-grid"><div class="abv2-primary"><section class="abv2-card abv2-preview"><header><h2>Live Input Scan</h2><span>${esc(statusText())}</span></header>${originalPreview()}<div class="abv2-preview-foot"><span>Original input • ${esc(state.files.artboard?.name||'No file')}</span><span>${ui.analysisDone?'Source prepared':state.busy?'Preparing reference':'Awaiting source'}</span></div>${ui.analysisDone?`<div class="abv2-result-summary"><b>Source preparation</b><span>${available().length} ${available().length===1?'print field':'print fields'} ready for image-model reconstruction</span></div>`:''}</section>${navigation('Analyze')}</div>${liveLog()}</div>`;}
   function select(){ui.phase='artwork';const prepared=available();
     if(!ui.analysisDone)return analyze();
     const ready=prepared.filter(x=>Boolean(ui.generatedUrls[x.side]||ui.vectorUrls[x.side]||previewUrl(x)||interimPreview(x.side)));
@@ -405,7 +405,7 @@
       latest=await call('artboard','api/artboard/projects/'+id,{timeoutMs:30000});
       state.artboardResult=latest;
       if(available().length)return latest;
-      state.stage='Analysis complete — syncing detected surfaces';state.progress=100;render();
+      state.stage='Source references ready — syncing artwork inputs';state.progress=100;render();
       if(attempt<attempts-1)await sleep(450+attempt*250);
     }
     return latest;
@@ -420,7 +420,7 @@
       const job=await call('artboard','api/artboard/prepare',{method:'POST',json:{project_id:id,surfaces,auto:true,self_analysis:true,width_in:22,height_in:31}});
       captureJob('Artboard',job);if(ui.cancelRequested){void stop();return;}await jobPoll('artboard','api/artboard/jobs/'+job.job_id,'Prepare');
       if(ui.cancelRequested||epoch!==ui.workspaceEpoch)return;
-      state.stage='Analysis complete — syncing detected surfaces';state.progress=100;render();
+      state.stage='Source references ready — syncing artwork inputs';state.progress=100;render();
       await waitForPreparedProject(id);
       if(available().length){prepared=true;break;}throw Error('Engine returned no prepared surfaces');
     }catch(e){lastFailure=e;
@@ -429,7 +429,7 @@
     }}
     if(ui.cancelRequested||epoch!==ui.workspaceEpoch)return;
     if(!prepared)throw Error('Unable to verify a visible surface automatically: '+(lastFailure?.message||'No result'));
-    ui.analysisDone=true;ui.prepared=available();ui.selected.clear();ui.phase='artwork';ui.processingStage='Artwork Creation';state.stage='Analysis complete — creating artwork';state.progress=null;render();
+    ui.analysisDone=true;ui.prepared=available();ui.selected.clear();ui.phase='artwork';ui.processingStage='Artwork Creation';state.stage='Reference ready — generating artwork';state.progress=null;render();
   });
     if(ui.analysisDone&&!state.lastError&&!ui.cancelRequested&&ui.workspaceEpoch===epoch)await produce();
   }
