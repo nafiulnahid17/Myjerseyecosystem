@@ -15,4 +15,25 @@ assert(ui.includes('if(ui.cancelRequested){void stop();return;}'),'Never dispatc
 assert(ui.includes("button('■ Cancel Job'"),'Cancel Job visible on all processing pages');
 assert(ui.includes("status==='cancelling'"),'Show backend cancelling state');
 assert(!ui.includes("if(ui.phase==='input'&&state.artboardProject?.project_id"),'Legacy auto-reentry removed');
+
+// Stage classification must follow the CURRENT engine milestone, never the
+// early 3% "Validating production request" preflight event.
+const vm=require('node:vm');
+const progressValue=ui.match(/function progressValue\(value\)\{[^\n]*\}/)?.[0];
+const stageOf=ui.match(/function stageOf\(message, progress=null\)\{[\s\S]*?\n  \}/)?.[0];
+assert(progressValue&&stageOf,'Stage/progress classifiers must remain inspectable');
+const classify=vm.runInNewContext(progressValue+'\n'+stageOf+'\nstageOf', {});
+for(const [message,pct,expected] of [
+  ['Validating production request',3,'Artwork Creation'],
+  ['Running vectorize',58,'Vectorization'],
+  ['Running optimize',72,'Vectorization'],
+  ['Running compose',83,'Vectorization'],
+  ['Running validate',92,'Validation'],
+  ['Validate completed',96,'Validation'],
+]) assert.equal(classify(message,pct),expected,message);
+assert(ui.includes('const next=stageOf(state.stage,state.progress)'),'Live stage must use current job update');
+assert(!ui.includes('const candidates=[...(state.artboardEvents'),'Historic events must not skip stages');
+assert(ui.includes('resume_from_ai:true'),'Resume must reuse saved artwork without paid AI regeneration');
+assert(ui.includes("if(a==='resume-vector')"),'Recovery button must have an active handler');
+
 console.log('Artboard refresh/cancel/re-entry regression contract passed');
