@@ -15,7 +15,7 @@ const realTemplates = {
 };
 const engineMeta={artboard:{name:'Artboard AI',icon:'assets/artboard-ai.svg',desc:'AI Artwork Reconstruction & Editable Vector Production',tag:'One or two independently visible jersey surfaces'},frame:{name:'Frame Forge AI',icon:'assets/frame-forge-ai.svg',desc:'Template-Driven Mockup & Video Generation',tag:'3 mockup templates · 3 video templates'},assets:{name:'AssetsX AI',icon:'assets/assetsx-ai.svg',desc:'Visual Asset Analysis, Editing & Vectorization',tag:'Universal asset workflow · basic editing v0.1.0'},autofly:{name:'Autofly',icon:'assets/autofly.svg',desc:'One-Click Artboard AI Orchestration',tag:'Brief · Separate Panels · Combined Image'}};
 const toolCardSteps={artboard:['Upload','Analyze','Artwork','Vectorize','Export'],frame:['Input','Template','Mockup','Video','Download'],assets:['Input','Analyze','Edit','Vectorize','Export'],autofly:['Input','Artboard','One Click','Export']};
-const state={tool:'home',mode:{artboard:'quality',frame:'quality',assets:'quality',autofly:'quality'},status:{},files:{artboard:null,frame:null,assets:null,autofly:null,autofly_back:null,logo:null},objectURLs:{},selectedMockup:'mockup_luxury_float',selectedVideo:'video_luxury_360',templates:structuredClone(realTemplates),formats:{artboard:['eps','svg','pdf'],assets:['png','transparent_png','svg','eps','pdf','zip'],autofly:['svg','eps']},assetInfo:null,assetsJob:null,assetElements:new Set(),editing:'none',frames:{mockup:null,video:null},formValues:{},artboardProject:null,artboardResult:null,artboardJob:null,artboardEvents:[],artboardEventKeys:new Set(),activePipeline:'',autoflyJob:null,autoflyWorkflow:'combined',jobs:[],busy:false,stage:'',progress:null,output:null,logs:[],lastError:'',lastTask:'',artboardPreviewPath:'',failedStage:'',failedFormats:[],lastMode:'',lastJobId:'',restoredArtboardJob:false};
+const state={tool:'home',mode:{artboard:'quality',frame:'quality',assets:'quality',autofly:'quality'},status:{},files:{artboard:null,frame:null,assets:null,autofly:null,autofly_back:null,logo:null},objectURLs:{},selectedMockup:'mockup_luxury_float',selectedVideo:'video_luxury_360',templates:structuredClone(realTemplates),formats:{artboard:['eps','svg','pdf'],assets:['png','transparent_png','svg','eps','pdf','zip'],autofly:['svg','eps']},assetInfo:null,assetsJob:null,assetElements:new Set(),editing:'none',frames:{mockup:null,video:null},formValues:{},artboardProject:null,artboardResult:null,artboardJob:null,artboardEvents:[],artboardEventKeys:new Set(),activePipeline:'',autoflyJob:null,autoflyWorkflow:'combined',jobs:[],busy:false,stage:'',progress:null,output:null,logs:[],lastError:'',lastTask:'',artboardPreviewPath:'',failedStage:'',failedFormats:[],lastMode:'',lastJobId:'',restoredArtboardJob:false,pendingArtboardJob:null};
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtSize=n=>n==null?'':n<1048576?`${(n/1024).toFixed(1)} KB`:`${(n/1048576).toFixed(2)} MB`;
 const m=()=>state.mode[state.tool]||'quality';
@@ -46,36 +46,24 @@ async function statusCheck(){
  if(!state.restoredArtboardJob){state.restoredArtboardJob=true;await restoreArtboardSession()}
 }
 async function restoreArtboardSession(){
+ // Never automatically reopen a previous workflow or start job polling on page load.
  let saved=null;
  try{saved=JSON.parse(sessionStorage.getItem('mj_artboard_job')||'null')}catch{return}
  if(!saved?.project_id||!saved?.job_id)return;
  try{
   const project=await call('artboard','api/artboard/projects/'+encodeURIComponent(saved.project_id));
-  state.artboardProject=project;
-  state.artboardResult=project;
+  const job=await call('artboard','api/artboard/jobs/'+encodeURIComponent(saved.job_id));
+  if(job.project_id!==project.project_id)throw Error('Job/project identity mismatch');
+  state.artboardProject=project;state.artboardResult=project;state.artboardJob=job;
+  state.pendingArtboardJob=job;
   state.lastMode=saved.mode||project.processing_mode||state.mode.artboard;
-  const j=await call('artboard','api/artboard/jobs/'+encodeURIComponent(saved.job_id));
-  state.artboardJob=j;
-  state.activePipeline=j.stage==='export'?'Export':j.stage==='artboard-prepare'?'Prepare':'Production';
-  state.tool='artboard';
-  state.lastJobId=j.job_id;
-  state.stage=j.step||j.stage||'Previous job';
-  state.progress=typeof j.progress==='number'?j.progress:null;
-  log('Restored Artboard job '+j.job_id+' · '+j.status);
-  if(j.preview_path)await loadArtboardPreview(j.project_id,j.preview_path);
-  if(['queued','processing'].includes(j.status)){
-   state.busy=true;render();
-   try{await jobPoll('artboard','api/artboard/jobs/'+j.job_id,j.stage==='export'?'Export':j.stage==='artboard-prepare'?'Prepare':'Production')}
-   catch(e){state.lastError=e.message;log('Recovered job error: '+e.message)}
-   finally{state.busy=false;state.artboardResult=await call('artboard','api/artboard/projects/'+saved.project_id);render()}
-  }else if(j.status==='failed'){
-   state.failedStage=j.stage==='artboard-production'?'production':j.stage==='export'?'export':'prepare';
-   state.lastError=j.error?.message||'Previous Artboard job failed';
-   state.lastExportErrors=j.result?.export_errors||null;
-   state.failedFormats=[...new Set(Object.values(state.lastExportErrors||{}).map(x=>x.format).filter(Boolean))];
-   render();
-  }else{render()}
- }catch(e){log('Saved job could not be restored: '+e.message)}
+  state.lastJobId=job.job_id;
+  state.activePipeline=job.stage==='export'?'Export':job.stage==='artboard-prepare'?'Prepare':'Production';
+  state.stage=job.step||job.stage||'Previous job';
+  state.progress=typeof job.progress==='number'?job.progress:null;
+  log('Saved Artboard job verified: '+job.status+' — user choice required');
+  render();
+ }catch(e){log('Saved Artboard job could not be verified: '+e.message)}
 }
 function resetJob(){if(state.busy)return;state.logs=[];state.progress=null;state.stage='';state.lastError='';state.lastTask=''}
 function toolIcon(t,cls='tool-icon'){const x=engineMeta[t];return `<img class="${cls}" src="${x.icon}" alt="${esc(x.name)} logo">`}
@@ -287,6 +275,7 @@ async function jobPoll(engine,path,terminal,limitMs=600000){
   state.progress=typeof j.progress==='number'?Math.max(0,Math.min(100,j.progress)):null;
   if(engine==='artboard'){
    state.artboardJob=j;
+   if(state.pendingArtboardJob?.job_id===j.job_id)state.pendingArtboardJob=j;
    for(const event of (j.events||[])){
     const key=[j.job_id,event.at,event.step,event.progress].join('|');
     if(state.artboardEventKeys.has(key))continue;
@@ -324,6 +313,7 @@ function captureJob(engine,obj){
  if(!obj?.job_id)return;
  state.jobs.unshift({engine,job_id:obj.job_id,status:obj.status||obj.state||'queued',created_at:obj.created_at||new Date().toISOString()});
  if(engine.toLowerCase().includes('artboard')&&obj.project_id){
+  state.artboardJob=obj;state.pendingArtboardJob=null;
   try{sessionStorage.setItem('mj_artboard_job',JSON.stringify({
    project_id:obj.project_id,job_id:obj.job_id,stage:obj.stage,mode:state.lastMode||state.mode.artboard
   }))}catch(e){log('Could not persist current job reference: '+e.message)}
