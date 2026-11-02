@@ -1,0 +1,11 @@
+'use strict';
+const fs=require('node:fs'),assert=require('node:assert/strict'),path=require('node:path');
+const src=fs.readFileSync(path.join(__dirname,'..','artboard-v2.js'),'utf8');
+const dist=fs.readFileSync(path.join(__dirname,'..','dist','artboard-v2.js'),'utf8');
+assert.equal(src,dist,'Cloudflare dist must match actual Artboard UI');
+assert(src.includes("['Input','Artwork Creation','Vectorization','Validation','Export']"),'Exactly five visible workflow stages');
+assert(!src.includes("['Input','Analyze','Artwork Creation'"),'No standalone analyzer page');
+assert(src.includes('self_analysis:true'),'Prepare asks for analyzer-free image-model source');
+assert(src.includes("if(!ui.analysisDone)return analyze()"),'Embedded preparation visual stays in Artwork Creation');
+assert(src.includes("Image model prepares the source"),'Artwork Creation explains the image model');
+console.log('Artboard image-model self-analysis UI contract PASS');
