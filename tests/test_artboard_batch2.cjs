@@ -46,7 +46,7 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   await handler(click('start'));
   test(27,src.includes('originalPreview()')&&css.includes('.abv2 .abv2-visual>img'));
   test('live-workflow-rail',screens.at(-1).includes('Artboard production workflow')&&screens.at(-1).includes('Artwork Creation'));
-  test('analysis-handoff',src.includes('waitForPreparedProject')&&src.includes('Analysis complete — syncing detected surfaces'));
+  test('analysis-handoff',src.includes('waitForPreparedProject')&&src.includes('Source references ready — syncing artwork inputs'));
   test(28,src.includes('interimPreview(side)')&&css.includes('abv2-reveal-real-image')&&screens.at(-1).includes('Artwork Creation'));
   test('no-vectorization-before-selection',screens.at(-1).includes('Continue to Vectorization')); 
   test('artwork-no-early-vectorization',!screens.some(v=>v.includes('<h1>Vectorization</h1>')));
