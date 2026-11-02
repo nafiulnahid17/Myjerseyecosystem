@@ -399,7 +399,7 @@
       log('Auto-detection attempt reported: '+e.message);
     }}
     if(ui.cancelRequested||epoch!==ui.workspaceEpoch)return;
-    if(!prepared)throw Error('Unable to verify a visible surface automatically: +(lastFailure?.message||'No result'));
+    if(!prepared)throw Error('Unable to verify a visible surface automatically: '+(lastFailure?.message||'No result'));
     ui.analysisDone=true;ui.prepared=available();ui.selected.clear();ui.phase='artwork';ui.processingStage='Artwork Creation';state.stage='Analysis complete — starting AI artwork generation';state.progress=null;render();
   });
     if(ui.analysisDone&&!state.lastError&&!ui.cancelRequested&&ui.workspaceEpoch===epoch)await produce();
