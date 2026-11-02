@@ -452,6 +452,43 @@
     }finally{ui.finishing=false;render()}
   }
 
+  async function resumeSavedJob(){
+    const old=savedJob();if(!old?.job_id)return notify('No saved job to resume');
+    if(old.status==='cancelling')return notify('Cancellation is in progress; check status');
+    const isPrepare=old.stage==='artboard-prepare',isExport=old.stage==='export';
+    ui.view=null;ui.phase=isPrepare?'analyze':isExport?'processing':'artwork';
+    ui.processingStage=isPrepare?'Analyze':isExport?'Export':'Artwork Creation';
+    ui.analysisDone=!isPrepare&&available().length>0;
+    ui.generationStarted=!isPrepare;
+    ui.generationError='';
+    if(state.busy){render();return}
+    try{
+      const job=await call('artboard','api/artboard/jobs/'+encodeURIComponent(old.job_id));
+      state.artboardJob=job;state.pendingArtboardJob=null;
+      if(job.status==='cancelled'){reset(true);return}
+      if(['completed','failed'].includes(job.status)){
+        state.artboardResult=await call('artboard','api/artboard/projects/'+encodeURIComponent(project().project_id));
+        ui.analysisDone=available().length>0;
+        if(isPrepare){ui.phase='artwork';ui.generationStarted=false}
+        else if(isExport&&job.status==='completed')ui.phase='export';
+        else if(job.status==='completed'){ui.phase='artwork';ui.productionDone=state.artboardResult.true_vector_ready===true}
+        if(job.status==='failed'){ui.generationError=job.error?.message||'Previous job failed';ui.phase='artwork'}
+        if(ui.productionDone)await loadSideAssets(true);
+        render();return;
+      }
+      render();
+      await run('Resume Artboard job',async()=>{
+        await jobPoll('artboard','api/artboard/jobs/'+job.job_id,isPrepare?'Prepare':isExport?'Export':'Production');
+        if(ui.cancelRequested)return;
+        state.artboardResult=await call('artboard','api/artboard/projects/'+encodeURIComponent(project().project_id));
+        ui.analysisDone=available().length>0;
+        if(isPrepare){ui.phase='artwork';ui.generationStarted=false}
+        else if(isExport){ui.phase='export';ui.exportStarted=true}
+        else{ui.phase='artwork';ui.productionDone=state.artboardResult.true_vector_ready===true;ui.generationStarted=true;await loadSideAssets(true)}
+      });
+      render();
+    }catch(e){state.pendingArtboardJob=old;ui.phase='input';ui.view=null;render();notify('Unable to resume: '+e.message)}
+  }
   let cancellationPollInFlight=false;
   async function refreshSavedJob(){
     const j=savedJob();if(!j?.job_id)return;
