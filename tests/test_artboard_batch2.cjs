@@ -18,8 +18,9 @@ const context={state,Date,setTimeout:(fn)=>setTimeout(fn,1),URL:{revokeObjectURL
    assert.equal(engine,'artboard');assert.equal(currentJob.job_id,path.split('/').at(-1));
    if(terminal==='Production' && process.env.BATCH2_NO_STAGE_EVENTS !== '1'){
      for(const [step,stage] of [['Generating AI artwork','Artwork Creation'],['VTracer tracing vector paths','Artwork Creation'],['Validating vector fidelity','Artwork Creation']]){
-       state.stage=step;state.artboardEvents.push({step,at:'2026-11-01T00:00:00Z',stage_progress:12});context.render();context.updateMonitor();
+       state.stage=step;state.progress=12;state.artboardEvents.push({step,at:'2026-11-01T00:00:00Z',progress:12});context.render();context.updateMonitor();
        assert(screens.at(-1).includes(stage),`Missing stage while real engine sends ${step}: ${stage}`);
+       assert(screens.at(-1).includes('12%'),'Live UI must read the engine event progress field');
      }
    }else state.stage=terminal==='Prepare'?'Surface analysis complete':'Export complete';
    return currentJob;
@@ -44,6 +45,8 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   test(35,css.includes('artboard-workspace #menuButton{display:grid!important'));
   await handler(click('start'));
   test(27,src.includes('originalPreview()')&&css.includes('.abv2 .abv2-visual>img'));
+  test('live-workflow-rail',screens.at(-1).includes('Artboard production workflow')&&screens.at(-1).includes('Artwork Creation'));
+  test('analysis-handoff',src.includes('waitForPreparedProject')&&src.includes('Analysis complete — syncing detected surfaces'));
   test(28,src.includes('interimPreview(side)')&&css.includes('abv2-reveal-real-image')&&screens.at(-1).includes('Artwork Creation'));
   test('no-vectorization-before-selection',screens.at(-1).includes('Continue to Vectorization')); 
   test('artwork-no-early-vectorization',!screens.some(v=>v.includes('<h1>Vectorization</h1>')));

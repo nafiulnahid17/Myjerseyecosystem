@@ -26,12 +26,20 @@ function notify(s){const e=document.querySelector('#notification');e.textContent
 function stamp(){return new Date().toLocaleTimeString('en-GB',{hour12:false})}
 function log(message){state.logs.push(`[${stamp()}] ${String(message)}`);if(state.logs.length>80)state.logs.shift();updateMonitor()}
 function apiError(j){return j?.error?.message||j?.error?.technical_summary||j?.detail?.message||j?.detail||j?.message||'Request failed'}
-async function call(engine,path,{method='GET',json=null,body=null,response='json'}={}){
+async function call(engine,path,{method='GET',json=null,body=null,response='json',timeoutMs=null}={}){
  const headers={};let content=body;
  if(json!==null){headers['Content-Type']='application/json';content=JSON.stringify(json)}
- const r=await fetch('/api/engine/'+engine+'/'+path,{method,headers,body:content,cache:'no-store',credentials:'same-origin'});
- if(!r.ok){const payload=await r.json().catch(()=>({}));throw Error(engine+': '+apiError(payload)+' (HTTP '+r.status+')')}
- return response==='blob'?r.blob():r.json();
+ const controller=typeof AbortController==='function'?new AbortController():null;
+ const requestTimeout=timeoutMs??(method==='GET'?45000:180000);
+ const timer=controller&&requestTimeout>0?setTimeout(()=>controller.abort(),requestTimeout):null;
+ try{
+  const r=await fetch('/api/engine/'+engine+'/'+path,{method,headers,body:content,cache:'no-store',credentials:'same-origin',signal:controller?.signal});
+  if(!r.ok){const payload=await r.json().catch(()=>({}));throw Error(engine+': '+apiError(payload)+' (HTTP '+r.status+')')}
+  return response==='blob'?r.blob():r.json();
+ }catch(e){
+  if(e?.name==='AbortError')throw Error(engine+': request timed out while waiting for the server');
+  throw e;
+ }finally{if(timer)clearTimeout(timer)}
 }
 async function statusCheck(){
  try{
@@ -266,10 +274,19 @@ async function loadArtboardPreview(projectId, path) {
  } catch(e){log('Intermediate preview unavailable: '+e.message)}
 }
 async function jobPoll(engine,path,terminal,limitMs=600000){
- let started=Date.now(),lastEvent='';
+ let started=Date.now(),lastEvent='',consecutivePollErrors=0;
  state.activePipeline=terminal;
  while(Date.now()-started<limitMs){
-  const j=await call(engine,path);
+  let j;
+  try{
+   j=await call(engine,path,{timeoutMs:30000});consecutivePollErrors=0;
+  }catch(e){
+   consecutivePollErrors++;
+   if(consecutivePollErrors>3)throw e;
+   state.stage='Reconnecting to live job status';state.progress=null;
+   log(terminal+': status connection interrupted; retry '+consecutivePollErrors+'/3');
+   updateMonitor();await new Promise(resolve=>setTimeout(resolve,1600));continue;
+  }
   state.lastJobId=j.job_id||'';
   state.stage=j.step||j.stage||j.status||'processing';
   state.progress=typeof j.progress==='number'?Math.max(0,Math.min(100,j.progress)):null;
@@ -291,6 +308,7 @@ async function jobPoll(engine,path,terminal,limitMs=600000){
   if(engine==='artboard'&&j.preview_path)await loadArtboardPreview(j.project_id,j.preview_path);
   const status=j.status||j.state;
   if(status==='completed'||status==='ready'||status==='review_required'||status==='awaiting_desktop'){
+   state.progress=100;state.stage=j.step||terminal+' complete';updateMonitor();
    if(j.result?.export_errors&&Object.keys(j.result.export_errors).length){
     state.failedFormats=[...new Set(Object.values(j.result.export_errors).map(e=>e.format).filter(Boolean))];
     state.failedStage='export';state.lastExportErrors=j.result.export_errors;
