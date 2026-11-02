@@ -511,9 +511,9 @@
     const epoch=ui.workspaceEpoch;
     ui.preferInput=false;
     if(old.status==='cancelling')return notify('Cancellation is in progress; check status');
-    const isPrepare=old.stage==='artboard-prepare',isExport=old.stage==='export';
-    ui.view=null;ui.phase=isPrepare?'analyze':isExport?'processing':'artwork';
-    ui.processingStage=isPrepare?'Analyze':isExport?'Export':'Artwork Creation';
+    const isPrepare=old.stage==='artboard-prepare',isExport=old.stage==='export',isVector=old.stage==='artboard-vectorize';
+    ui.view=null;ui.phase=isPrepare?'artwork':(isExport||isVector)?'processing':'artwork';
+    ui.processingStage=isPrepare?'Artwork Creation':isExport?'Export':isVector?'Vectorization':'Artwork Creation';
     ui.analysisDone=!isPrepare&&available().length>0;
     ui.generationStarted=!isPrepare;
     ui.generationError='';
@@ -527,20 +527,20 @@
         ui.analysisDone=available().length>0;
         if(isPrepare){ui.phase='artwork';ui.generationStarted=false}
         else if(isExport&&job.status==='completed')ui.phase='export';
-        else if(job.status==='completed'){ui.phase='artwork';ui.productionDone=state.artboardResult.true_vector_ready===true}
+        else if(job.status==='completed'){ui.phase=isVector?'processing':'artwork';ui.processingStage=isVector?'Validation':'Artwork Creation';ui.productionDone=state.artboardResult.ai_reconstruction?.complete===true||state.artboardResult.true_vector_ready===true}
         if(job.status==='failed'){ui.generationError=job.error?.message||'Previous job failed';ui.phase='artwork'}
         if(ui.productionDone)await loadSideAssets(true);
         render();return;
       }
       render();
       await run('Resume Artboard job',async()=>{
-        await jobPoll('artboard','api/artboard/jobs/'+job.job_id,isPrepare?'Prepare':isExport?'Export':'Production');
+        await jobPoll('artboard','api/artboard/jobs/'+job.job_id,isPrepare?'Prepare':isExport?'Export':isVector?'Vectorization':'Production');
         if(ui.cancelRequested||ui.workspaceEpoch!==epoch)return;
         state.artboardResult=await call('artboard','api/artboard/projects/'+encodeURIComponent(project().project_id));
         ui.analysisDone=available().length>0;
         if(isPrepare){ui.phase='artwork';ui.generationStarted=false}
         else if(isExport){ui.phase='export';ui.exportStarted=true}
-        else{ui.phase='artwork';ui.productionDone=state.artboardResult.true_vector_ready===true;ui.generationStarted=true;await loadSideAssets(true)}
+        else{ui.phase=isVector?'processing':'artwork';ui.processingStage=isVector?'Validation':'Artwork Creation';ui.productionDone=state.artboardResult.ai_reconstruction?.complete===true||state.artboardResult.true_vector_ready===true;ui.generationStarted=true;await loadSideAssets(true)}
       });
       render();
     }catch(e){state.pendingArtboardJob=old;ui.phase='input';ui.view=null;render();notify('Unable to resume: '+e.message)}
@@ -608,7 +608,7 @@
     if(a==='clear'){if(state.busy)return;state.files.artboard=null;const u=state.objectURLs.artboard;if(u)URL.revokeObjectURL(u);delete state.objectURLs.artboard;render();return}
     if(a==='home'||a==='new')return reset();
     if(a==='illustrator')return continueSelectedIllustrator();if(a==='download-master-zip')return downloadMasterZip();if(a.startsWith('select-format:')){ui.downloadFormat=a.split(':')[1];render();return;}
-    if(a==='previous'){if(state.busy)return notify('Active job: stop processing before changing stages');if(ui.phase==='export'){ui.view='processing';ui.processingStage='Validation';}else if(ui.phase==='artwork')ui.view='analyze';else if(ui.phase==='analyze')ui.view='input';else {ui.view='artwork';} render();return}
+    if(a==='previous'){if(state.busy)return notify('Active job: cancel or wait before changing stages');if(ui.phase==='export'){ui.view='processing';ui.processingStage='Validation';}else if(ui.phase==='artwork')ui.view='input';else {ui.view='artwork';}render();return}
     if(a.startsWith('mode:')){if(state.busy)return;state.mode.artboard=a.split(':')[1];render();return}
     if(a.startsWith('recreate:'))return notify('AI missing-side recreation is not exposed through this frontend’s existing Artboard gateway allowlist. No request was submitted.');
   },true);
