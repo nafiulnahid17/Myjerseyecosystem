@@ -3,7 +3,7 @@
 (() => {
   const ui = {
     vectorOverlaySource:null, analysisDone:false, generationStarted:false, processingStage:'', downloadFormat:'',
-    phase: 'input', preferInput:false, selected: new Set(), prepared: [], inspected: false,
+    phase: 'input', preferInput:false, workspaceEpoch:0, selected: new Set(), prepared: [], inspected: false,
     view: null, visitedStages: new Set(), stageStatus: '', lastPreviewPath:'', dimensions: '', awaitingSurfaces: false, visibleChoice: new Set(['front_body']), processingStarted: false, cancelRequested: false, productionDone:false, continued:false, finishing:false, exportStarted:false, zipBusy:false, generatedUrls:{}, vectorUrls:{}, assetBusy:new Set(), assetRetry:{}, generationError:""
   };
   const steps = ['Input','Analyze','Artwork Creation','Vectorization','Validation','Export'];
@@ -372,14 +372,17 @@
   }
   async function start(){const f=state.files.artboard;if(!f)return notify('Upload a supported file first');if(!connected('artboard'))return notify('Artboard engine is unavailable');
     if(['queued','processing','cancelling'].includes(savedJob()?.status))return notify('Resume or cancel existing job before starting a paid production');
+    const epoch=++ui.workspaceEpoch;
     state.pendingArtboardJob=null;state.artboardJob=null;try{sessionStorage.removeItem('mj_artboard_job')}catch{}
     ui.preferInput=false;ui.selected.clear();ui.prepared=[];ui.visitedStages.clear();ui.stageStatus='';ui.lastPreviewPath='';state.artboardPreviewPath='';ui.view=null;ui.phase='analyze';ui.analysisDone=false;ui.generationStarted=false;ui.processingStage='';ui.downloadFormat='';ui.cancelRequested=false;ui.productionDone=false;ui.continued=false;ui.finishing=false;ui.exportStarted=false;ui.generationError='';ui.generatedUrls={};ui.vectorUrls={};ui.assetRetry={};ui.assetBusy.clear();
     await run('Artboard source upload',async()=>{state.artboardEvents=[];state.artboardEventKeys.clear();state.artboardJob=null;state.lastMode=state.mode.artboard;state.progress=null;
       const p=await call('artboard','api/artboard/projects',{method:'POST',json:{name:f.name.slice(0,120),processing_mode:state.lastMode}});state.artboardProject=p;state.artboardResult=p;
       const fd=new FormData();fd.append('project_id',p.project_id);fd.append('file',f);state.artboardResult=await call('artboard','api/artboard/upload',{method:'POST',body:fd});state.activePipeline='Upload';state.stage='Source uploaded';state.progress=null;});
+    if(ui.workspaceEpoch!==epoch)return;
+    if(ui.cancelRequested){reset(true);return;}
     if(!state.lastError)await analyzeSurfaces();
   }
-  async function analyzeSurfaces(){const id=project().project_id;if(!id)return;await run('Analyze uploaded artwork',async()=>{
+  async function analyzeSurfaces(){const id=project().project_id,epoch=ui.workspaceEpoch;if(!id||ui.cancelRequested)return;await run('Analyze uploaded artwork',async()=>{
     ui.phase='analyze';state.activePipeline='Prepare';state.stage='Analyzing artwork';state.progress=null;render();
     // The v0.3.1 engine needs surface names in its prepare request. Try both, then
     // automatically fall back to a verified single surface only if detection fails.
@@ -388,31 +391,35 @@
       state.artboardEvents=[];state.artboardEventKeys.clear();state.stage='Scanning '+surfaces.map(surfaceLabel).join(' + ');render();
       const job=await call('artboard','api/artboard/prepare',{method:'POST',json:{project_id:id,surfaces,auto:true,width_in:22,height_in:31}});
       captureJob('Artboard',job);if(ui.cancelRequested){void stop();return;}await jobPoll('artboard','api/artboard/jobs/'+job.job_id,'Prepare');
+      if(ui.cancelRequested||epoch!==ui.workspaceEpoch)return;
       state.artboardResult=await call('artboard','api/artboard/projects/'+id);
       if(available().length){prepared=true;break;}throw Error('Engine returned no prepared surfaces');
     }catch(e){lastFailure=e;
       if(!/surface|not visible|not found|locat|detect|independently|component|geometry|missing/i.test(e.message))throw e;
       log('Auto-detection attempt reported: '+e.message);
     }}
-    if(!prepared)throw Error('Unable to verify a visible surface automatically: '+(lastFailure?.message||'No result'));
+    if(ui.cancelRequested||epoch!==ui.workspaceEpoch)return;
+    if(!prepared)throw Error('Unable to verify a visible surface automatically: +(lastFailure?.message||'No result'));
     ui.analysisDone=true;ui.prepared=available();ui.selected.clear();ui.phase='artwork';ui.processingStage='Artwork Creation';state.stage='Analysis complete — starting AI artwork generation';state.progress=null;render();
   });
-    if(ui.analysisDone&&!state.lastError&&!ui.cancelRequested)await produce();
+    if(ui.analysisDone&&!state.lastError&&!ui.cancelRequested&&ui.workspaceEpoch===epoch)await produce();
   }
   async function produce(){
     if(ui.cancelRequested)return;
-    const id=project().project_id;if(!id||!available().length)return notify('Prepare a visible artwork surface first');
+    const epoch=ui.workspaceEpoch,id=project().project_id;if(!id||!available().length)return notify('Prepare a visible artwork surface first');
     ui.generationStarted=true;ui.productionDone=false;ui.phase='artwork';ui.processingStage='Artwork Creation';ui.visitedStages.clear();ui.stageStatus='';
     await run('Artboard AI artwork creation',async()=>{
       state.activePipeline='Production';state.stage='Generating flat 2D artwork';state.progress=null;state.artboardEvents=[];state.artboardEventKeys.clear();render();
       const j=await call('artboard','api/artboard/production',{method:'POST',json:{project_id:id,ai_reconstruction:true,processing_mode:state.lastMode||state.mode.artboard}});
       captureJob('Artboard',j);if(ui.cancelRequested){void stop();return;}await jobPoll('artboard','api/artboard/jobs/'+j.job_id,'Production');
+      if(ui.cancelRequested||ui.workspaceEpoch!==epoch||project().project_id!==id)return;
       state.artboardResult=await call('artboard','api/artboard/projects/'+id);
       if(state.artboardResult.true_vector_ready!==true)throw Error('Vector validation is not confirmed by the engine');
       ui.productionDone=true;ui.stageStatus='completed';state.stage='Artwork generated — choose Front, Back or Both';state.progress=null;
       await loadSideAssets(true);
       render();
     });
+    if(ui.workspaceEpoch!==epoch)return;
     if(state.lastError)ui.generationError=state.lastError;
     if(!ui.cancelRequested&&ui.continued&&ui.productionDone)void completeSelectedWorkflow();
     render();
@@ -427,6 +434,7 @@
     if(ui.productionDone)await completeSelectedWorkflow();
   }
   async function completeSelectedWorkflow(){
+    const epoch=ui.workspaceEpoch;
     if(ui.cancelRequested||ui.finishing||ui.exportStarted||!ui.continued||!ui.productionDone)return;
     ui.finishing=true;
     try{
@@ -435,15 +443,17 @@
       // and confirmed historical events. Never pretend this is a new engine job.
       ui.phase='processing';ui.processingStage='Vectorization';ui.stageStatus='completed';state.activePipeline='Vectorization';
       state.stage='Engine-confirmed vector result — showing saved geometry';render();await loadSideAssets(true);await sleep(1500);
+      if(ui.cancelRequested||ui.workspaceEpoch!==epoch)return;
       ui.processingStage='Validation';ui.visitedStages.add('Validation');state.activePipeline='Validation';
       state.stage='Engine-confirmed validation — reviewing quality';render();await sleep(1600);
-      if(ui.exportStarted||ui.cancelRequested)return;
+      if(ui.exportStarted||ui.cancelRequested||ui.workspaceEpoch!==epoch)return;
       ui.exportStarted=true;
       const id=project().project_id;
       await run('Prepare Artboard export files',async()=>{
         ui.phase='processing';ui.processingStage='Validation';ui.stageStatus='completed';state.activePipeline='Export';state.stage='Preparing EPS SVG PDF PNG ZIP';state.progress=null;render();
         const j=await call('artboard','api/artboard/export',{method:'POST',json:{project_id:id,formats:['eps','svg','pdf','png','zip'],bundle:'production_pack'}});
         captureJob('Artboard',j);if(ui.cancelRequested){void stop();return;}await jobPoll('artboard','api/artboard/jobs/'+j.job_id,'Export');
+        if(ui.cancelRequested||ui.workspaceEpoch!==epoch)return;
         state.artboardResult=await call('artboard','api/artboard/projects/'+id);
         if(!exportedArtifacts().length)throw Error('Engine returned no export files');
         ui.phase='export';ui.processingStage='Export';ui.downloadFormat='';state.stage='Production complete';state.progress=null;
@@ -454,6 +464,7 @@
 
   async function resumeSavedJob(){
     const old=savedJob();if(!old?.job_id)return notify('No saved job to resume');
+    const epoch=ui.workspaceEpoch;
     ui.preferInput=false;
     if(old.status==='cancelling')return notify('Cancellation is in progress; check status');
     const isPrepare=old.stage==='artboard-prepare',isExport=old.stage==='export';
@@ -480,7 +491,7 @@
       render();
       await run('Resume Artboard job',async()=>{
         await jobPoll('artboard','api/artboard/jobs/'+job.job_id,isPrepare?'Prepare':isExport?'Export':'Production');
-        if(ui.cancelRequested)return;
+        if(ui.cancelRequested||ui.workspaceEpoch!==epoch)return;
         state.artboardResult=await call('artboard','api/artboard/projects/'+encodeURIComponent(project().project_id));
         ui.analysisDone=available().length>0;
         if(isPrepare){ui.phase='artwork';ui.generationStarted=false}
@@ -532,7 +543,7 @@
   }
   function reset(force=false){
     if(state.busy&&!force)return notify('Cancel the active job before starting a new input');
-    ui.preferInput=false;ui.phase='input';ui.view=null;ui.analysisDone=false;ui.generationStarted=false;ui.processingStage='';ui.downloadFormat='';ui.prepared=[];
+    ++ui.workspaceEpoch;ui.preferInput=false;ui.phase='input';ui.view=null;ui.analysisDone=false;ui.generationStarted=false;ui.processingStage='';ui.downloadFormat='';ui.prepared=[];
     ui.selected.clear();ui.visitedStages.clear();ui.stageStatus='';ui.lastPreviewPath='';ui.continued=false;
     ui.productionDone=false;ui.finishing=false;ui.exportStarted=false;ui.cancelRequested=false;
     ui.generationError='';ui.assetBusy.clear();ui.assetRetry={};
