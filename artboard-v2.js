@@ -443,6 +443,7 @@
       // and confirmed historical events. Never pretend this is a new engine job.
       ui.phase='processing';ui.processingStage='Vectorization';ui.stageStatus='completed';state.activePipeline='Vectorization';
       state.stage='Engine-confirmed vector result — showing saved geometry';render();await loadSideAssets(true);await sleep(1500);
+      if(ui.cancelRequested||ui.workspaceEpoch!==epoch)return;
       ui.processingStage='Validation';ui.visitedStages.add('Validation');state.activePipeline='Validation';
       state.stage='Engine-confirmed validation — reviewing quality';render();await sleep(1600);
       if(ui.exportStarted||ui.cancelRequested||ui.workspaceEpoch!==epoch)return;
@@ -463,6 +464,7 @@
 
   async function resumeSavedJob(){
     const old=savedJob();if(!old?.job_id)return notify('No saved job to resume');
+    const epoch=ui.workspaceEpoch;
     ui.preferInput=false;
     if(old.status==='cancelling')return notify('Cancellation is in progress; check status');
     const isPrepare=old.stage==='artboard-prepare',isExport=old.stage==='export';
@@ -489,7 +491,7 @@
       render();
       await run('Resume Artboard job',async()=>{
         await jobPoll('artboard','api/artboard/jobs/'+job.job_id,isPrepare?'Prepare':isExport?'Export':'Production');
-        if(ui.cancelRequested)return;
+        if(ui.cancelRequested||ui.workspaceEpoch!==epoch)return;
         state.artboardResult=await call('artboard','api/artboard/projects/'+encodeURIComponent(project().project_id));
         ui.analysisDone=available().length>0;
         if(isPrepare){ui.phase='artwork';ui.generationStarted=false}
