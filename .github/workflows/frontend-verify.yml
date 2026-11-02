@@ -30,6 +30,7 @@ jobs:
           node --check artboard-v2.js
           node tests/test_artboard_recovery_static.cjs
           node tests/test_artboard_batch2.cjs
+          node tests/test_artboard_self_analysis.cjs
       - name: Verify Cloudflare Worker and safe static asset manifest
         run: |
           node --test tests/test_worker.mjs
