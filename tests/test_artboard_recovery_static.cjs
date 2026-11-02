@@ -36,4 +36,11 @@ assert(!ui.includes('const candidates=[...(state.artboardEvents'),'Historic even
 assert(ui.includes('resume_from_ai:true'),'Resume must reuse saved artwork without paid AI regeneration');
 assert(ui.includes("if(a==='resume-vector')"),'Recovery button must have an active handler');
 
-console.log('Artboard refresh/cancel/re-entry regression contract passed');
+assert(ui.includes("'_Master_'+(p.processing_mode==='quality'?'quality':'normal')+'.zip'"),
+  'Client-assembled ZIP must expose quality/normal mode in its filename');
+assert(ui.includes("item.path.split('/').pop()"),
+  'Illustrator handoff must retain the actual mode-suffixed artifact filename');
+assert(ui.includes("p.processing_mode==='quality'?'quality':'normal'"),
+  'Artboard download filenames must distinguish quality from normal mode');
+
+console.log('Artboard refresh/cancel/re-entry and export naming regression contract passed');
