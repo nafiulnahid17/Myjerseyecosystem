@@ -1,0 +1,18 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const app=fs.readFileSync(path.join(__dirname,'..','app.js'),'utf8');
+const ui=fs.readFileSync(path.join(__dirname,'..','artboard-v2.js'),'utf8');
+assert(app.includes('pendingArtboardJob:null'));
+const restored=app.slice(app.indexOf('async function restoreArtboardSession(){'),app.indexOf('function resetJob(){'));
+assert(!restored.includes("state.tool='artboard'"),'Do not navigate after refresh');
+assert(!restored.includes("await jobPoll("),'Do not auto-poll stale jobs');
+assert(ui.includes('Resume Production')&&ui.includes('Cancel & New Input'));
+assert(ui.includes('ui.preferInput'), 'Respect user returning to input after leaving tool');
+assert(ui.includes('cancellationPollInFlight'),'Prevent duplicate cancel requests');
+assert(ui.includes("['cancelled','completed','failed'].includes(latest.status)"),'Only confirmed terminal state resets');
+assert(ui.includes("sessionStorage.removeItem('mj_artboard_job')"),'Forget previous job on new input');
+assert(ui.includes('if(ui.cancelRequested){void stop();return;}'),'Never dispatch followup job after cancel');
+assert(ui.includes("button('■ Cancel Job'"),'Cancel Job visible on all processing pages');
+assert(ui.includes("status==='cancelling'"),'Show backend cancelling state');
+assert(!ui.includes("if(ui.phase==='input'&&state.artboardProject?.project_id"),'Legacy auto-reentry removed');
+console.log('Artboard refresh/cancel/re-entry regression contract passed');

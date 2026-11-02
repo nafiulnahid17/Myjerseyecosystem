@@ -151,3 +151,10 @@ body.artboard-workspace #menuButton{display:grid!important;flex:0 0 40px;cursor:
 .abv2 .abv2-validation-results b.pass{color:#2df6b0}.abv2 .abv2-validation-results b.fail{color:#ffb087}
 @media(max-width:780px){.abv2 .abv2-select-actions [data-abv2="continue-vectorization"]{min-width:0;width:100%}}
 @media(prefers-reduced-motion:reduce){.abv2 .abv2-art-canvas.vector-overlay .abv2-trace-path{animation:none!important;stroke-dashoffset:0!important}}
+
+/* Recovery after refresh is deliberate, never an automatic processing redirect. */
+.abv2 .abv2-recovery{margin:16px 0;border:1px solid rgba(75,166,224,.48);border-radius:14px;background:rgba(15,43,69,.75);padding:16px}
+.abv2 .abv2-recovery header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.abv2 .abv2-recovery p{margin:10px 0 14px;color:#bad0e0;line-height:1.45}
+.abv2 .abv2-recovery .abv2-commands{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+@media(max-width:650px){.abv2 .abv2-recovery .abv2-commands .abv2-btn{flex:1 1 100%}}
