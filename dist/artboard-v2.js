@@ -248,7 +248,7 @@
       update('Building ZIP from '+entries.length+' exported files…');
       const zip=assembleMasterZip(entries);
       const href=URL.createObjectURL(zip),a=document.createElement('a');
-      a.href=href;a.download='Artboard_'+String(p.project_id).replace(/[^a-zA-Z0-9_-]/g,'').slice(0,48)+'_Master.zip';
+      a.href=href;a.download='Artboard_'+String(p.project_id).replace(/[^a-zA-Z0-9_-]/g,'').slice(0,48)+'_Master_'+(p.processing_mode==='quality'?'quality':'normal')+'.zip';
       document.body.appendChild(a);a.click();a.remove();
       setTimeout(()=>URL.revokeObjectURL(href),60000);
       update('ZIP downloaded: '+entries.length+' existing files. No new production was started.');
@@ -262,7 +262,7 @@
     try{
       const blob=await call('artboard',artifactEndpoint(p.project_id,item.path),{response:'blob'});
       if(!blob?.size)throw Error('The selected SVG artifact is empty');
-      const cleanName=(item.label||'Artboard').replace(/[^a-zA-Z0-9_-]/g,'_')+'.svg';
+      const cleanName=(item.path.split('/').pop()||'Artboard_'+(p.processing_mode==='quality'?'quality':'normal')+'.svg').replace(/[^a-zA-Z0-9_.-]/g,'_');
       const file=new File([blob],cleanName,{type:'image/svg+xml'});
       if(navigator.canShare?.({files:[file]})){
         await navigator.share({files:[file],title:'Open '+item.label+' SVG in Illustrator'});
