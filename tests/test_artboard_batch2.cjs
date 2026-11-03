@@ -63,9 +63,9 @@ const context={state,Date,setTimeout:(fn)=>setTimeout(fn,1),URL:{revokeObjectURL
     return currentJob={job_id:'j'+(++jobN),project_id:'p1',status:'queued'};}
   if(path==='api/artboard/export'){
     if(opts.json?.bundle==='illustrator_handoff'){
-      assert.deepEqual(opts.json.formats,['eps','svg','zip']);
-      assert.deepEqual(opts.json.part_ids,serverProject.surfaces
-        .filter(x=>opts.json.part_ids.includes(x.part_id)).map(x=>x.part_id));
+      assert.equal(opts.json.formats.join(','),'eps,svg,zip');
+      assert.equal(opts.json.part_ids.join(','),serverProject.surfaces
+        .filter(x=>opts.json.part_ids.includes(x.part_id)).map(x=>x.part_id).join(','));
       serverProject.exports={...serverProject.exports,
         selected_zip_illustrator_handoff:'projects/p1/exports/illustrator-handoff-test_quality.zip'};
       serverProject.last_export={
