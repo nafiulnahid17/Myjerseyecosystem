@@ -179,6 +179,23 @@
       </section>
     </div>${navigation('Validation')}`;
   }
+  function vectorFinishing(sides){
+    const parts=sides.map(side=>available().find(item=>item.side===side)).filter(Boolean);
+    return `<section class="abv2-card abv2-vector-finishing" aria-label="Vector finishing details"><header><h2>Vector Finishing</h2><small>Saved engine output • no extra AI request</small></header>
+      <div class="abv2-finishing-grid">${parts.map(part=>{
+        const validation=part.validation||{},hasVector=Boolean(ui.vectorUrls[part.side]||part.exports?.svg);
+        const detail=validation.local_detail_fidelity||{};
+        return `<div class="abv2-finishing-part"><strong>${surfaceLabel(part.side)} vector</strong>
+          <dl><div><dt>Bézier geometry</dt><dd>${hasVector?'SVG available for curve inspection':'Awaiting vector SVG'}</dd></div>
+          <div><dt>Vector paths</dt><dd>${esc(validation.path_count??'Not reported')}</dd></div>
+          <div><dt>Anchor points</dt><dd>${esc(validation.total_anchor_count??'Not reported')}</dd></div>
+          <div><dt>Gradient paints</dt><dd>${esc(validation.gradient_count??'Not reported')}</dd></div>
+          <div><dt>Artwork fidelity</dt><dd>${esc(validation.production_fidelity?.status||'Not reported')}</dd></div>
+          <div><dt>Micro-details</dt><dd>${esc(detail.status||'Not reported')}</dd></div></dl>
+        </div>`;}).join('')}</div>
+      <p class="abv2-source-note">Detailed palette and curve-fitting decisions are not in the public project response. Inspect the real exported vector; do not infer them from animations.</p>
+    </section>`;
+  }
   function processing(){const title=ui.processingStage||processTitle();
     const isVector=title==='Vectorization',isValid=title==='Validation';
     const subsets=ui.selected.size?[...ui.selected]:available().map(x=>x.side);
@@ -199,7 +216,7 @@
       ${isVector?'<div class="abv2-path-status">Live tracing visualization • saved SVG geometry appears as soon as it is available.</div>':''}</div>
       ${isValid?`<div class="abv2-validation-results">${[['Valid SVG',part?.validation?.valid_svg],['True vector',part?.validation?.true_vector],['Raster count',part?.validation?.embedded_rasters],['Editability',part?.validation?.editability_status],['Print readiness',part?.validation?.physical_artboard?.status]].map(([name,value])=>`<span><small>${esc(name)}</small><b class="${value===true?'pass':value===false?'fail':''}">${esc(value===true?'PASS':value===false?'FAILED':value??'Not reported')}</b></span>`).join('')}</div>`:''}
       <div class="abv2-side-note">${esc(ui.stageStatus==='completed'?(verified?'Production-ready saved result':'Stage completed'):friendlyActivity(state.stage||'Preparing stage data'))}</div></section>`;
-      }).join('')}${liveLog()}</div>${navigation(title)}${state.lastError&&project().ai_reconstruction?.complete===true?`<div class="abv2-commands">${button('↻ Retry vectorization from saved AI artwork (no AI call)','resume-vector','secondary',state.busy)}</div>`:''}`;
+      }).join('')}${liveLog()}</div>${isVector?vectorFinishing(onlyValid):''}${navigation(title)}${state.lastError&&project().ai_reconstruction?.complete===true?`<div class="abv2-commands">${button('↻ Retry vectorization from saved AI artwork (no AI call)','resume-vector','secondary',state.busy)}</div>`:''}`;
   }
   function v2Downloads(){
     const p=project();const found=[];
@@ -222,7 +239,12 @@
       ['PostScript level',first(v.postscript_level,p.validation?.postscript_level)],
       ['EPS version',first(v.eps_version,p.validation?.eps_version)],
       ['Canvas',physical.width_in&&physical.height_in?`${physical.width_in} × ${physical.height_in} in`:'22 × 31 in (requested)'],
-      ['Raster DPI',first(v.dpi,p.validation?.dpi)],
+      ['Anchor points',first(v.total_anchor_count,p.validation?.total_anchor_count)],
+      ['Vector segments',first(v.segment_count,p.validation?.segment_count)],
+      ['Gradient paints',first(v.gradient_count,p.validation?.gradient_count)],
+      ['Artwork fidelity',first(v.production_fidelity?.status,p.validation?.production_fidelity?.status)],
+      ['Micro-details',first(v.local_detail_fidelity?.status)],
+      ['Raster proof DPI',first(v.dpi,physical.raster_proof_dpi,p.validation?.dpi)],
       ['Editable true vector',p.true_vector_ready===true?'Engine-confirmed':p.true_vector_ready===false?'Not confirmed':'Not reported'],
       ['Print validation',first(v.status,p.validation?.status)]];
     return `<section class="abv2-production-details" aria-label="Production details"><h2>Production Details</h2><div class="abv2-tech-grid">${specs.map(([label,value])=>`<div><span>${esc(label)}</span><b>${esc(value)}</b></div>`).join('')}</div></section>`;
