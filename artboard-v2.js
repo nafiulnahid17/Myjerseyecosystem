@@ -4,7 +4,7 @@
   const ui = {
     vectorOverlaySource:null, analysisDone:false, generationStarted:false, processingStage:'', downloadFormat:'',
     phase: 'input', preferInput:false, workspaceEpoch:0, selected: new Set(), prepared: [], inspected: false,
-    view: null, visitedStages: new Set(), stageStatus: '', lastPreviewPath:'', dimensions: '', awaitingSurfaces: false, visibleChoice: new Set(['front_body']), processingStarted: false, cancelRequested: false, productionDone:false, continued:false, finishing:false, exportStarted:false, zipBusy:false, generatedUrls:{}, vectorUrls:{}, assetBusy:new Set(), assetRetry:{}, generationError:""
+    view: null, visitedStages: new Set(), stageStatus: '', lastPreviewPath:'', dimensions: '', awaitingSurfaces: false, visibleChoice: new Set(['front_body']), processingStarted: false, cancelRequested: false, productionDone:false, continued:false, finishing:false, exportStarted:false, zipBusy:false, generatedUrls:{}, vectorUrls:{}, assetBusy:new Set(), assetRetry:{}, generationError:"", compareSource:false, validationSide:null
   };
   const steps = ['Input','Analyzing','Artwork Creation','Vectorization','Validation','Export'];
   const surfName = x => /back/i.test(String(x?.type || x?.name || x || '')) ? 'back_body' : 'front_body';
@@ -40,15 +40,20 @@
     const ms=Date.parse(v||'');return Number.isFinite(ms)?new Date(ms).toLocaleTimeString():'';
   };
   function health(){
-    const a=state.status?.artboard||{}, ok=a.state==='online', active=state.busy && Boolean(state.artboardJob && ['processing','queued'].includes(state.artboardJob.status));
+    const a=state.status?.artboard||{}, ok=a.state==='online',
+      active=state.busy && state.activePipeline==='Production' &&
+        ['Analyzing','Artwork Creation'].includes(stageOf(state.stage,state.progress)) &&
+        Boolean(state.artboardJob && state.artboardJob.status==='processing'),
+      exportsReady=Boolean((project().surfaces||[]).some(part=>
+        ['eps','svg','pdf','png'].some(format=>typeof part.exports?.[format]==='string')));
     return `<div class="abv2-health" aria-label="Artboard engine status">
       <span><em class="abv2-health-icon">▣</em><span><strong>Primary AI</strong><b><i class="${active?'ok':'unknown'}"></i>${active?'Running':a.ai_configured===true?'Ready':'Checking'}</b></span></span>
-      <span><em class="abv2-health-icon">◇</em><span><strong>Fallback AI</strong><b><i class="unknown"></i>Standby</b></span></span>
+      <span><em class="abv2-health-icon">◇</em><span><strong>Fallback AI</strong><b><i class="unknown"></i>Not reported</b></span></span>
       <span><em class="abv2-health-icon">⚙</em><span><strong>Engine</strong><b><i class="${ok?'ok':'bad'}"></i>${ok?'Online':'Unavailable'}</b></span></span>
-      <span><em class="abv2-health-icon">⇧</em><span><strong>Export Engine</strong><b><i class="${ok?'ok':'bad'}"></i>${ok?'Online':'Unavailable'}</b></span></span>
+      <span><em class="abv2-health-icon">⇧</em><span><strong>Export Files</strong><b><i class="${exportsReady?'ok':'unknown'}"></i>${exportsReady?'Available':'Not checked'}</b></span></span>
     </div>`;
   }
-  function top(title,description){return `<div class="abv2-top">${health()}<div class="abv2-header"><img src="assets/artboard-ai.svg" alt=""><div><h1>${esc(title)}</h1><p>${esc(description)}</p></div><span class="abv2-step-label">${ui.phase==='input'?'READY':esc(state.stage||statusText())}</span></div></div>`;}
+  function top(title,description){return `<div class="abv2-top">${health()}<div class="abv2-header"><img src="assets/artboard-ai.svg" alt=""><div><h1>${esc(title)}</h1><p>${esc(description)}</p></div><span class="abv2-step-label">${ui.phase==='input'?'INPUT':esc(state.stage||statusText())}</span></div></div>`;}
   function button(text,action,cls='',disabled=false){return `<button type="button" class="abv2-btn ${cls}" data-abv2="${action}" ${disabled?'disabled':''}>${text}</button>`;}
   function navigation(current){const idx=steps.indexOf(current);return `<div class="abv2-nav">${button('← Previous Step','previous','',idx<=0)}${button('■ Cancel Job','stop','danger',!state.busy&&!state.artboardJob?.job_id&&!state.pendingArtboardJob?.job_id)}</div>`;}
   function bars(){return `<div class="abv2-progress ${state.busy&&state.progress==null?'indeterminate':''}" aria-label="Current engine progress"><span style="width:${state.progress==null?26:Math.max(0,Math.min(100,state.progress))}%"></span></div>`;}
@@ -90,11 +95,12 @@
     const item=available().find(x=>x.side===side),label=surfaceLabel(side),chosen=ui.selected.has(side);
     const url=ui.generatedUrls[side] || (ui.productionDone?(ui.vectorUrls[side]||previewUrl(item)):'') || interimPreview(side);
     const generating=ui.generationStarted&&!ui.productionDone&&state.busy;
-    return `<article class="abv2-card abv2-artwork ${chosen?'selected':''}"><header><h2>${label} Artwork</h2><span>${!item?'Not detected':url?'Generated artwork ready':generating?'Creating artwork':'Awaiting artwork'}</span></header>
+    const generated=Boolean(ui.generatedUrls[side]),vectorOnly=Boolean(!generated&&(ui.vectorUrls[side]||previewUrl(item)));
+    return `<article class="abv2-card abv2-artwork ${chosen?'selected':''}"><header><h2>${label} Artwork</h2><span>${!item?'Not detected':generated?'AI artwork master':vectorOnly?'Saved vector preview':url?'Engine preview':generating?'Creating artwork':'Awaiting artwork'}</span></header>
       <div class="abv2-art-canvas ${generating?'abv2-creating':''}">${url?`<img class="abv2-genuine-image" src="${url}" alt="Real ${label} engine-produced artwork preview">`:
       `<div class="abv2-generation-placeholder"><span class="abv2-creation-orb" aria-hidden="true"></span><p>${generating?'AI creating '+label+' artwork — awaiting real preview':item?'Artwork preview awaiting engine output':'No independently visible '+label+' detected'}</p></div>`}
       <span class="abv2-art-grid" aria-hidden="true"></span>${generating?'<span class="abv2-beam" aria-hidden="true"></span>':''}</div>
-      ${item?`<label class="abv2-select"><input type="checkbox" data-abv2-select="${side}" ${chosen?'checked':''} ${url?'':'disabled'}> Select ${label} for Vectorization</label>`:
+      ${item?`<label class="abv2-select"><input type="checkbox" data-abv2-select="${side}" ${chosen?'checked':''} ${url?'':'disabled'}> Include ${label} in vector review &amp; export</label>`:
       button('✦ Recreate '+label+' with AI (Unavailable)','recreate:'+side,'secondary',true)}
       ${!url&&item?'<small class="abv2-source-note">No invented preview: authentic artwork appears when the engine exposes it.</small>':''}
     </article>`;
@@ -128,10 +134,10 @@
     if(!ui.analysisDone)return analyze();
     const ready=prepared.filter(x=>Boolean(ui.generatedUrls[x.side]||ui.vectorUrls[x.side]||previewUrl(x)||interimPreview(x.side)));
     const canContinue=ui.selected.size>0&&[...ui.selected].every(side=>ready.some(x=>x.side===side));
-    const status=ui.generationError?'Production failed: '+esc(ui.generationError):ui.productionDone?'Generated artwork ready — select Front, Back or Both and continue':state.busy?'Engine creating flat 2D artwork; previews appear as real files arrive':'Waiting for artwork generation';
-    return `${top('Artwork Creation','AI artwork is generated and previewed here. Select one or both sides to proceed.')}${workflowRail()}<div class="abv2-select-summary" role="status">${esc(status)} • ${ui.selected.size} selected</div>
+    const status=ui.generationError?'Production failed: '+esc(ui.generationError):ui.productionDone?'Generated artwork and validated vectors ready — select Front, Back or Both to review and export':state.busy?'Engine creating flat 2D artwork; previews appear as real files arrive':'Waiting for artwork generation';
+    return `${top('Artwork Creation','Review AI-generated artwork. The engine already creates vectors during the same production job.')}${workflowRail()}<div class="abv2-select-summary" role="status">${esc(status)} • ${ui.selected.size} selected</div>
     <div class="abv2-art-grid-layout ${prepared.length===1?'single':''}">${artworkCard('front_body')}${artworkCard('back_body')}${liveLog()}</div>
-    <div class="abv2-select-actions">${navigation('Artwork Creation')}${ui.analysisDone&&!ui.generationStarted?button('▷ Generate Artwork','produce','primary'):''}${button('Continue to Vectorization →','continue-vectorization','primary',!canContinue||ui.continued)}</div>`;
+    <p class="abv2-source-note">No extra AI call: selection controls which saved Front/Back vectors you inspect and download.</p><div class="abv2-select-actions">${navigation('Artwork Creation')}${ui.analysisDone&&!ui.generationStarted?button('▷ Generate Artwork','produce','primary'):''}${button('Review Saved Vectors →','continue-vectorization','primary',!canContinue||ui.continued)}</div>`;
   }
   function processTitle(){const stage=stageOf(state.stage);return stage==='Validation'?'Validation':stage==='Vectorization'?'Vectorization':stage==='Export'?'Export':'Artwork Creation';}
   function validationView(sides,verified){
@@ -431,7 +437,7 @@
     if(['queued','processing','cancelling'].includes(savedJob()?.status))return notify('Resume or cancel existing job before starting a paid production');
     const epoch=++ui.workspaceEpoch;
     state.pendingArtboardJob=null;state.artboardJob=null;try{sessionStorage.removeItem('mj_artboard_job')}catch{}
-    ui.preferInput=false;ui.selected.clear();ui.prepared=[];ui.visitedStages.clear();ui.stageStatus='';ui.lastPreviewPath='';state.artboardPreviewPath='';ui.view=null;ui.phase='analyze';ui.analysisDone=false;ui.generationStarted=false;ui.processingStage='';ui.downloadFormat='';ui.cancelRequested=false;ui.productionDone=false;ui.continued=false;ui.finishing=false;ui.exportStarted=false;ui.generationError='';ui.generatedUrls={};ui.vectorUrls={};ui.assetRetry={};ui.assetBusy.clear();
+    ui.preferInput=false;ui.selected.clear();ui.prepared=[];ui.visitedStages.clear();ui.stageStatus='';ui.lastPreviewPath='';state.artboardPreviewPath='';ui.view=null;ui.phase='analyze';ui.analysisDone=false;ui.generationStarted=false;ui.processingStage='';ui.downloadFormat='';ui.cancelRequested=false;ui.productionDone=false;ui.continued=false;ui.finishing=false;ui.exportStarted=false;ui.generationError='';ui.compareSource=false;ui.validationSide=null;ui.generatedUrls={};ui.vectorUrls={};ui.assetRetry={};ui.assetBusy.clear();
     await run('Artboard source upload',async()=>{state.artboardEvents=[];state.artboardEventKeys.clear();state.artboardJob=null;state.lastMode=state.mode.artboard;state.progress=null;
       const p=await call('artboard','api/artboard/projects',{method:'POST',json:{name:f.name.slice(0,120),processing_mode:state.lastMode}});state.artboardProject=p;state.artboardResult=p;
       const fd=new FormData();fd.append('project_id',p.project_id);fd.append('file',f);state.artboardResult=await call('artboard','api/artboard/upload',{method:'POST',body:fd});state.activePipeline='Upload';state.stage='Source uploaded';state.progress=null;});
@@ -511,10 +517,10 @@
       // When selection follows completion, show only its real, saved vector geometry
       // and confirmed historical events. Never pretend this is a new engine job.
       ui.phase='processing';ui.processingStage='Vectorization';ui.stageStatus='completed';state.activePipeline='Vectorization';
-      state.stage='Engine-confirmed vector result — showing saved geometry';render();await loadSideAssets(true);if(typeof document.querySelectorAll==='function')await paintVectorOverlay();await sleep(3500);
+      state.stage='Reviewing saved vector geometry — no new production request';render();await loadSideAssets(true);if(typeof document.querySelectorAll==='function')await paintVectorOverlay();await sleep(3500);
       if(ui.cancelRequested||ui.workspaceEpoch!==epoch)return;
       ui.processingStage='Validation';ui.visitedStages.add('Validation');state.activePipeline='Validation';
-      state.stage='Engine-confirmed validation — reviewing quality';render();await sleep(2500);
+      state.stage='Reviewing saved validation and source fidelity';render();await sleep(2500);
       if(ui.exportStarted||ui.cancelRequested||ui.workspaceEpoch!==epoch)return;
       ui.exportStarted=true;
       const id=project().project_id;
@@ -641,7 +647,7 @@
     ++ui.workspaceEpoch;ui.preferInput=false;ui.phase='input';ui.view=null;ui.analysisDone=false;ui.generationStarted=false;ui.processingStage='';ui.downloadFormat='';ui.prepared=[];
     ui.selected.clear();ui.visitedStages.clear();ui.stageStatus='';ui.lastPreviewPath='';ui.continued=false;
     ui.productionDone=false;ui.finishing=false;ui.exportStarted=false;ui.cancelRequested=false;
-    ui.generationError='';ui.assetBusy.clear();ui.assetRetry={};
+    ui.generationError='';ui.compareSource=false;ui.validationSide=null;ui.assetBusy.clear();ui.assetRetry={};
     for(const url of Object.values({...ui.generatedUrls,...ui.vectorUrls}))URL.revokeObjectURL(url);
     ui.generatedUrls={};ui.vectorUrls={};state.artboardPreviewPath='';state.files.artboard=null;
     state.artboardProject=null;state.artboardResult=null;state.artboardJob=null;state.pendingArtboardJob=null;
