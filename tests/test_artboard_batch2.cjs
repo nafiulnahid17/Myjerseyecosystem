@@ -24,6 +24,7 @@ const context={state,Date,setTimeout:(fn)=>setTimeout(fn,1),URL:{revokeObjectURL
        assert(screens.at(-1).includes('12%'),'Live UI must read the engine event progress field');
      }
    }else state.stage=terminal==='Prepare'?'Surface analysis complete':'Export complete';
+   currentJob.status='completed';state.artboardJob=currentJob;
    return currentJob;
  },
  call:async(engine,path,opts={})=>{assert.equal(engine,'artboard');requests.push({path,opts});
