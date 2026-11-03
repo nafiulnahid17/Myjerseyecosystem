@@ -71,7 +71,7 @@
     if(/export|deliver|bundle|format/.test(t))return 'Export';
     return null;
   }
-  function currentStage(){if(ui.phase==='input')return 'Input';if(ui.phase==='analyze')return 'Analyzing';if(ui.phase==='artwork'||ui.phase==='select')return 'Artwork Creation';if(ui.phase==='export')return 'Export';return ui.processingStage||stageOf(state.stage,state.progress)||'Artwork Creation';}
+  function currentStage(){if(ui.view==='processing'&&ui.processingStage)return ui.processingStage;if(ui.phase==='input')return 'Input';if(ui.phase==='analyze')return 'Analyzing';if(ui.phase==='artwork'||ui.phase==='select')return 'Artwork Creation';if(ui.phase==='export')return 'Export';return ui.processingStage||stageOf(state.stage,state.progress)||'Artwork Creation';}
   function friendlyActivity(message){const t=String(message||'').toLowerCase();if(/analy|inspect|scan|prepar|surface|locat/.test(t))return 'Understanding the input design';if(/generat|creating|artwork model|render/.test(t))return 'Creating production artwork';if(/reconstruct|cleaning artwork geometry/.test(t))return 'Cleaning artwork geometry';if(/vector|trac/.test(t))return 'Tracing editable vector paths';if(/optimi|path/.test(t))return 'Optimizing vector paths';if(/compos|canvas/.test(t))return 'Building the production canvas';if(/validat|readiness|fidelity|integrity/.test(t))return 'Checking production readiness';if(/export|packag|bundle/.test(t))return 'Packaging production files';if(/cancel|stop/.test(t))return 'Stopping safely';return String(message||'Production activity');}
   function stageEvents(){const stage=currentStage();return (state.artboardEvents||[]).filter(e=>stageOf(e.step||e.stage||'',eventProgress(e))===stage).slice(-20);}
   function progressValue(value){if(value===null||value===undefined||value==='')return null;const n=Number(value);return Number.isFinite(n)?Math.max(0,Math.min(100,n)):null;}
@@ -736,7 +736,11 @@
       ui.validationSide=side;ui.compareSource=false;render();return;
     }
     if(a==='illustrator')return continueSelectedIllustrator();if(a==='download-master-zip')return downloadMasterZip();if(a.startsWith('select-format:')){ui.downloadFormat=a.split(':')[1];render();return;}
-    if(a==='previous'){if(state.busy)return notify('Active job: cancel processing before changing stages');if(ui.phase==='export'){ui.view='processing';ui.processingStage='Validation';}else if(ui.phase==='artwork'||ui.phase==='analyze')ui.view='input';else {ui.view='artwork';}render();return}
+    if(a==='previous'){if(state.busy)return notify('Active job: cancel processing before changing stages');
+      if(ui.view==='processing'&&ui.processingStage==='Validation'){ui.processingStage='Vectorization';ui.compareSource=false;}
+      else if(ui.phase==='export'){ui.view='processing';ui.processingStage='Validation';}
+      else if(ui.phase==='artwork'||ui.phase==='analyze')ui.view='input';
+      else {ui.view='artwork';ui.compareSource=false;}render();return}
     if(a.startsWith('mode:')){if(state.busy)return;state.mode.artboard=a.split(':')[1];render();return}
     if(a.startsWith('recreate:'))return notify('AI missing-side recreation is not exposed through this frontend’s existing Artboard gateway allowlist. No request was submitted.');
   },true);
