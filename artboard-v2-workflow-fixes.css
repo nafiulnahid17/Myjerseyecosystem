@@ -278,3 +278,45 @@ body.artboard-workspace #menuButton{display:grid!important;flex:0 0 40px;cursor:
 @keyframes abv2-analysis-pulse{to{opacity:.4;transform:scale(.7)}}
 @media(max-width:760px){.abv2-analysis-live-status small{width:100%;margin-left:15px}.abv2-analyzing .abv2-process-grid{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.abv2-analyzing .abv2-visual .abv2-beam,.abv2-analysis-dot{animation:none!important}}
+
+
+/* Artboard quality-upgrade UX: existing theme + real, user-verifiable outputs. */
+.abv2 .abv2-source-note{display:block;margin:8px 0 2px;padding:8px 11px;border:1px solid #115a7e;border-radius:9px;background:#071c31;color:#9bcbe0;font-size:10px;line-height:1.5}
+.abv2 .abv2-vector-finishing{min-height:0;border-color:#176a94}
+.abv2 .abv2-vector-finishing header small{color:#80bed9;font-size:10px}
+.abv2 .abv2-finishing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:11px}
+.abv2 .abv2-finishing-part{border:1px solid #11678c;border-radius:12px;background:linear-gradient(145deg,#06263e,#04152a);padding:12px}
+.abv2 .abv2-finishing-part>strong{display:block;color:#7bf4eb;margin-bottom:9px;font-size:12px}
+.abv2 .abv2-finishing-part dl{display:grid;gap:7px;margin:0}
+.abv2 .abv2-finishing-part dl>div{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid #13516e;padding-top:7px}
+.abv2 .abv2-finishing-part dt{font-size:10px;color:#8db8cf}
+.abv2 .abv2-finishing-part dd{font-size:10px;font-weight:700;color:#e5fbff;text-align:right;margin:0;overflow-wrap:anywhere;max-width:60%}
+.abv2 .abv2-side-switch{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}
+.abv2 .abv2-side-switch .abv2-btn{min-width:65px;min-height:32px;padding:7px 9px;font-size:10px;border:1px solid #155b85}
+.abv2 .abv2-side-switch .abv2-btn.selected{color:#011c27;background:#65fff2;border-color:#24e9e1;font-weight:800}
+.abv2 .abv2-compare-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:10px 0;flex-wrap:wrap}
+.abv2 .abv2-compare-actions .abv2-btn{min-height:33px;padding:8px 11px;font-size:10px}
+.abv2 .abv2-compare-actions small{font-size:10px;color:#8bb6cf}
+.abv2 .abv2-source-comparison{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:11px 0;padding:8px;border:1px solid #198caa;border-radius:12px;background:#041529}
+.abv2 .abv2-source-comparison>div{min-width:0;display:grid;gap:8px;border:1px solid #155e86;border-radius:9px;padding:9px;background:#051d33}
+.abv2 .abv2-source-comparison strong{color:#8ef7e6;font-size:11px;text-align:center}
+.abv2 .abv2-source-comparison img{display:block;width:100%;height:260px;max-height:38vh;object-fit:contain;object-position:center;background:#031225;border-radius:7px}
+.abv2 .abv2-advisory{border:1px solid #ad8637;border-radius:9px;background:#3a27136e;color:#ffe5af;font-size:11px;padding:10px;line-height:1.5}
+.abv2 .abv2-warning-details{margin-top:12px;border:1px solid #176080;border-radius:9px;background:#03192c;padding:10px;font-size:10px;color:#c7ecf6}
+.abv2 .abv2-warning-details summary{cursor:pointer;font-weight:700;color:#b1f0ff}
+.abv2 .abv2-warning-details ul{margin:8px 0 0;padding-left:17px;display:block;max-height:190px;overflow:auto}
+.abv2 .abv2-warning-details li{display:list-item;border:0;background:none;padding:3px 0;color:#c7ecf6;overflow-wrap:anywhere}
+.abv2 .abv2-designer-files{min-height:0;border:1px solid #167ca4;background:linear-gradient(165deg,#062c43,#06142b);border-radius:13px}
+.abv2 .abv2-designer-list{display:grid;gap:8px;margin:12px 0}
+.abv2 .abv2-designer-download{width:100%;min-width:0;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:5px;padding:10px 12px;border-radius:10px;border:1px solid #158fa7;background:#051e34}
+.abv2 .abv2-designer-download:hover,.abv2 .abv2-designer-download:focus-visible{border-color:#38f4ce;box-shadow:0 0 0 2px #1acfb22e}
+.abv2 .abv2-designer-download>b{font-size:11px;color:#c8fff4}
+.abv2 .abv2-designer-download>small{font-size:9px;font-weight:400;color:#8cbdd1;overflow-wrap:anywhere}
+.abv2 .abv2-illustrator-guide{display:grid;gap:7px;border:1px solid #846b35;border-radius:10px;background:#211b0c7a;padding:11px;margin-top:10px}
+.abv2 .abv2-illustrator-guide strong{font-size:11px;color:#f8d69a}
+.abv2 .abv2-illustrator-guide span{color:#d0bda0;font-size:10px;line-height:1.55}
+.abv2 .abv2-illustrator-guide a{color:#94f2ff;font-size:10px;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+.abv2 .abv2-illustrator-guide a:focus-visible{outline:2px solid #41e9e9;outline-offset:3px}
+@media(max-width:850px){.abv2 .abv2-validation-layout{grid-template-columns:1fr}.abv2 .abv2-source-comparison img{height:230px}.abv2 .abv2-finishing-grid{grid-template-columns:1fr}}
+@media(max-width:500px){.abv2 .abv2-source-comparison{grid-template-columns:1fr}.abv2 .abv2-source-comparison img{height:210px}.abv2 .abv2-compare-actions .abv2-btn{width:100%}.abv2 .abv2-finishing-part dl>div{align-items:flex-start}}
+@media(prefers-reduced-motion:reduce){.abv2 .abv2-gauge::after{animation:none!important}}

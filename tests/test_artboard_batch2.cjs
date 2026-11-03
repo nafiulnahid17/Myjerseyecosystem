@@ -30,8 +30,20 @@ const context={state,Date,setTimeout:(fn)=>setTimeout(fn,1),URL:{revokeObjectURL
   if(path==='api/artboard/projects'&&opts.method==='POST'){serverProject={project_id:'p1',surfaces:[],true_vector_ready:false,exports:{}};return serverProject;}
   if(path==='api/artboard/upload')return serverProject;
   if(path==='api/artboard/prepare'){serverProject.surfaces=opts.json.surfaces.map(x=>({type:x,name:x,part_id:x,exports:{},validation:{path_count:x==='front_body'?123:287,color_mode:'CMYK',postscript_level:2,dpi:300}}));return currentJob={job_id:'j'+(++jobN),project_id:'p1',status:'queued'};}
-  if(path==='api/artboard/production'){serverProject.true_vector_ready=true;return currentJob={job_id:'j'+(++jobN),project_id:'p1',status:'queued'};}
-  if(path==='api/artboard/export'){serverProject.exports={zip:'projects/p1/export/master.zip'};for(const item of serverProject.surfaces)item.exports={eps:`projects/p1/export/${item.type}.eps`,svg:`projects/p1/export/${item.type}.svg`,pdf:`projects/p1/export/${item.type}.pdf`,png:`projects/p1/export/${item.type}.png`};return currentJob={job_id:'j'+(++jobN),project_id:'p1',status:'queued'};}
+  if(path==='api/artboard/production'){serverProject.true_vector_ready=true;
+    serverProject.validation={production_fidelity:{status:'REVIEW_REQUIRED'}};
+    for(const item of serverProject.surfaces){
+      item.validation={...item.validation,valid_svg:true,true_vector:true,embedded_rasters:0,
+        gradient_count:2,segment_count:200,total_anchor_count:230,
+        editability_status:'PASS',production_fidelity:{status:'PASS'},
+        local_detail_fidelity:{status:item.type==='front_body'?'REVIEW_REQUIRED':'PASS',total_lost_dark_pixels:item.type==='front_body'?3:0,total_lost_bright_pixels:0},
+        physical_artboard:{status:'PASS',width_in:22,height_in:31,raster_proof_dpi:600}};
+    }
+    return currentJob={job_id:'j'+(++jobN),project_id:'p1',status:'queued'};}
+  if(path==='api/artboard/export'){serverProject.exports={zip:'projects/p1/export/master.zip'};for(const item of serverProject.surfaces)item.exports={eps:`projects/p1/export/${item.type}.eps`,svg:`projects/p1/export/${item.type}.svg`,pdf:`projects/p1/export/${item.type}.pdf`,png:`projects/p1/export/${item.type}.png`,
+    premium_svg:`projects/p1/export/${item.type}.premium-master.svg`,
+    editability_report:`projects/p1/export/${item.type}.editability-report.json`,
+    color_groups_report:`projects/p1/export/${item.type}.color-groups.json`};return currentJob={job_id:'j'+(++jobN),project_id:'p1',status:'queued'};}
   if(path.startsWith('api/artboard/projects/p1/artifacts/')&&opts.response==='blob')return new Blob(['real engine bytes'],{type:path.endsWith('.svg')?'image/svg+xml':'image/png'});
   if(path==='api/artboard/projects/p1')return serverProject;
   throw Error('Unexpected '+path);
@@ -51,27 +63,42 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   test('analyzer-engine-events',src.includes('abv2-analysis-live-status')&&src.includes("stageOf(state.stage,state.progress)==='Artwork Creation'"));
   test('analysis-handoff',src.includes('waitForPreparedProject')&&src.includes('Source references ready — syncing artwork inputs'));
   test(28,src.includes('interimPreview(side)')&&css.includes('abv2-reveal-real-image')&&screens.at(-1).includes('Artwork Creation'));
-  test('no-vectorization-before-selection',screens.at(-1).includes('Continue to Vectorization')); 
+  test('no-vectorization-before-selection',screens.at(-1).includes('Review Saved Vectors')); 
   test('artwork-no-early-vectorization',!screens.some(v=>v.includes('<h1>Vectorization</h1>')));
   test('real-previews',screens.at(-1).includes('Real Front engine-produced artwork preview')&&screens.at(-1).includes('Real Back engine-produced artwork preview'));
   const selection=listeners.change.find(f=>f.toString().includes("const b=e.target.closest('[data-abv2-select]')"));
   const chosen=process.env.ARTBOARD_TEST_PARTS==='both'?['front_body','back_body']:[process.env.ARTBOARD_TEST_PARTS==='back'?'back_body':'front_body'];
   for(const side of chosen)selection({target:{closest:(sel)=>sel==='[data-abv2-select]'?{dataset:{abv2Select:side},checked:true}:null}});
-  test('select-'+chosen.join('+'),screens.at(-1).includes('Continue to Vectorization')&&screens.at(-1).includes(chosen.length+' selected'));
+  test('select-'+chosen.join('+'),screens.at(-1).includes('Review Saved Vectors')&&screens.at(-1).includes(chosen.length+' selected'));
   await handler(click('continue-vectorization'));
   const displayed=screens.map(s=>s.match(/abv2-header[\s\S]*?<h1>(.*?)<\/h1>/)?.[1]||'').filter(Boolean);
   test(29,displayed.includes('Vectorization')&&src.includes('abv2-real-paths'));
   test(30,displayed.includes('Validation')&&src.includes('validation-overlay'));
-  test(31,screens.at(-1).includes('Production Details')&&screens.at(-1).includes('Vector paths')&&screens.at(-1).includes('PostScript level')&&screens.at(-1).includes('Raster DPI'));
+  test(31,screens.at(-1).includes('Production Details')&&screens.at(-1).includes('Vector paths')&&screens.at(-1).includes('PostScript level')&&screens.at(-1).includes('Raster proof DPI'));
   test(32,screens.at(-1).includes('<h2>Master ZIP</h2>')&&screens.at(-1).includes('data-abv2="download-master-zip"'));
   test('export-order',screens.at(-1).indexOf('abv2-export-settings')<screens.at(-1).indexOf('abv2-package')&&screens.at(-1).indexOf('abv2-package')<screens.at(-1).indexOf('abv2-illustrator')&&screens.at(-1).indexOf('abv2-illustrator')<screens.at(-1).indexOf('abv2-new-production'));
   test('production-details-right',screens.at(-1).indexOf('abv2-export-right')<screens.at(-1).indexOf('Production Details'));
   await handler(click('select-format:svg'));
   test('selected-export-only',screens.at(-1).includes('Download Front')===chosen.includes('front_body')&&screens.at(-1).includes('Download Back')===chosen.includes('back_body'));
   test('zip-fallback',src.includes('assembleMasterZip(entries)')&&src.includes('download-master-zip')&&src.includes("response:'blob'")&&src.includes('new Blob([...local,...central,end]'));
+  test('premium-artifacts-real',screens.at(-1).includes('<h2>Illustrator Editing Files</h2>')&&screens.at(-1).includes('Premium Master SVG')&&screens.at(-1).includes('Editability Report')&&screens.at(-1).includes('Color Groups Report'));
+  test('native-ai-honest',screens.at(-1).includes('Native .AI requires desktop Illustrator')&&!screens.at(-1).includes('Download Native AI'));
+  test('renderer-preserves-report-filenames',screens.at(-1).includes('editability-report.json')&&screens.at(-1).includes('color-groups.json'));
   test(33,screens.at(-1).includes('<h2>Adobe Illustrator</h2>')&&screens.at(-1).includes('Continue to Illustrator')&&!screens.at(-1).includes('Master ZIP & Illustrator'));
   test('scope',!requests.some(r=>r.path.startsWith('api/revector')));
   test('auto-flow',displayed.indexOf('Vectorization')>=0&&displayed.indexOf('Validation')>displayed.indexOf('Vectorization')&&displayed.indexOf('Export Production')>displayed.indexOf('Validation'));
+  const beforeReviewCalls=requests.length;
+  await handler(click('previous'));
+  test('quality-validation-visible',screens.at(-1).includes('<h2>Validation Results</h2>')&&screens.at(-1).includes('Artwork fidelity')&&screens.at(-1).includes('Micro details')&&screens.at(-1).includes('Editability'));
+  test('quality-metadata-from-backend',screens.at(-1).includes('gradient_count')===false&&screens.at(-1).includes('2</b><small>Gradients')&&screens.at(-1).includes('3 dark / 0 bright pixels flagged')===chosen.includes('front_body'));
+  await handler(click('toggle-compare'));
+  test('actual-artwork-vector-comparison',screens.at(-1).includes('AI artwork master')&&screens.at(-1).includes('Final vector'));
+  if(chosen.length===2){
+    await handler(click('review-side:back_body'));
+    test('side-specific-validation',screens.at(-1).includes('Review validation by artwork side')&&screens.at(-1).includes('No flagged dark/bright marks')&&!screens.at(-1).includes('3 dark / 0 bright pixels flagged'));
+  }
+  test('review-does-not-call-paid-engine',requests.length===beforeReviewCalls);
+
   if(process.env.EXPORT_SNAPSHOT==='1')fs.writeFileSync('/mnt/data/artboard_final_work/export-qa.html','<!doctype html><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><style>'+fs.readFileSync('/mnt/data/artboard_v2_draft/artboard-v2.css','utf8')+'\\n'+css+'</style><body style=\"margin:0;background:#010b1b;color:white\">'+screens.at(-1)+'</body>');
   console.log('PASS Batch 02 frontend mocked integration & static checks');
 })().catch(e=>{console.error(e);process.exitCode=1});
