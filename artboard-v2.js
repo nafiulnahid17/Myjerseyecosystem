@@ -105,6 +105,34 @@
       ${!url&&item?'<small class="abv2-source-note">No invented preview: authentic artwork appears when the engine exposes it.</small>':''}
     </article>`;
   }
+  function analysisProofPanel(sides){
+    const p=project(),all=p.analysis_generation_audit||{},records=sides
+      .map(side=>available().find(part=>part.side===side)).filter(Boolean);
+    const status=(value,success)=>value===success?'verified':value==='REVIEW_REQUIRED'||value==='UNAVAILABLE'||value==='UNVERIFIED'?'review':'unknown';
+    const label=value=>({
+      COMPLETED:'Completed',UNAVAILABLE:'Unavailable — image-model self-analysis',
+      SELF_ANALYSIS_ONLY:'Image-model self-analysis',
+      VERIFIED_IN_GENERATION_REQUEST:'Brief included in generator request',
+      UNVERIFIED:'Not verified',REVIEW_REQUIRED:'Review required',
+    })[value]||'Not reported';
+    return `<section class="abv2-card abv2-proof-panel" aria-label="Analysis-to-generation verification"><header><h2>Analysis → Generation Proof</h2><small>Real provider evidence only</small></header>
+      <div class="abv2-proof-parts">${records.map(part=>{
+        const audit=all[part.part_id]||p.ai_reconstruction?.by_part?.[part.part_id]?.analysis_generation_audit||{};
+        const analysis=audit.analysis||{},handoff=audit.handoff||{},follow=audit.follow_through||{};
+        const n=Number(analysis.duration_ms),duration=Number.isFinite(n)&&n>=0?Math.round(n)/1000+' seconds':'Not reported';
+        const counts=analysis.summary?.fields||{},count=Object.values(counts).filter(x=>Number.isFinite(x)).reduce((a,b)=>a+b,0);
+        return `<div class="abv2-proof-part"><div class="abv2-proof-part-title"><strong>${surfaceLabel(part.side)}</strong><small>${esc(audit.version||'Audit not returned by deployed engine')}</small></div>
+          <div class="abv2-proof-cells">
+            <div><small>Analyzer execution</small><b class="${status(analysis.status,'COMPLETED')}">${esc(label(analysis.status))}</b><span>${esc(analysis.model||'Model not reported')} · ${esc(duration)}</span></div>
+            <div><small>Analysis sent to generator</small><b class="${status(handoff.status,'VERIFIED_IN_GENERATION_REQUEST')}">${esc(label(handoff.status))}</b><span>${esc(handoff.generation_model||'Generator not reported')}${handoff.included_analysis_characters?' · '+esc(handoff.included_analysis_characters)+' chars verified':''}</span></div>
+            <div><small>Generated artwork follows brief</small><b class="${status(follow.status,'PASS')}">${esc(label(follow.status))}</b><span>Palette evidence is advisory; layout, motifs and micro-dots need review</span></div>
+          </div>
+          <div class="abv2-proof-meta"><span>Analysis fields: ${audit.version?esc(count):'Not reported'}</span><span>Prompt digest: ${handoff.provider_prompt_confirmed&&handoff.prompt_sha256?esc(handoff.prompt_sha256.slice(0,12))+'…':'Not verified'}</span></div>
+        </div>`;
+      }).join('')||'<p class="abv2-info">Awaiting a real prepared artwork surface.</p>'}</div>
+      <p class="abv2-source-note">A verified prompt receipt proves analysis data was included in a successful generation request. It does NOT prove the generator followed that analysis. No additional AI calls or automatic artwork rejection.</p>
+    </section>`;
+  }
   function savedJob(){return state.pendingArtboardJob || (state.artboardJob?.job_id&&project().project_id?state.artboardJob:null);}
   function jobNotice(){
     const job=savedJob();if(!job?.job_id)return '';
@@ -137,6 +165,7 @@
     const status=ui.generationError?'Production failed: '+esc(ui.generationError):ui.productionDone?'Generated artwork and validated vectors ready — select Front, Back or Both to review and export':state.busy?'Engine creating flat 2D artwork; previews appear as real files arrive':'Waiting for artwork generation';
     return `${top('Artwork Creation','Review AI-generated artwork. The engine already creates vectors during the same production job.')}${workflowRail()}<div class="abv2-select-summary" role="status">${esc(status)} • ${ui.selected.size} selected</div>
     <div class="abv2-art-grid-layout ${prepared.length===1?'single':''}">${artworkCard('front_body')}${artworkCard('back_body')}${liveLog()}</div>
+    ${analysisProofPanel(prepared.map(part=>part.side))}
     <p class="abv2-source-note">No extra AI call: selection controls which saved Front/Back vectors you inspect and download.</p><div class="abv2-select-actions">${navigation('Artwork Creation')}${ui.analysisDone&&!ui.generationStarted?button('▷ Generate Artwork','produce','primary'):''}${button('Review Saved Vectors →','continue-vectorization','primary',!canContinue||ui.continued)}</div>`;
   }
   function processTitle(){const stage=stageOf(state.stage);return stage==='Validation'?'Validation':stage==='Vectorization'?'Vectorization':stage==='Export'?'Export':'Artwork Creation';}
@@ -177,7 +206,7 @@
         ${detail.status==='REVIEW_REQUIRED'?'<p class="abv2-advisory" role="status">Local detail check flagged differences for review. The original AI artwork remains unchanged.</p>':''}
         ${Array.isArray(project().warnings)&&project().warnings.length?`<details class="abv2-warning-details"><summary>Engine warnings (${project().warnings.length})</summary><ul>${project().warnings.slice(0,12).map(w=>`<li>${esc(w)}</li>`).join('')}</ul></details>`:''}
       </section>
-    </div>${navigation('Validation')}`;
+    </div>${analysisProofPanel(sides)}${navigation('Validation')}`;
   }
   function vectorFinishing(sides){
     const parts=sides.map(side=>available().find(item=>item.side===side)).filter(Boolean);
