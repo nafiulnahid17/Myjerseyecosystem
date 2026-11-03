@@ -141,16 +141,42 @@
   }
   function processTitle(){const stage=stageOf(state.stage);return stage==='Validation'?'Validation':stage==='Vectorization'?'Vectorization':stage==='Export'?'Export':'Artwork Creation';}
   function validationView(sides,verified){
-    const percent=Math.round(stageProgress()??(ui.stageStatus==='completed'?100:72));
-    const parts=sides.map(side=>available().find(x=>x.side===side)).filter(Boolean),first=parts[0]||{},validation=first.validation||project().validation||{};
-    const physical=validation.physical_artboard||project().validation?.artboard||{};
-    const result=(label,value,detail)=>`<li><span><i>${value===true?'✓':value===false?'!':'•'}</i><span><strong>${esc(label)}</strong><small>${esc(detail)}</small></span></span><b class="${value===true?'pass':value===false?'fail':''}">${esc(value===true?'Passed':value===false?'Review':'Checking')}</b></li>`;
-    return `${top('Validation','Checking vector quality, structure and production readiness')}${workflowRail()}<div class="abv2-validation-layout">
-      <section class="abv2-card abv2-validation-meter"><div class="abv2-gauge" style="--value:${percent}"><div><strong>${percent}%</strong><small>${ui.stageStatus==='completed'?'Validated':'Validating…'}</small></div></div><ol>
-        <li class="complete"><i>✓</i><span>Upload &amp; Analyze</span><b>Complete</b></li><li class="complete"><i>✓</i><span>Generate AI Artwork</span><b>Complete</b></li><li class="complete"><i>✓</i><span>Vectorize Paths</span><b>Complete</b></li><li class="active"><i>◌</i><span>Validate Output</span><b>${percent}%</b></li><li><i>○</i><span>Prepare Export</span><b>Waiting</b></li>
-      </ol></section>
-      <section class="abv2-card abv2-validation-preview"><header><div><h2>Live Preview — <span>Validation</span></h2><small>Validating vector output for printing and production</small></div><b>${ui.stageStatus==='completed'?'Completed':'Scanning…'}</b></header><div class="abv2-validation-arts">${parts.map(part=>{const side=part.side,url=ui.vectorUrls[side]||previewUrl(part)||ui.generatedUrls[side];return `<div><strong>${surfaceLabel(side)} (Validated)</strong><div class="abv2-art-canvas validation-overlay">${url?`<img class="abv2-genuine-image" src="${url}" alt="${surfaceLabel(side)} validation preview">`:'<p>Awaiting verified preview</p>'}<span class="abv2-art-grid"></span>${ui.stageStatus!=='completed'?'<span class="abv2-beam"></span>':''}</div></div>`}).join('')}</div><div class="abv2-validation-stats"><span><b>${esc(validation.path_count??'—')}</b><small>Total Paths</small></span><span><b>${esc(validation.object_count??'—')}</b><small>Objects</small></span><span><b>${esc(validation.color_count??'—')}</b><small>Colors</small></span><span><b>${esc(physical.width_in&&physical.height_in?`${physical.width_in} × ${physical.height_in}`:'22 × 31 in')}</b><small>Canvas</small></span></div></section>
-      <section class="abv2-card abv2-validation-checks"><header><h2>Validation Results</h2><b class="${verified?'pass':''}">${verified?'✓ Passed':'Live Check'}</b></header><ul>${result('Vector Structure',validation.valid_svg,validation.valid_svg?'Clean, well-formed and editable':'Checking SVG structure')}${result('Path Quality',Number.isFinite(validation.path_count)?true:null,Number.isFinite(validation.path_count)?`${validation.path_count} reported paths`:'Checking optimized paths')}${result('Color Accuracy',validation.color_mode?true:null,validation.color_mode||'Checking production color')}${result('Shape Integrity',validation.true_vector,'No gaps or distortion')}${result('Print Readiness',validation.status?validation.status==='passed'||verified:verified?true:null,validation.status||'Checking production standard')}</ul></section>
+    const parts=sides.map(side=>available().find(item=>item.side===side)).filter(Boolean);
+    const current=parts.find(item=>item.side===ui.validationSide)||parts[0]||{};
+    const validation=current.validation||{},master=project().validation||{};
+    const physical=validation.physical_artboard||master.artboard||{};
+    const fidelity=validation.production_fidelity||master.production_fidelity?.by_part?.[current.part_id]||master.production_fidelity||{};
+    const detail=validation.local_detail_fidelity||{};
+    const valueStatus=value=>value==='PASS'?true:value==='REVIEW_REQUIRED'||value==='FAIL'?false:null;
+    const percent=stageProgress()??(verified&&ui.stageStatus==='completed'?100:null);
+    const result=(label,value,detailText)=>`<li><span><i>${value===true?'✓':value===false?'!':'•'}</i><span><strong>${esc(label)}</strong><small>${esc(detailText)}</small></span></span><b class="${value===true?'pass':value===false?'fail':''}">${esc(value===true?'PASS':value===false?'REVIEW':'Not reported')}</b></li>`;
+    const checks=[
+      ['SVG structure',validation.valid_svg===true?true:validation.valid_svg===false?false:null,'Actual SVG syntax and integrity'],
+      ['True vector',validation.true_vector===true?true:validation.true_vector===false?false:null,'Raster-free, independently editable geometry'],
+      ['Embedded rasters',Number.isFinite(validation.embedded_rasters)?validation.embedded_rasters===0:null,Number.isFinite(validation.embedded_rasters)?${validation.embedded_rasters} embedded raster(s)`:'Awaiting vector inspection'],
+      ['Artwork fidelity',valueStatus(fidelity.status),fidelity.status==='REVIEW_REQUIRED'?'Review vector against accepted AI artwork':'Source-to-vector comparison'],
+      ['Micro details',valueStatus(detail.status),detail.status==='REVIEW_REQUIRED'?${detail.total_lost_dark_pixels??'—'} dark / ${detail.total_lost_bright_pixels??'—'} bright pixels flagged`:detail.status==='PASS'?'No flagged dark/bright marks in diagnostic proof':'Diagnostic not yet reported'],
+      ['Editability',valueStatus(validation.editability_status),validation.editability_status==='REVIEW_REQUIRED'?'Detail preserved; manual editing may be complex':'Designer editing targets'],
+      ['Production canvas',valueStatus(physical.status),physical.width_in&&physical.height_in?${physical.width_in} × ${physical.height_in} inches`:'Physical dimensions not yet reported'],
+    ];
+    const hasCompare=Boolean(ui.generatedUrls[current.side]&&ui.vectorUrls[current.side]);
+    const selectedSide=current.side||'front_body';
+    return `${top('Validation','Verified quality results for the accepted AI artwork and final vector')}${workflowRail()}<div class="abv2-validation-layout">
+      <section class="abv2-card abv2-validation-meter"><div class="abv2-gauge" style="--value:${percent??0}"><div><strong>${percent===null?'—':Math.round(percent)+'%'}</strong><small>${verified?'Vector validated':'Validating…'}</small></div></div><ol>
+        <li class="complete"><i>✓</i><span>Upload &amp; Analyze</span><b>Complete</b></li><li class="complete"><i>✓</i><span>Generate AI Artwork</span><b>Complete</b></li><li class="complete"><i>✓</i><span>Vectorize Paths</span><b>Complete</b></li><li class="${verified?'complete':'active'}"><i>${verified?'✓':'◌'}</i><span>Validate Output</span><b>${verified?'Complete':percent===null?'Checking':Math.round(percent)+'%'}</b></li><li><i>○</i><span>Prepare Export</span><b>Waiting</b></li>
+      </ol><p class="abv2-source-note">Vector validation does not automatically certify perfect visual fidelity or native Illustrator layers.</p></section>
+      <section class="abv2-card abv2-validation-preview"><header><div><h2>Live Preview — <span>Validation</span></h2><small>Saved artwork and true-vector output — no simulated quality scores</small></div><b>${verified?'Vector Ready':'Checking…'}</b></header>
+        <div class="abv2-validation-arts">${parts.map(part=>{const side=part.side,url=ui.vectorUrls[side]||previewUrl(part);return `<div><strong>${surfaceLabel(side)} vector</strong><div class="abv2-art-canvas validation-overlay">${url?`<img class="abv2-genuine-image" src="${esc(url)}" alt="${surfaceLabel(side)} real vector artwork preview">`:'<p>Awaiting actual vector preview</p>'}<span class="abv2-art-grid"></span>${!verified?'<span class="abv2-beam"></span>':''}</div></div>`;}).join('')}</div>
+        <div class="abv2-compare-actions">${button(ui.compareSource?'Hide Artwork Comparison':'Compare AI Artwork vs Vector','toggle-compare','secondary',!hasCompare)}<small>${hasCompare?'Uses actual saved AI and vector artifacts':'Both saved AI and vector previews are required'}</small></div>
+        ${ui.compareSource&&hasCompare?`<div class="abv2-source-comparison"><div><strong>AI artwork master</strong><img src="${esc(ui.generatedUrls[current.side])}" alt="Accepted ${surfaceLabel(current.side)} AI-generated artwork"></div><div><strong>Final vector</strong><img src="${esc(ui.vectorUrls[current.side])}" alt="${surfaceLabel(current.side)} verified SVG vector rendering"></div></div>`:''}
+        <div class="abv2-validation-stats"><span><b>${esc(validation.path_count??'—')}</b><small>Total Paths</small></span><span><b>${esc(validation.segment_count??'—')}</b><small>Segments</small></span><span><b>${esc(validation.gradient_count??'—')}</b><small>Gradients</small></span><span><b>${esc(physical.width_in&&physical.height_in?${physical.width_in} × ${physical.height_in} in`:'Not reported')}</b><small>Canvas</small></span></div>
+      </section>
+      <section class="abv2-card abv2-validation-checks"><header><h2>Validation Results</h2><b class="${verified?'pass':''}">${verified?'✓ True Vector':'Awaiting engine'}</b></header>
+        <div class="abv2-side-switch" role="group" aria-label="Review validation by artwork side">${parts.map(part=>button(surfaceLabel(part.side),'review-side:'+part.side,part.side===selectedSide?'selected':'secondary')).join('')}</div>
+        <ul>${checks.map(row=>result(...row)).join('')}</ul>
+        ${detail.status==='REVIEW_REQUIRED'?'<p class="abv2-advisory" role="status">Local detail check flagged differences for review. The original AI artwork remains unchanged.</p>':''}
+        ${Array.isArray(project().warnings)&&project().warnings.length?`<details class="abv2-warning-details"><summary>Engine warnings (${project().warnings.length})</summary><ul>${project().warnings.slice(0,12).map(w=>`<li>${esc(w)}</li>`).join('')}</ul></details>`:''}
+      </section>
     </div>${navigation('Validation')}`;
   }
   function processing(){const title=ui.processingStage||processTitle();
