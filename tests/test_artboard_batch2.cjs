@@ -17,9 +17,10 @@ const context={state,Date,setTimeout:(fn)=>setTimeout(fn,1),URL:{revokeObjectURL
  jobPoll:async(engine,path,terminal)=>{
    assert.equal(engine,'artboard');assert.equal(currentJob.job_id,path.split('/').at(-1));
    if(terminal==='Production' && process.env.BATCH2_NO_STAGE_EVENTS !== '1'){
-     for(const [step,stage] of [['Generating AI artwork','Artwork Creation'],['VTracer tracing vector paths','Artwork Creation'],['Validating vector fidelity','Artwork Creation']]){
+     for(const [step,stage] of [['Fable inspecting fine patterns and micro-dots','Analyzing'],['Generating flat rectangular print artwork','Artwork Creation'],['VTracer tracing vector paths','Artwork Creation'],['Validating vector fidelity','Artwork Creation']]){
        state.stage=step;state.progress=12;state.artboardEvents.push({step,at:'2026-11-01T00:00:00Z',progress:12});context.render();context.updateMonitor();
        assert(screens.at(-1).includes(stage),`Missing stage while real engine sends ${step}: ${stage}`);
+      if(stage==='Analyzing')assert(screens.at(-1).includes('Live Design Analysis'),'Fable event must keep the scan screen visible');
        assert(screens.at(-1).includes('12%'),'Live UI must read the engine event progress field');
      }
    }else state.stage=terminal==='Prepare'?'Surface analysis complete':'Export complete';
