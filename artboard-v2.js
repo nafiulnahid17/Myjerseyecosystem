@@ -108,11 +108,13 @@
   function analysisProofPanel(sides){
     const p=project(),all=p.analysis_generation_audit||{},records=sides
       .map(side=>available().find(part=>part.side===side)).filter(Boolean);
-    const status=(value,success)=>value===success?'verified':value==='REVIEW_REQUIRED'||value==='UNAVAILABLE'||value==='UNVERIFIED'?'review':'unknown';
+    const status=(value,success)=>value===success?'verified':['REVIEW_REQUIRED','UNAVAILABLE','UNVERIFIED','PARTIAL_ANALYSIS_IN_GENERATION_REQUEST','NO_ACTIONABLE_DESIGN_FIELDS'].includes(value)?'review':'unknown';
     const label=value=>({
       COMPLETED:'Completed',UNAVAILABLE:'Unavailable — image-model self-analysis',
       SELF_ANALYSIS_ONLY:'Image-model self-analysis',
       VERIFIED_IN_GENERATION_REQUEST:'Brief included in generator request',
+      PARTIAL_ANALYSIS_IN_GENERATION_REQUEST:'Partial brief included — truncated',
+      NO_ACTIONABLE_DESIGN_FIELDS:'Brief contained no actionable design fields',
       UNVERIFIED:'Not verified',REVIEW_REQUIRED:'Review required',
     })[value]||'Not reported';
     return `<section class="abv2-card abv2-proof-panel" aria-label="Analysis-to-generation verification"><header><h2>Analysis → Generation Proof</h2><small>Real provider evidence only</small></header>
