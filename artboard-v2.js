@@ -780,7 +780,7 @@
     if(state.busy&&!force)return notify('Cancel the active job before starting a new input');
     ++ui.workspaceEpoch;ui.preferInput=false;ui.phase='input';ui.view=null;ui.analysisDone=false;ui.generationStarted=false;ui.processingStage='';ui.downloadFormat='';ui.prepared=[];
     ui.selected.clear();ui.visitedStages.clear();ui.stageStatus='';ui.lastPreviewPath='';ui.continued=false;
-    ui.productionDone=false;ui.finishing=false;ui.exportStarted=false;ui.cancelRequested=false;
+    ui.productionDone=false;ui.finishing=false;ui.exportStarted=false;ui.cancelRequested=false;ui.handoffBusy=false;
     ui.generationError='';ui.compareSource=false;ui.validationSide=null;ui.assetBusy.clear();ui.assetRetry={};
     for(const url of Object.values({...ui.generatedUrls,...ui.vectorUrls}))URL.revokeObjectURL(url);
     ui.generatedUrls={};ui.vectorUrls={};state.artboardPreviewPath='';state.files.artboard=null;
