@@ -32,6 +32,7 @@ jobs:
           node tests/test_artboard_batch2.cjs
           ARTBOARD_TEST_PARTS=back node tests/test_artboard_batch2.cjs
           ARTBOARD_TEST_PARTS=both node tests/test_artboard_batch2.cjs
+          ARTBOARD_TEST_PARTS=both ARTBOARD_PROOF_MISSING=1 node tests/test_artboard_batch2.cjs
           node tests/test_artboard_self_analysis.cjs
       - name: Verify Cloudflare Worker and safe static asset manifest
         run: |

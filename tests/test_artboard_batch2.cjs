@@ -31,6 +31,27 @@ const context={state,Date,setTimeout:(fn)=>setTimeout(fn,1),URL:{revokeObjectURL
   if(path==='api/artboard/upload')return serverProject;
   if(path==='api/artboard/prepare'){serverProject.surfaces=opts.json.surfaces.map(x=>({type:x,name:x,part_id:x,exports:{},validation:{path_count:x==='front_body'?123:287,color_mode:'CMYK',postscript_level:2,dpi:300}}));return currentJob={job_id:'j'+(++jobN),project_id:'p1',status:'queued'};}
   if(path==='api/artboard/production'){serverProject.true_vector_ready=true;
+    if(process.env.ARTBOARD_PROOF_MISSING!=='1'){
+      serverProject.analysis_generation_audit=Object.fromEntries(serverProject.surfaces.map(item=>[
+        item.part_id,{
+          version:'analysis-generation-provenance/1',
+          analysis:{
+            status:item.type==='front_body'?'COMPLETED':'UNAVAILABLE',
+            model:item.type==='front_body'?'anthropic/claude-fable-5':null,
+            duration_ms:item.type==='front_body'?1902:null,
+            summary:{fields:{base_colors:2,patterns:3,graphics:2,uncertain_details:1,layout_guidance:1}},
+          },
+          handoff:{
+            status:item.type==='front_body'?'VERIFIED_IN_GENERATION_REQUEST':'SELF_ANALYSIS_ONLY',
+            generation_model:'openai/gpt-image-2.5-sunburst',
+            included_analysis_characters:item.type==='front_body'?342:0,
+            provider_prompt_confirmed:item.type==='front_body',
+            prompt_sha256:item.type==='front_body'?'f'.repeat(64):null,
+          },
+          follow_through:{status:'REVIEW_REQUIRED',motifs_verified:false},
+        }
+      ]));
+    }
     serverProject.validation={production_fidelity:{status:'REVIEW_REQUIRED'}};
     for(const item of serverProject.surfaces){
       item.validation={...item.validation,valid_svg:true,true_vector:true,embedded_rasters:0,
@@ -66,6 +87,15 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   test('no-vectorization-before-selection',screens.at(-1).includes('Review Saved Vectors')); 
   test('artwork-no-early-vectorization',!screens.some(v=>v.includes('<h1>Vectorization</h1>')));
   test('real-previews',screens.at(-1).includes('Real Front engine-produced artwork preview')&&screens.at(-1).includes('Real Back engine-produced artwork preview'));
+  test('proof-panel-visible',screens.at(-1).includes('Analysis → Generation Proof'));
+  if(process.env.ARTBOARD_PROOF_MISSING==='1'){
+    test('legacy-proof-is-not-faked',screens.at(-1).includes('Audit not returned by deployed engine')&&!screens.at(-1).includes('Brief included in generator request'));
+  }else{
+    test('analyzer-completed-from-backend',screens.at(-1).includes('anthropic/claude-fable-5')&&screens.at(-1).includes('1.902 seconds'));
+    test('verified-prompt-transfer',screens.at(-1).includes('Brief included in generator request')&&screens.at(-1).includes('342 chars verified'));
+    test('visual-followthrough-stays-review',screens.at(-1).includes('Generated artwork follows brief')&&screens.at(-1).includes('Review required'));
+    test('fallback-shown-honestly',screens.at(-1).includes('Unavailable — image-model self-analysis'));
+  }
   const selection=listeners.change.find(f=>f.toString().includes("const b=e.target.closest('[data-abv2-select]')"));
   const chosen=process.env.ARTBOARD_TEST_PARTS==='both'?['front_body','back_body']:[process.env.ARTBOARD_TEST_PARTS==='back'?'back_body':'front_body'];
   for(const side of chosen)selection({target:{closest:(sel)=>sel==='[data-abv2-select]'?{dataset:{abv2Select:side},checked:true}:null}});
@@ -98,6 +128,8 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
     test('side-specific-validation',screens.at(-1).includes('Review validation by artwork side')&&screens.at(-1).includes('No flagged dark/bright marks')&&!screens.at(-1).includes('3 dark / 0 bright pixels flagged'));
   }
   test('review-does-not-call-paid-engine',requests.length===beforeReviewCalls);
+  test('proof-visible-in-validation',screens.at(-1).includes('Analysis → Generation Proof'));
+  test('no-visual-accuracy-fake-pass',!screens.at(-1).includes('Generated artwork follows brief</small><b class="verified">'));
 
   if(process.env.EXPORT_SNAPSHOT==='1')fs.writeFileSync('/mnt/data/artboard_final_work/export-qa.html','<!doctype html><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><style>'+fs.readFileSync('/mnt/data/artboard_v2_draft/artboard-v2.css','utf8')+'\\n'+css+'</style><body style=\"margin:0;background:#010b1b;color:white\">'+screens.at(-1)+'</body>');
   console.log('PASS Batch 02 frontend mocked integration & static checks');
