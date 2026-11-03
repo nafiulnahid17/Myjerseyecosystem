@@ -4,7 +4,7 @@
   const ui = {
     vectorOverlaySource:null, analysisDone:false, generationStarted:false, processingStage:'', downloadFormat:'',
     phase: 'input', preferInput:false, workspaceEpoch:0, selected: new Set(), prepared: [], inspected: false,
-    view: null, visitedStages: new Set(), stageStatus: '', lastPreviewPath:'', dimensions: '', awaitingSurfaces: false, visibleChoice: new Set(['front_body']), processingStarted: false, cancelRequested: false, productionDone:false, continued:false, finishing:false, exportStarted:false, zipBusy:false, generatedUrls:{}, vectorUrls:{}, assetBusy:new Set(), assetRetry:{}, generationError:"", compareSource:false, validationSide:null
+    view: null, visitedStages: new Set(), stageStatus: '', lastPreviewPath:'', dimensions: '', awaitingSurfaces: false, visibleChoice: new Set(['front_body']), processingStarted: false, cancelRequested: false, productionDone:false, continued:false, finishing:false, exportStarted:false, zipBusy:false, handoffBusy:false, generatedUrls:{}, vectorUrls:{}, assetBusy:new Set(), assetRetry:{}, generationError:"", compareSource:false, validationSide:null
   };
   const steps = ['Input','Analyzing','Artwork Creation','Vectorization','Validation','Export'];
   const surfName = x => /back/i.test(String(x?.type || x?.name || x || '')) ? 'back_body' : 'front_body';
@@ -385,6 +385,43 @@
     }catch(e){if(e?.name==='AbortError'){notify('Illustrator handoff cancelled');return;}
       notify('Illustrator handoff failed: '+e.message);log('Illustrator handoff failed: '+e.message);}
   }
+
+  async function downloadIllustratorHandoff(withReference=false){
+    if(ui.handoffBusy||state.busy)return notify('An export is already running');
+    if(['queued','processing','cancelling'].includes(savedJob()?.status))
+      return notify('Finish or cancel the existing engine job before preparing a handoff');
+    const p=project(),selected=available().filter(x=>!ui.selected.size||ui.selected.has(x.side));
+    if(!p.project_id||p.true_vector_ready!==true||!selected.length)
+      return notify('A validated Front/Back vector is required for Illustrator handoff');
+    const id=p.project_id, epoch=ui.workspaceEpoch;
+    ui.handoffBusy=true;render();
+    try{
+      await run('Create Illustrator desktop handoff archive',async()=>{
+        state.activePipeline='Export';state.stage='Packaging Illustrator desktop files';
+        state.progress=null;render();
+        const j=await call('artboard','api/artboard/export',{method:'POST',
+          json:{project_id:id,part_ids:selected.map(part=>part.part_id),
+            formats:['eps','svg','zip'],bundle:'illustrator_handoff',
+            include_reference_raster:withReference}});
+        captureJob('Artboard',j);
+        await jobPoll('artboard','api/artboard/jobs/'+j.job_id,'Export');
+        if(ui.workspaceEpoch!==epoch||project().project_id!==id||ui.cancelRequested)return;
+        state.artboardResult=await call('artboard','api/artboard/projects/'+id);
+        const latest=state.artboardResult.last_export||{};
+        const output=latest.zip_path;
+        if(latest.bundle!=='illustrator_handoff'||
+           Boolean(latest.include_reference_raster)!==Boolean(withReference)||
+           typeof output!=='string'||!output.endsWith('.zip'))
+          throw Error('Engine did not confirm the requested Illustrator handoff ZIP');
+        await download('artboard',artifactEndpoint(id,output));
+        notify(withReference?
+          'Illustrator ZIP downloaded. The generated reference PNG is optional and non-printing on desktop.':
+          'Illustrator ZIP downloaded. Open validated EPS using the included desktop script.');
+        state.stage='Illustrator handoff ZIP downloaded';state.progress=null;
+      });
+    }finally{ui.handoffBusy=false;render();}
+  }
+
   function exportPage(){
     const p=project(),parts=available().filter(x=>!ui.selected.size||ui.selected.has(x.side)),confirmed=p.true_vector_ready===true;
     const items=exportedArtifacts(),formats=[...new Set(items.map(x=>x.format))];
@@ -415,6 +452,11 @@
         <section class="abv2-card abv2-illustrator"><header><h2>Adobe Illustrator</h2></header>
           <p>Continue with the premium editable SVG when available; otherwise use validated SVG.</p>
           ${button('Continue to Illustrator','illustrator','amber',!formats.includes('svg')&&!formats.includes('premium_svg'))}
+          <div class="abv2-handoff-actions">
+            ${button('↓ Illustrator Handoff ZIP','illustrator-handoff','secondary',!confirmed||state.busy||ui.handoffBusy)}
+            ${button('↓ ZIP + Reference PNG','illustrator-handoff-reference','secondary',!confirmed||state.busy||ui.handoffBusy)}
+          </div>
+          <p class="abv2-source-note">Handoff ZIP runs export/packaging only, never new AI artwork generation. Reference image is opt-in, separate from true-vector print exports and must remain hidden/non-printing in desktop Illustrator.</p>
           <div class="abv2-illustrator-guide"><strong>Native .AI requires desktop Illustrator</strong><span>Import the validated EPS, run the optional Illustrator script and compare before/after proofs. A browser cannot generate native AI layers.</span>
             <a href="https://github.com/nafiulnahid17/Artboard-AI---Resolution-Independent-/blob/main/desktop/illustrator-native-layers.jsx" target="_blank" rel="noopener noreferrer">View desktop handoff script</a>
           </div></section>
@@ -766,6 +808,8 @@
       if(!available().some(part=>part.side===side)||ui.selected.size&&!ui.selected.has(side))return;
       ui.validationSide=side;ui.compareSource=false;render();return;
     }
+    if(a==='illustrator-handoff')return downloadIllustratorHandoff(false);
+    if(a==='illustrator-handoff-reference')return downloadIllustratorHandoff(true);
     if(a==='illustrator')return continueSelectedIllustrator();if(a==='download-master-zip')return downloadMasterZip();if(a.startsWith('select-format:')){ui.downloadFormat=a.split(':')[1];render();return;}
     if(a==='previous'){if(state.busy)return notify('Active job: cancel processing before changing stages');
       if(ui.view==='processing'&&ui.processingStage==='Validation'){ui.processingStage='Vectorization';ui.compareSource=false;}
