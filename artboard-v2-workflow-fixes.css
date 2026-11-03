@@ -260,7 +260,7 @@ body.artboard-workspace #menuButton{display:grid!important;flex:0 0 40px;cursor:
 .abv2-analyzing .abv2-preview{position:relative}
 .abv2-analyzing .abv2-visual{isolation:isolate;background:radial-gradient(ellipse at center,#07506c44,transparent 65%),#010b20}
 .abv2-analyzing .abv2-visual::before{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background-image:linear-gradient(#22dcff16 1px,transparent 1px),linear-gradient(90deg,#22dcff16 1px,transparent 1px);background-size:25px 25px}
-.abv2-analyzing .abv2-visual .abv2-beam{opacity:1;z-index:6;animation:abv2-analysis-sweep 3.2s ease-in-out infinite alternate}
+.abv2-analyzing .abv2-visual.active .abv2-beam{opacity:1;z-index:6;animation:abv2-analysis-sweep 3.2s ease-in-out infinite alternate}
 .abv2-analysis-hud{position:absolute;inset:5%;z-index:5;pointer-events:none}
 .abv2-hud-ring{position:absolute;width:min(55%,210px);aspect-ratio:1;left:50%;top:50%;border:1px dashed #1be3ffb4;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 24px #00bfff55,inset 0 0 30px #00bfff1a}
 .abv2-hud-ring::after{content:"";position:absolute;inset:14%;border:1px solid #57f9e77d;border-radius:50%}
@@ -273,7 +273,7 @@ body.artboard-workspace #menuButton{display:grid!important;flex:0 0 40px;cursor:
 .abv2-analysis-live-status{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:9px 11px;margin-top:8px;border:1px solid #157cb2;border-radius:10px;background:#03192c;color:#cef7ff;font-size:11px}
 .abv2-analysis-live-status strong{font-size:11px;font-weight:700;min-width:0;overflow-wrap:anywhere}
 .abv2-analysis-live-status small{margin-left:auto;font-size:9px;color:#7fa7bc}
-.abv2-analysis-dot{flex:0 0 7px;width:7px;height:7px;border-radius:50%;background:#42ffe0;box-shadow:0 0 10px #00e9ff;animation:abv2-analysis-pulse 1.4s ease-in-out infinite alternate}
+.abv2-analysis-dot{flex:0 0 7px;width:7px;height:7px;border-radius:50%;background:#42ffe0;box-shadow:0 0 10px #00e9ff}\n.abv2-analyzing:has(.abv2-visual.active) .abv2-analysis-dot{animation:abv2-analysis-pulse 1.4s ease-in-out infinite alternate}
 @keyframes abv2-analysis-sweep{from{top:8%}to{top:89%}}
 @keyframes abv2-analysis-pulse{to{opacity:.4;transform:scale(.7)}}
 @media(max-width:760px){.abv2-analysis-live-status small{width:100%;margin-left:15px}.abv2-analyzing .abv2-process-grid{grid-template-columns:1fr}}
