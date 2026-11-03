@@ -320,3 +320,22 @@ body.artboard-workspace #menuButton{display:grid!important;flex:0 0 40px;cursor:
 @media(max-width:850px){.abv2 .abv2-validation-layout{grid-template-columns:1fr}.abv2 .abv2-source-comparison img{height:230px}.abv2 .abv2-finishing-grid{grid-template-columns:1fr}}
 @media(max-width:500px){.abv2 .abv2-source-comparison{grid-template-columns:1fr}.abv2 .abv2-source-comparison img{height:210px}.abv2 .abv2-compare-actions .abv2-btn{width:100%}.abv2 .abv2-finishing-part dl>div{align-items:flex-start}}
 @media(prefers-reduced-motion:reduce){.abv2 .abv2-gauge::after{animation:none!important}}
+
+
+/* Evidence-driven analyzer → generator handoff: do not imply visual fidelity PASS. */
+.abv2 .abv2-proof-panel{border:1px solid #186f92;border-radius:14px;min-width:0;background:linear-gradient(135deg,#06293c,#071528)}
+.abv2 .abv2-proof-panel header small{font-size:10px;color:#83c4de}
+.abv2 .abv2-proof-parts{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:11px}
+.abv2 .abv2-proof-part{min-width:0;border:1px solid #195979;border-radius:12px;padding:11px;background:#051b2f}
+.abv2 .abv2-proof-part-title{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px}
+.abv2 .abv2-proof-part-title strong{color:#b9ffed;font-size:12px}
+.abv2 .abv2-proof-part-title small{color:#85b4c7;font-size:9px;overflow-wrap:anywhere;text-align:right}
+.abv2 .abv2-proof-cells{display:grid;gap:8px}
+.abv2 .abv2-proof-cells>div{min-width:0;display:grid;gap:4px;border:1px solid #104a68;border-radius:9px;background:#031526;padding:9px}
+.abv2 .abv2-proof-cells small{color:#95b6cd;font-size:10px}
+.abv2 .abv2-proof-cells b{font-size:11px;line-height:1.35;color:#d9e9f2;overflow-wrap:anywhere}
+.abv2 .abv2-proof-cells b.verified{color:#79ffe3}
+.abv2 .abv2-proof-cells b.review{color:#ffce85}
+.abv2 .abv2-proof-cells span{color:#a9c6d5;font-size:9px;line-height:1.45;overflow-wrap:anywhere}
+.abv2 .abv2-proof-meta{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:10px;color:#8db6c8;font-size:9px}
+@media(max-width:520px){.abv2 .abv2-proof-parts{grid-template-columns:minmax(0,1fr)}.abv2 .abv2-proof-part-title{align-items:flex-start;flex-direction:column;gap:4px}}
