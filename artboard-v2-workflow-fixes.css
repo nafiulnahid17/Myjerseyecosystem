@@ -339,3 +339,11 @@ body.artboard-workspace #menuButton{display:grid!important;flex:0 0 40px;cursor:
 .abv2 .abv2-proof-cells span{color:#a9c6d5;font-size:9px;line-height:1.45;overflow-wrap:anywhere}
 .abv2 .abv2-proof-meta{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:10px;color:#8db6c8;font-size:9px}
 @media(max-width:520px){.abv2 .abv2-proof-parts{grid-template-columns:minmax(0,1fr)}.abv2 .abv2-proof-part-title{align-items:flex-start;flex-direction:column;gap:4px}}
+
+
+/* Real desktop Illustrator handoff: compact opt-in raster companion download. */
+.abv2 .abv2-handoff-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:11px 0}
+.abv2 .abv2-handoff-actions .abv2-btn{width:100%;min-width:0;white-space:normal;line-height:1.35;min-height:40px;padding:10px 8px;border:1px solid #2db7c3;background:#06243d;color:#bffff3}
+.abv2 .abv2-handoff-actions .abv2-btn:hover:not(:disabled),.abv2 .abv2-handoff-actions .abv2-btn:focus-visible{border-color:#75fff0;box-shadow:0 0 0 2px #21dfc833}
+.abv2 .abv2-handoff-actions .abv2-btn:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:520px){.abv2 .abv2-handoff-actions{grid-template-columns:1fr}}
