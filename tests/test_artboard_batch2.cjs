@@ -104,7 +104,7 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   if(process.env.ARTBOARD_PROOF_MISSING==='1'){
     test('legacy-proof-is-not-faked',screens.at(-1).includes('Audit not returned by deployed engine')&&!screens.at(-1).includes('Brief included in generator request'));
   }else{
-    test('analyzer-completed-from-backend',screens.at(-1).includes('anthropic/claude-fable-5')&&screens.at(-1).includes('1.902 seconds'));
+    test('analyzer-completed-from-backend',screens.at(-1).includes('google/gemini-4-argon')&&screens.at(-1).includes('1.902 seconds'));
     test('verified-prompt-transfer',screens.at(-1).includes('Brief included in generator request')&&screens.at(-1).includes('342 chars verified'));
     test('visual-followthrough-stays-review',screens.at(-1).includes('Generated artwork follows brief')&&screens.at(-1).includes('Review required'));
     test('fallback-shown-honestly',screens.at(-1).includes('Unavailable — image-model self-analysis'));
