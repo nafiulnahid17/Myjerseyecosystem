@@ -456,6 +456,66 @@ body.artboard-workspace #menuButton{display:grid!important;flex:0 0 40px;cursor:
 .abv2-art-canvas.validation-overlay::before{background-image:linear-gradient(#00ffb51c 1px,transparent 1px),linear-gradient(90deg,#00ffb51c 1px,transparent 1px);background-size:25px 25px}
 .abv2-validation-results>span{box-shadow:inset 0 0 10px #00d9a51f}
 @media(prefers-reduced-motion:reduce){.abv2-vector-simulation,.abv2-vector-simulation i{animation:none!important}}
+
+/* Full mockup reconstruction — the input cockpit and validation surface use
+   dedicated markup rather than a cosmetic overlay on the legacy cards. */
+.abv2-health>span{display:flex;justify-content:center;align-items:center;gap:10px;padding:10px 14px}
+.abv2-health>span>.abv2-health-icon{display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;border:1px solid #13d8ff;border-radius:9px;color:#39edff;font-size:19px;font-style:normal;text-shadow:0 0 12px #00c8ff;box-shadow:inset 0 0 12px #007dff3b,0 0 10px #009dff2d}
+.abv2-health>span>span{display:flex;align-items:center;gap:8px;min-width:0}
+.abv2-health>span strong{font-size:12px;white-space:nowrap}
+.abv2-health>span b{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border:1px solid #08755f;border-radius:999px;background:#07534270;color:#aaffda;line-height:1;white-space:nowrap}
+.abv2-health>span:nth-child(2) b{border-color:#176eac;background:#06456e75;color:#a9e5ff}
+.abv2-health>span b i{width:6px;height:6px;margin:0}
+.abv2:has(.abv2-input-shell) .abv2-header{padding:22px 12px 14px}
+.abv2:has(.abv2-input-shell) .abv2-header img{width:68px!important;height:68px!important}
+.abv2:has(.abv2-input-shell) .abv2-header h1{font-size:clamp(34px,4vw,54px)!important;line-height:1!important;font-style:italic;letter-spacing:-.055em}
+.abv2:has(.abv2-input-shell) .abv2-header p{font-size:11px!important;letter-spacing:.28em}
+.abv2-input-shell{width:min(100%,1030px)!important;gap:12px;padding:4px 18px 100px!important}
+.abv2-input-shell .abv2-modes{display:grid!important;grid-template-columns:190px minmax(0,1fr);padding:10px 13px!important;gap:12px!important;border-radius:20px!important}
+.abv2-input-shell .abv2-modes>b{display:flex;align-items:center;gap:10px;padding-left:8px;color:#f2fbff}
+.abv2-input-shell .abv2-modes>b>span{display:grid;place-items:center;width:31px;height:31px;border:1px solid #18d9ff;border-radius:9px;color:#55eaff;box-shadow:0 0 13px #00aaff38}
+.abv2-input-shell .abv2-modes>div{gap:11px}
+.abv2 .abv2-mode-card{position:relative;display:grid;grid-template-columns:32px minmax(0,1fr) 22px;align-items:center;gap:8px;text-align:left;padding:9px 12px!important;min-height:56px!important;border-radius:15px!important}
+.abv2 .abv2-mode-card>em{font-size:23px;font-style:normal;color:#5beaff;text-align:center;text-shadow:0 0 12px #03bdfd}
+.abv2 .abv2-mode-card>span{display:flex;flex-direction:column;gap:3px;min-width:0}
+.abv2 .abv2-mode-card strong{font-size:13px;color:#f4fbff}
+.abv2 .abv2-mode-card small{font-size:10px!important;color:#8db6cd}
+.abv2 .abv2-mode-card>i{display:none;place-items:center;width:21px;height:21px;border-radius:50%;font-size:11px;font-style:normal;background:#15e4f5;color:#001527;box-shadow:0 0 13px #00efff}
+.abv2 .abv2-mode-card.active>i{display:grid}
+.abv2-upload-panel{display:grid;gap:10px;padding:14px 16px 12px;border:1px solid #14a9ea;border-radius:25px;background:linear-gradient(155deg,#082844e8,#020c1df2 76%);box-shadow:inset 0 1px #b9ffff4d,inset 0 0 35px #0077ff21,0 0 28px #006dff45;backdrop-filter:blur(12px)}
+.abv2-input-shell .abv2-upload-panel .abv2-drop{min-height:210px!important;border-radius:20px!important}
+.abv2-input-shell .abv2-drop strong{font-size:18px!important}
+.abv2-input-shell .abv2-drop small{font-size:12px;color:#c4d9e7}
+.abv2-file-types{position:relative;z-index:1;display:flex;justify-content:center;gap:8px;margin-top:8px;flex-wrap:wrap}
+.abv2-file-types>span{min-width:52px;padding:5px 10px;border:1px solid #1379b9;border-radius:999px;background:#052440c9;color:#ccf8ff;font-size:10px;font-weight:800;letter-spacing:.05em;box-shadow:inset 0 0 10px #008cff26}
+.abv2-upload-panel .abv2-file{min-height:65px;border-radius:18px;padding:8px 12px}
+.abv2-upload-panel .abv2-file>span{padding:5px 9px;border:1px solid #0f9f75;border-radius:999px;background:#075f484d}
+.abv2-upload-panel .abv2-file>button{display:grid;place-items:center;width:34px;height:34px;margin-left:2px;border:1px solid #1a79b6;border-radius:50%;background:#061b31;color:#dffaff;font-size:22px;cursor:pointer}
+.abv2-upload-panel .abv2-commands{padding:2px 4%!important}
+.abv2-upload-panel .abv2-commands .abv2-btn{min-height:54px!important;border-radius:20px!important;font-size:15px!important}
+.abv2-upload-panel .abv2-commands .abv2-btn.primary{font-size:18px!important}
+
+.abv2-validation-layout{display:grid;grid-template-columns:minmax(210px,.72fr) minmax(0,1.85fr) minmax(240px,.9fr);gap:12px;align-items:stretch}
+.abv2-validation-meter,.abv2-validation-preview,.abv2-validation-checks{min-height:470px}
+.abv2-gauge{--value:72;position:relative;width:min(180px,82%);aspect-ratio:1;margin:8px auto 18px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#13eeff calc(var(--value)*1%),#087bff calc(var(--value)*1%),#06243e 0);box-shadow:0 0 25px #00a8ff70,inset 0 0 24px #00cfff42}
+.abv2-gauge::before{content:"";position:absolute;inset:13px;border-radius:50%;background:radial-gradient(circle,#09234a,#030d21 68%);border:1px solid #1fb9ef;box-shadow:inset 0 0 22px #006cff55}
+.abv2-gauge::after{content:"";position:absolute;inset:-12px;border:1px dashed #10d6ff68;border-radius:50%;animation:abv2-gauge-spin 10s linear infinite}
+.abv2-gauge>div{position:relative;z-index:1;display:grid;text-align:center}.abv2-gauge strong{font-size:34px;color:white;text-shadow:0 0 14px #00d9ff}.abv2-gauge small{font-size:11px;color:#71edff}
+@keyframes abv2-gauge-spin{to{transform:rotate(360deg)}}
+.abv2-validation-meter>ol{list-style:none;margin:0;padding:0;display:grid;gap:5px}
+.abv2-validation-meter>ol li{display:grid;grid-template-columns:23px minmax(0,1fr) auto;gap:7px;align-items:center;padding:8px;border:1px solid #154f74;border-radius:9px;background:#041629;font-size:10px;color:#9fc3d6}
+.abv2-validation-meter>ol li>i{display:grid;place-items:center;width:20px;height:20px;border:1px solid #1b607f;border-radius:50%;font-style:normal}.abv2-validation-meter>ol li>b{font-size:9px;color:#789fb2}
+.abv2-validation-meter>ol li.complete{border-color:#0d6d56;color:#c6ffe8}.abv2-validation-meter>ol li.complete>i{border-color:#1effa3;color:#1effa3}.abv2-validation-meter>ol li.complete>b{color:#39e9a2}
+.abv2-validation-meter>ol li.active{border-color:#04bbf0;background:#062944;color:#dffcff;box-shadow:inset 0 0 13px #00bfff29}.abv2-validation-meter>ol li.active>i{border-color:#32e9ff;color:#32e9ff;animation:abv2-node-pulse 1s ease-in-out infinite alternate}.abv2-validation-meter>ol li.active>b{color:#2eeaff}
+.abv2-validation-preview>header{align-items:center}.abv2-validation-preview>header>div h2 span{color:#20dff4}.abv2-validation-preview>header>div small{display:block;margin-top:4px;color:#8abbd0;font-size:10px}.abv2-validation-preview>header>b{padding:6px 9px;border:1px solid #1686b2;border-radius:9px;color:#25e4ff;font-size:10px}
+.abv2-validation-arts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.abv2-validation-arts>div{min-width:0}.abv2-validation-arts>div>strong{display:block;padding:6px 3px;color:#d4f9ff;font-size:11px}.abv2-validation-arts .abv2-art-canvas{min-height:315px;height:315px}
+.abv2-validation-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:10px}.abv2-validation-stats>span{display:grid;text-align:center;padding:8px 5px;border:1px solid #126798;border-radius:8px;background:#04192f}.abv2-validation-stats b{font-size:11px;color:#e7fbff;overflow-wrap:anywhere}.abv2-validation-stats small{font-size:9px;color:#71b5d2;margin-top:3px}
+.abv2-validation-checks>header>b{padding:6px 9px;border:1px solid #176a82;border-radius:999px;color:#58ddff;font-size:10px}.abv2-validation-checks>header>b.pass{border-color:#22d479;background:#08643e;color:#baffd5;box-shadow:0 0 12px #00ff8a55}
+.abv2-validation-checks>ul{list-style:none;padding:0;margin:0;display:grid;gap:7px}.abv2-validation-checks li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px;border:1px solid #15547a;border-radius:10px;background:#04172d}.abv2-validation-checks li>span{display:flex;align-items:center;gap:8px;min-width:0}.abv2-validation-checks li>span>i{display:grid;place-items:center;flex:0 0 25px;width:25px;height:25px;border:1px solid #1c799a;border-radius:50%;color:#28dff2;font-style:normal}.abv2-validation-checks li>span>span{display:grid;gap:3px;min-width:0}.abv2-validation-checks li strong{font-size:10px;color:#effcff}.abv2-validation-checks li small{font-size:9px;color:#85aebf;overflow-wrap:anywhere}.abv2-validation-checks li>b{font-size:9px;color:#54dff5}.abv2-validation-checks li>b.pass{color:#31ef9e}.abv2-validation-checks li>b.fail{color:#ff7e8e}
+@media(max-width:1160px){.abv2-validation-layout{grid-template-columns:minmax(210px,.7fr) minmax(0,1.5fr)}.abv2-validation-checks{grid-column:1/-1;min-height:0}.abv2-validation-checks>ul{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:850px){.abv2-health>span>span{display:grid;gap:3px}.abv2-input-shell .abv2-modes{grid-template-columns:1fr!important}.abv2-input-shell .abv2-modes>b{justify-content:center}.abv2-validation-layout{grid-template-columns:1fr}.abv2-validation-meter,.abv2-validation-preview,.abv2-validation-checks{min-height:0}.abv2-validation-checks{grid-column:auto}.abv2-validation-arts .abv2-art-canvas{height:280px;min-height:280px}}
+@media(max-width:560px){.abv2-health>span>.abv2-health-icon{display:none}.abv2-health>span strong{font-size:10px}.abv2-health>span b{font-size:9px;padding:3px 6px}.abv2-input-shell{padding-inline:0!important}.abv2 .abv2-mode-card{grid-template-columns:28px minmax(0,1fr) 20px}.abv2-validation-arts,.abv2-validation-checks>ul{grid-template-columns:1fr}.abv2-validation-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.abv2-gauge::after{animation:none!important}}
 </style>
 </head>
 <body>
@@ -983,10 +1043,10 @@ statusCheck();
   function health(){
     const a=state.status?.artboard||{}, ok=a.state==='online', active=state.busy && Boolean(state.artboardJob && ['processing','queued'].includes(state.artboardJob.status));
     return `<div class="abv2-health" aria-label="Artboard engine status">
-      <span><i class="${active?'ok':'unknown'}"></i>Primary AI <b>${active?'Running':a.ai_configured===true?'Ready':'Checking'}</b></span>
-      <span><i class="unknown"></i>Fallback AI <b>Standby</b></span>
-      <span><i class="${ok?'ok':'bad'}"></i>Engine <b>${ok?'Online':'Unavailable'}</b></span>
-      <span><i class="${ok?'ok':'bad'}"></i>Export Engine <b>${ok?'Online':'Unavailable'}</b></span>
+      <span><em class="abv2-health-icon">▣</em><span><strong>Primary AI</strong><b><i class="${active?'ok':'unknown'}"></i>${active?'Running':a.ai_configured===true?'Ready':'Checking'}</b></span></span>
+      <span><em class="abv2-health-icon">◇</em><span><strong>Fallback AI</strong><b><i class="unknown"></i>Standby</b></span></span>
+      <span><em class="abv2-health-icon">⚙</em><span><strong>Engine</strong><b><i class="${ok?'ok':'bad'}"></i>${ok?'Online':'Unavailable'}</b></span></span>
+      <span><em class="abv2-health-icon">⇧</em><span><strong>Export Engine</strong><b><i class="${ok?'ok':'bad'}"></i>${ok?'Online':'Unavailable'}</b></span></span>
     </div>`;
   }
   function top(title,description){return `<div class="abv2-top">${health()}<div class="abv2-header"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5NiA5NiIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJBcnRib2FyZCBBSSI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImFiLWEiIHgxPSIxOCIgeTE9IjgyIiB4Mj0iNzciIHkyPSIxMiIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIHN0b3AtY29sb3I9IiMxMjU4ZmYiLz48c3RvcCBvZmZzZXQ9Ii40OCIgc3RvcC1jb2xvcj0iIzAwZDhmZiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzc1ZmZmZiIvPjwvbGluZWFyR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImFiLWNvcmUiPjxzdG9wIHN0b3AtY29sb3I9IiM5YWZmZmYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwMGE1ZmYiLz48L3JhZGlhbEdyYWRpZW50PgogICAgPGZpbHRlciBpZD0iYWItZ2xvdyIgeD0iLTYwJSIgeT0iLTYwJSIgd2lkdGg9IjIyMCUiIGhlaWdodD0iMjIwJSI+PGZlR2F1c3NpYW5CbHVyIHN0ZERldmlhdGlvbj0iNCIgcmVzdWx0PSJiIi8+PGZlTWVyZ2U+PGZlTWVyZ2VOb2RlIGluPSJiIi8+PGZlTWVyZ2VOb2RlIGluPSJTb3VyY2VHcmFwaGljIi8+PC9mZU1lcmdlPjwvZmlsdGVyPgogIDwvZGVmcz4KICA8cGF0aCBkPSJNNDggOCA4NSA4Mkg2N0w1OCA2MkgzNEwyNCA4Mkg4TDQ1IDhaIiBmaWxsPSJ1cmwoI2FiLWEpIiBvcGFjaXR5PSIuOTYiIGZpbHRlcj0idXJsKCNhYi1nbG93KSIvPgogIDxwYXRoIGQ9Im00OCAyOC05IDIxaDE4WiIgZmlsbD0iIzAyMTUyZiIgc3Ryb2tlPSIjYTVmZmZmIiBzdHJva2Utd2lkdGg9IjIiLz4KICA8cGF0aCBkPSJNMjAgNzVjMjEtNCAzOS0xNyA1NS0zOS04IDI1LTI3IDQzLTU1IDQ5WiIgZmlsbD0iIzA4MzRiZCIgb3BhY2l0eT0iLjkiLz4KICA8Y2lyY2xlIGN4PSI0OCIgY3k9IjQ3IiByPSI0LjUiIGZpbGw9InVybCgjYWItY29yZSkiIGZpbHRlcj0idXJsKCNhYi1nbG93KSIvPgo8L3N2Zz4K" alt=""><div><h1>${esc(title)}</h1><p>${esc(description)}</p></div><span class="abv2-step-label">${ui.phase==='input'?'READY':esc(state.stage||statusText())}</span></div></div>`;}
@@ -1051,10 +1111,15 @@ statusCheck();
   function input(){
     const file=state.files.artboard, url=state.objectURLs.artboard;
     return `${top('Artboard AI','AI JERSEY ARTWORK ENGINE')}<div class="abv2-input-shell">
-      <div class="abv2-modes"><b>Production Mode</b><div>${button('◇ Quality Mode','mode:quality',state.mode.artboard==='quality'?'active':'')}${button('⚡ Normal Mode','mode:cost_effective',state.mode.artboard==='cost_effective'?'active':'')}</div></div>
-      <div class="abv2-drop" data-droptool="artboard">${url?`<img class="abv2-upload-preview" src="${url}" alt="Uploaded artwork preview">`:file?`<span class="abv2-pdf-preview">${esc(file.name)}</span>`:""}<div class="abv2-upload-icon">${file?"✓":"⇧"}</div><strong>${file?"Replace Uploaded Design":"Drag &amp; Drop Your Design Here"}</strong><small>${file?"Click to replace this file":"or click to upload"}</small><p>PNG · JPG · WEBP · PDF</p><input type="file" data-file="artboard" aria-label="Upload artwork" accept=".png,.jpg,.jpeg,.webp,.pdf"></div>
-      ${file?`<div class="abv2-file">${url?`<img src="${url}" alt="Input thumbnail">`:''}<div><strong>${esc(file.name)}</strong><small>${fmtSize(file.size)} · ${esc(file.type||'Unknown media type')}${ui.dimensions?' · '+esc(ui.dimensions):''}</small></div><span>Selected input</span></div>`:''}
-      ${jobNotice()}<div class="abv2-commands">${button('▤ Clear Input','clear','danger',!file||state.busy)}${button('▷ Start Production','start','primary',!file||state.busy||!connected('artboard')||['queued','processing','cancelling'].includes(savedJob()?.status))}</div>
+      <div class="abv2-modes"><b><span>▱</span> Production Mode</b><div>
+        <button type="button" class="abv2-btn abv2-mode-card ${state.mode.artboard==='quality'?'active':''}" data-abv2="mode:quality"><em>♔</em><span><strong>Quality Mode</strong><small>Best Output • High Detail</small></span><i>✓</i></button>
+        <button type="button" class="abv2-btn abv2-mode-card ${state.mode.artboard==='cost_effective'?'active':''}" data-abv2="mode:cost_effective"><em>ϟ</em><span><strong>Normal Mode</strong><small>Cost-Effective • Fast Processing</small></span><i>✓</i></button>
+      </div></div>
+      <div class="abv2-upload-panel">
+        <div class="abv2-drop" data-droptool="artboard">${url?`<img class="abv2-upload-preview" src="${url}" alt="Uploaded artwork preview">`:file?`<span class="abv2-pdf-preview">${esc(file.name)}</span>`:""}<div class="abv2-upload-icon">${file?"✓":"⇧"}</div><strong>${file?"Replace Uploaded Design":"Drag &amp; Drop Your Design Here"}</strong><small>${file?"Click to replace this file":"or Click to Upload"}</small><div class="abv2-file-types"><span>PNG</span><span>JPG</span><span>WEBP</span><span>PDF</span><span>SVG</span></div><input type="file" data-file="artboard" aria-label="Upload artwork" accept=".png,.jpg,.jpeg,.webp,.pdf,.svg"></div>
+        ${file?`<div class="abv2-file">${url?`<img src="${url}" alt="Input thumbnail">`:''}<div><strong>${esc(file.name)}</strong><small>${fmtSize(file.size)}${ui.dimensions?' · '+esc(ui.dimensions):''} · ${esc(file.type||'Artwork file')}</small></div><span>Input Ready</span><button type="button" data-abv2="clear" aria-label="Remove uploaded file">×</button></div>`:''}
+        ${jobNotice()}<div class="abv2-commands">${button('▤ Clear Input','clear','danger',!file||state.busy)}${button('▷ Start Production  »','start','primary',!file||state.busy||!connected('artboard')||['queued','processing','cancelling'].includes(savedJob()?.status))}</div>
+      </div>
     </div>`;
   }
   function analyze(){return `${top('Artwork Creation','Image model prepares the source and builds the print artwork')}${workflowRail()}<div class="abv2-process-grid"><div class="abv2-primary"><section class="abv2-card abv2-preview"><header><h2>Live Input Scan</h2><span>${esc(statusText())}</span></header>${originalPreview()}<div class="abv2-preview-foot"><span>Original input • ${esc(state.files.artboard?.name||'No file')}</span><span>${ui.analysisDone?'Source prepared':state.busy?'Preparing reference':'Awaiting source'}</span></div>${ui.analysisDone?`<div class="abv2-result-summary"><b>Source preparation</b><span>${available().length} ${available().length===1?'print field':'print fields'} ready for image-model reconstruction</span></div>`:''}</section>${navigation('Analyze')}</div>${liveLog()}</div>`;}
@@ -1068,11 +1133,25 @@ statusCheck();
     <div class="abv2-select-actions">${navigation('Artwork Creation')}${ui.analysisDone&&!ui.generationStarted?button('▷ Generate Artwork','produce','primary'):''}${button('Continue to Vectorization →','continue-vectorization','primary',!canContinue||ui.continued)}</div>`;
   }
   function processTitle(){const stage=stageOf(state.stage);return stage==='Validation'?'Validation':stage==='Vectorization'?'Vectorization':stage==='Export'?'Export':'Artwork Creation';}
+  function validationView(sides,verified){
+    const percent=Math.round(stageProgress()??(ui.stageStatus==='completed'?100:72));
+    const parts=sides.map(side=>available().find(x=>x.side===side)).filter(Boolean),first=parts[0]||{},validation=first.validation||project().validation||{};
+    const physical=validation.physical_artboard||project().validation?.artboard||{};
+    const result=(label,value,detail)=>`<li><span><i>${value===true?'✓':value===false?'!':'•'}</i><span><strong>${esc(label)}</strong><small>${esc(detail)}</small></span></span><b class="${value===true?'pass':value===false?'fail':''}">${esc(value===true?'Passed':value===false?'Review':'Checking')}</b></li>`;
+    return `${top('Validation','Checking vector quality, structure and production readiness')}${workflowRail()}<div class="abv2-validation-layout">
+      <section class="abv2-card abv2-validation-meter"><div class="abv2-gauge" style="--value:${percent}"><div><strong>${percent}%</strong><small>${ui.stageStatus==='completed'?'Validated':'Validating…'}</small></div></div><ol>
+        <li class="complete"><i>✓</i><span>Upload &amp; Analyze</span><b>Complete</b></li><li class="complete"><i>✓</i><span>Generate AI Artwork</span><b>Complete</b></li><li class="complete"><i>✓</i><span>Vectorize Paths</span><b>Complete</b></li><li class="active"><i>◌</i><span>Validate Output</span><b>${percent}%</b></li><li><i>○</i><span>Prepare Export</span><b>Waiting</b></li>
+      </ol></section>
+      <section class="abv2-card abv2-validation-preview"><header><div><h2>Live Preview — <span>Validation</span></h2><small>Validating vector output for printing and production</small></div><b>${ui.stageStatus==='completed'?'Completed':'Scanning…'}</b></header><div class="abv2-validation-arts">${parts.map(part=>{const side=part.side,url=ui.vectorUrls[side]||previewUrl(part)||ui.generatedUrls[side];return `<div><strong>${surfaceLabel(side)} (Validated)</strong><div class="abv2-art-canvas validation-overlay">${url?`<img class="abv2-genuine-image" src="${url}" alt="${surfaceLabel(side)} validation preview">`:'<p>Awaiting verified preview</p>'}<span class="abv2-art-grid"></span>${ui.stageStatus!=='completed'?'<span class="abv2-beam"></span>':''}</div></div>`}).join('')}</div><div class="abv2-validation-stats"><span><b>${esc(validation.path_count??'—')}</b><small>Total Paths</small></span><span><b>${esc(validation.object_count??'—')}</b><small>Objects</small></span><span><b>${esc(validation.color_count??'—')}</b><small>Colors</small></span><span><b>${esc(physical.width_in&&physical.height_in?`${physical.width_in} × ${physical.height_in}`:'22 × 31 in')}</b><small>Canvas</small></span></div></section>
+      <section class="abv2-card abv2-validation-checks"><header><h2>Validation Results</h2><b class="${verified?'pass':''}">${verified?'✓ Passed':'Live Check'}</b></header><ul>${result('Vector Structure',validation.valid_svg,validation.valid_svg?'Clean, well-formed and editable':'Checking SVG structure')}${result('Path Quality',Number.isFinite(validation.path_count)?true:null,Number.isFinite(validation.path_count)?`${validation.path_count} reported paths`:'Checking optimized paths')}${result('Color Accuracy',validation.color_mode?true:null,validation.color_mode||'Checking production color')}${result('Shape Integrity',validation.true_vector,'No gaps or distortion')}${result('Print Readiness',validation.status?validation.status==='passed'||verified:verified?true:null,validation.status||'Checking production standard')}</ul></section>
+    </div>${navigation('Validation')}`;
+  }
   function processing(){const title=ui.processingStage||processTitle();
     const isVector=title==='Vectorization',isValid=title==='Validation';
     const subsets=ui.selected.size?[...ui.selected]:available().map(x=>x.side);
     const onlyValid=subsets.filter(side=>available().some(x=>x.side===side));
     const verified=project().true_vector_ready===true;
+    if(isValid)return validationView(onlyValid,verified);
     return `${top(title,title==='Validation'?'Live production-quality and print-readiness review':isVector?'Live editable-path construction':'Live artwork creation' )}${workflowRail()}
     <div class="abv2-art-grid-layout ${onlyValid.length===1?'single':''}">${onlyValid.map(side=>{
       const part=available().find(x=>x.side===side),url=(isVector||isValid?ui.vectorUrls[side]:ui.generatedUrls[side]) || previewUrl(part) || ui.generatedUrls[side] || interimPreview(side);

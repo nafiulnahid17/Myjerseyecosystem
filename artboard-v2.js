@@ -42,10 +42,10 @@
   function health(){
     const a=state.status?.artboard||{}, ok=a.state==='online', active=state.busy && Boolean(state.artboardJob && ['processing','queued'].includes(state.artboardJob.status));
     return `<div class="abv2-health" aria-label="Artboard engine status">
-      <span><i class="${active?'ok':'unknown'}"></i>Primary AI <b>${active?'Running':a.ai_configured===true?'Ready':'Checking'}</b></span>
-      <span><i class="unknown"></i>Fallback AI <b>Standby</b></span>
-      <span><i class="${ok?'ok':'bad'}"></i>Engine <b>${ok?'Online':'Unavailable'}</b></span>
-      <span><i class="${ok?'ok':'bad'}"></i>Export Engine <b>${ok?'Online':'Unavailable'}</b></span>
+      <span><em class="abv2-health-icon">▣</em><span><strong>Primary AI</strong><b><i class="${active?'ok':'unknown'}"></i>${active?'Running':a.ai_configured===true?'Ready':'Checking'}</b></span></span>
+      <span><em class="abv2-health-icon">◇</em><span><strong>Fallback AI</strong><b><i class="unknown"></i>Standby</b></span></span>
+      <span><em class="abv2-health-icon">⚙</em><span><strong>Engine</strong><b><i class="${ok?'ok':'bad'}"></i>${ok?'Online':'Unavailable'}</b></span></span>
+      <span><em class="abv2-health-icon">⇧</em><span><strong>Export Engine</strong><b><i class="${ok?'ok':'bad'}"></i>${ok?'Online':'Unavailable'}</b></span></span>
     </div>`;
   }
   function top(title,description){return `<div class="abv2-top">${health()}<div class="abv2-header"><img src="assets/artboard-ai.svg" alt=""><div><h1>${esc(title)}</h1><p>${esc(description)}</p></div><span class="abv2-step-label">${ui.phase==='input'?'READY':esc(state.stage||statusText())}</span></div></div>`;}
@@ -110,10 +110,15 @@
   function input(){
     const file=state.files.artboard, url=state.objectURLs.artboard;
     return `${top('Artboard AI','AI JERSEY ARTWORK ENGINE')}<div class="abv2-input-shell">
-      <div class="abv2-modes"><b>Production Mode</b><div>${button('◇ Quality Mode','mode:quality',state.mode.artboard==='quality'?'active':'')}${button('⚡ Normal Mode','mode:cost_effective',state.mode.artboard==='cost_effective'?'active':'')}</div></div>
-      <div class="abv2-drop" data-droptool="artboard">${url?`<img class="abv2-upload-preview" src="${url}" alt="Uploaded artwork preview">`:file?`<span class="abv2-pdf-preview">${esc(file.name)}</span>`:""}<div class="abv2-upload-icon">${file?"✓":"⇧"}</div><strong>${file?"Replace Uploaded Design":"Drag &amp; Drop Your Design Here"}</strong><small>${file?"Click to replace this file":"or click to upload"}</small><p>PNG · JPG · WEBP · PDF</p><input type="file" data-file="artboard" aria-label="Upload artwork" accept=".png,.jpg,.jpeg,.webp,.pdf"></div>
-      ${file?`<div class="abv2-file">${url?`<img src="${url}" alt="Input thumbnail">`:''}<div><strong>${esc(file.name)}</strong><small>${fmtSize(file.size)} · ${esc(file.type||'Unknown media type')}${ui.dimensions?' · '+esc(ui.dimensions):''}</small></div><span>Selected input</span></div>`:''}
-      ${jobNotice()}<div class="abv2-commands">${button('▤ Clear Input','clear','danger',!file||state.busy)}${button('▷ Start Production','start','primary',!file||state.busy||!connected('artboard')||['queued','processing','cancelling'].includes(savedJob()?.status))}</div>
+      <div class="abv2-modes"><b><span>▱</span> Production Mode</b><div>
+        <button type="button" class="abv2-btn abv2-mode-card ${state.mode.artboard==='quality'?'active':''}" data-abv2="mode:quality"><em>♔</em><span><strong>Quality Mode</strong><small>Best Output • High Detail</small></span><i>✓</i></button>
+        <button type="button" class="abv2-btn abv2-mode-card ${state.mode.artboard==='cost_effective'?'active':''}" data-abv2="mode:cost_effective"><em>ϟ</em><span><strong>Normal Mode</strong><small>Cost-Effective • Fast Processing</small></span><i>✓</i></button>
+      </div></div>
+      <div class="abv2-upload-panel">
+        <div class="abv2-drop" data-droptool="artboard">${url?`<img class="abv2-upload-preview" src="${url}" alt="Uploaded artwork preview">`:file?`<span class="abv2-pdf-preview">${esc(file.name)}</span>`:""}<div class="abv2-upload-icon">${file?"✓":"⇧"}</div><strong>${file?"Replace Uploaded Design":"Drag &amp; Drop Your Design Here"}</strong><small>${file?"Click to replace this file":"or Click to Upload"}</small><div class="abv2-file-types"><span>PNG</span><span>JPG</span><span>WEBP</span><span>PDF</span><span>SVG</span></div><input type="file" data-file="artboard" aria-label="Upload artwork" accept=".png,.jpg,.jpeg,.webp,.pdf,.svg"></div>
+        ${file?`<div class="abv2-file">${url?`<img src="${url}" alt="Input thumbnail">`:''}<div><strong>${esc(file.name)}</strong><small>${fmtSize(file.size)}${ui.dimensions?' · '+esc(ui.dimensions):''} · ${esc(file.type||'Artwork file')}</small></div><span>Input Ready</span><button type="button" data-abv2="clear" aria-label="Remove uploaded file">×</button></div>`:''}
+        ${jobNotice()}<div class="abv2-commands">${button('▤ Clear Input','clear','danger',!file||state.busy)}${button('▷ Start Production  »','start','primary',!file||state.busy||!connected('artboard')||['queued','processing','cancelling'].includes(savedJob()?.status))}</div>
+      </div>
     </div>`;
   }
   function analyze(){return `${top('Artwork Creation','Image model prepares the source and builds the print artwork')}${workflowRail()}<div class="abv2-process-grid"><div class="abv2-primary"><section class="abv2-card abv2-preview"><header><h2>Live Input Scan</h2><span>${esc(statusText())}</span></header>${originalPreview()}<div class="abv2-preview-foot"><span>Original input • ${esc(state.files.artboard?.name||'No file')}</span><span>${ui.analysisDone?'Source prepared':state.busy?'Preparing reference':'Awaiting source'}</span></div>${ui.analysisDone?`<div class="abv2-result-summary"><b>Source preparation</b><span>${available().length} ${available().length===1?'print field':'print fields'} ready for image-model reconstruction</span></div>`:''}</section>${navigation('Analyze')}</div>${liveLog()}</div>`;}
@@ -127,11 +132,25 @@
     <div class="abv2-select-actions">${navigation('Artwork Creation')}${ui.analysisDone&&!ui.generationStarted?button('▷ Generate Artwork','produce','primary'):''}${button('Continue to Vectorization →','continue-vectorization','primary',!canContinue||ui.continued)}</div>`;
   }
   function processTitle(){const stage=stageOf(state.stage);return stage==='Validation'?'Validation':stage==='Vectorization'?'Vectorization':stage==='Export'?'Export':'Artwork Creation';}
+  function validationView(sides,verified){
+    const percent=Math.round(stageProgress()??(ui.stageStatus==='completed'?100:72));
+    const parts=sides.map(side=>available().find(x=>x.side===side)).filter(Boolean),first=parts[0]||{},validation=first.validation||project().validation||{};
+    const physical=validation.physical_artboard||project().validation?.artboard||{};
+    const result=(label,value,detail)=>`<li><span><i>${value===true?'✓':value===false?'!':'•'}</i><span><strong>${esc(label)}</strong><small>${esc(detail)}</small></span></span><b class="${value===true?'pass':value===false?'fail':''}">${esc(value===true?'Passed':value===false?'Review':'Checking')}</b></li>`;
+    return `${top('Validation','Checking vector quality, structure and production readiness')}${workflowRail()}<div class="abv2-validation-layout">
+      <section class="abv2-card abv2-validation-meter"><div class="abv2-gauge" style="--value:${percent}"><div><strong>${percent}%</strong><small>${ui.stageStatus==='completed'?'Validated':'Validating…'}</small></div></div><ol>
+        <li class="complete"><i>✓</i><span>Upload &amp; Analyze</span><b>Complete</b></li><li class="complete"><i>✓</i><span>Generate AI Artwork</span><b>Complete</b></li><li class="complete"><i>✓</i><span>Vectorize Paths</span><b>Complete</b></li><li class="active"><i>◌</i><span>Validate Output</span><b>${percent}%</b></li><li><i>○</i><span>Prepare Export</span><b>Waiting</b></li>
+      </ol></section>
+      <section class="abv2-card abv2-validation-preview"><header><div><h2>Live Preview — <span>Validation</span></h2><small>Validating vector output for printing and production</small></div><b>${ui.stageStatus==='completed'?'Completed':'Scanning…'}</b></header><div class="abv2-validation-arts">${parts.map(part=>{const side=part.side,url=ui.vectorUrls[side]||previewUrl(part)||ui.generatedUrls[side];return `<div><strong>${surfaceLabel(side)} (Validated)</strong><div class="abv2-art-canvas validation-overlay">${url?`<img class="abv2-genuine-image" src="${url}" alt="${surfaceLabel(side)} validation preview">`:'<p>Awaiting verified preview</p>'}<span class="abv2-art-grid"></span>${ui.stageStatus!=='completed'?'<span class="abv2-beam"></span>':''}</div></div>`}).join('')}</div><div class="abv2-validation-stats"><span><b>${esc(validation.path_count??'—')}</b><small>Total Paths</small></span><span><b>${esc(validation.object_count??'—')}</b><small>Objects</small></span><span><b>${esc(validation.color_count??'—')}</b><small>Colors</small></span><span><b>${esc(physical.width_in&&physical.height_in?`${physical.width_in} × ${physical.height_in}`:'22 × 31 in')}</b><small>Canvas</small></span></div></section>
+      <section class="abv2-card abv2-validation-checks"><header><h2>Validation Results</h2><b class="${verified?'pass':''}">${verified?'✓ Passed':'Live Check'}</b></header><ul>${result('Vector Structure',validation.valid_svg,validation.valid_svg?'Clean, well-formed and editable':'Checking SVG structure')}${result('Path Quality',Number.isFinite(validation.path_count)?true:null,Number.isFinite(validation.path_count)?`${validation.path_count} reported paths`:'Checking optimized paths')}${result('Color Accuracy',validation.color_mode?true:null,validation.color_mode||'Checking production color')}${result('Shape Integrity',validation.true_vector,'No gaps or distortion')}${result('Print Readiness',validation.status?validation.status==='passed'||verified:verified?true:null,validation.status||'Checking production standard')}</ul></section>
+    </div>${navigation('Validation')}`;
+  }
   function processing(){const title=ui.processingStage||processTitle();
     const isVector=title==='Vectorization',isValid=title==='Validation';
     const subsets=ui.selected.size?[...ui.selected]:available().map(x=>x.side);
     const onlyValid=subsets.filter(side=>available().some(x=>x.side===side));
     const verified=project().true_vector_ready===true;
+    if(isValid)return validationView(onlyValid,verified);
     return `${top(title,title==='Validation'?'Live production-quality and print-readiness review':isVector?'Live editable-path construction':'Live artwork creation' )}${workflowRail()}
     <div class="abv2-art-grid-layout ${onlyValid.length===1?'single':''}">${onlyValid.map(side=>{
       const part=available().find(x=>x.side===side),url=(isVector||isValid?ui.vectorUrls[side]:ui.generatedUrls[side]) || previewUrl(part) || ui.generatedUrls[side] || interimPreview(side);

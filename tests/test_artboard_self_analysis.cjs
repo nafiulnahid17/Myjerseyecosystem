@@ -8,4 +8,8 @@ assert(!src.includes("['Input','Analyze','Artwork Creation'"),'No standalone ana
 assert(src.includes('self_analysis:true'),'Prepare asks for analyzer-free image-model source');
 assert(src.includes("if(!ui.analysisDone)return analyze()"),'Embedded preparation visual stays in Artwork Creation');
 assert(src.includes("Image model prepares the source"),'Artwork Creation explains the image model');
+assert(src.includes('abv2-mode-card')&&src.includes('Best Output • High Detail'),'Input page uses the reconstructed production-mode cards');
+assert(src.includes('abv2-upload-panel')&&src.includes('abv2-file-types'),'Input upload cockpit is present');
+assert(src.includes('abv2-validation-layout')&&src.includes('Live Preview — <span>Validation</span>'),'Validation uses its dedicated live dashboard');
+assert(src.includes('abv2-validation-checks')&&src.includes('Validation Results'),'Validation result panel is present');
 console.log('Artboard image-model self-analysis UI contract PASS');
