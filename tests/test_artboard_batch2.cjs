@@ -2,7 +2,7 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert').strict,path=require('path');
 const src=fs.readFileSync(path.resolve(__dirname,'..','artboard-v2.js'),'utf8');
 const css=fs.readFileSync(path.resolve(__dirname,'..','artboard-v2-workflow-fixes.css'),'utf8');
-let listeners={},screens=[],requests=[],serverProject=null,jobN=0,currentJob=null,mode='normal';
+let listeners={},screens=[],requests=[],downloads=[],serverProject=null,jobN=0,currentJob=null,mode='normal';
 let bodyClasses=new Set();
 const classes={contains:x=>bodyClasses.has(x),add:x=>bodyClasses.add(x),remove:x=>bodyClasses.delete(x),toggle:(x,on)=>{if(on===undefined? !bodyClasses.has(x):on)bodyClasses.add(x);else bodyClasses.delete(x)}};
 const file={name:'jersey-front-back.png',type:'image/png',size:260000};
@@ -12,7 +12,7 @@ const context={state,Date,setTimeout:(fn)=>setTimeout(fn,1),URL:{revokeObjectURL
  esc:x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),fmtSize:n=>(n/1024).toFixed(1)+' KB',connected:()=>true,notify:x=>{},
  artboardTelemetry:()=>({exports:serverProject?.exports?Object.entries(serverProject.exports).map(([format,path])=>({format,path})):[],partValidation:{path_count:410,color_mode:'CMYK'},validation:{}}),renderArtboardOutputs:()=>'',continueWithIllustrator:()=>{},
  updateMonitor:()=>{},updateArtboardPreview:()=>{},artboardPageV4:()=>'',startArtboard:()=>{},closeMenu:()=>{},render:()=>screens.push(context.artboardPageV4()),newFile:()=>{},
- log:()=>{},captureJob:(_,j)=>{state.artboardJob=j;state.lastJobId=j.job_id},
+ log:()=>{},download:(...args)=>downloads.push(args),captureJob:(_,j)=>{state.artboardJob=j;state.lastJobId=j.job_id},
  run:async(name,fn)=>{state.busy=true;state.lastError='';context.render();try{await fn()}catch(e){state.lastError=e.message;console.error('RUN ERROR',e)}finally{state.busy=false;context.render()}},
  jobPoll:async(engine,path,terminal)=>{
    assert.equal(engine,'artboard');assert.equal(currentJob.job_id,path.split('/').at(-1));
@@ -61,7 +61,19 @@ const context={state,Date,setTimeout:(fn)=>setTimeout(fn,1),URL:{revokeObjectURL
         physical_artboard:{status:'PASS',width_in:22,height_in:31,raster_proof_dpi:600}};
     }
     return currentJob={job_id:'j'+(++jobN),project_id:'p1',status:'queued'};}
-  if(path==='api/artboard/export'){serverProject.exports={zip:'projects/p1/export/master.zip'};for(const item of serverProject.surfaces)item.exports={eps:`projects/p1/export/${item.type}.eps`,svg:`projects/p1/export/${item.type}.svg`,pdf:`projects/p1/export/${item.type}.pdf`,png:`projects/p1/export/${item.type}.png`,
+  if(path==='api/artboard/export'){
+    if(opts.json?.bundle==='illustrator_handoff'){
+      assert.deepEqual(opts.json.formats,['eps','svg','zip']);
+      assert.deepEqual(opts.json.part_ids,serverProject.surfaces
+        .filter(x=>opts.json.part_ids.includes(x.part_id)).map(x=>x.part_id));
+      serverProject.exports={...serverProject.exports,
+        selected_zip_illustrator_handoff:'projects/p1/exports/illustrator-handoff-test_quality.zip'};
+      serverProject.last_export={
+        bundle:'illustrator_handoff',include_reference_raster:opts.json.include_reference_raster,
+        zip_path:'projects/p1/exports/illustrator-handoff-test_quality.zip'};
+      return currentJob={job_id:'j'+(++jobN),project_id:'p1',status:'queued'};
+    }
+    serverProject.exports={zip:'projects/p1/export/master.zip'};for(const item of serverProject.surfaces)item.exports={eps:`projects/p1/export/${item.type}.eps`,svg:`projects/p1/export/${item.type}.svg`,pdf:`projects/p1/export/${item.type}.pdf`,png:`projects/p1/export/${item.type}.png`,
     premium_svg:`projects/p1/export/${item.type}.premium-master.svg`,
     editability_report:`projects/p1/export/${item.type}.editability-report.json`,
     color_groups_report:`projects/p1/export/${item.type}.color-groups.json`};return currentJob={job_id:'j'+(++jobN),project_id:'p1',status:'queued'};}
@@ -113,6 +125,18 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   test('zip-fallback',src.includes('assembleMasterZip(entries)')&&src.includes('download-master-zip')&&src.includes("response:'blob'")&&src.includes('new Blob([...local,...central,end]'));
   test('premium-artifacts-real',screens.at(-1).includes('<h2>Illustrator Editing Files</h2>')&&screens.at(-1).includes('Premium Master SVG')&&screens.at(-1).includes('Editability Report')&&screens.at(-1).includes('Color Groups Report'));
   test('native-ai-honest',screens.at(-1).includes('Native .AI requires desktop Illustrator')&&!screens.at(-1).includes('Download Native AI'));
+  test('handoff-actions-visible',screens.at(-1).includes('Illustrator Handoff ZIP')&&screens.at(-1).includes('ZIP + Reference PNG'));
+  const beforeHandoffAi=requests.filter(r=>r.path==='api/artboard/production').length;
+  await handler(click('illustrator-handoff'));
+  const zipJob=requests.filter(r=>r.path==='api/artboard/export').at(-1);
+  test('handoff-default-reference-excluded',zipJob.opts.json.bundle==='illustrator_handoff'&&zipJob.opts.json.include_reference_raster===false);
+  test('handoff-respects-selected-sides',zipJob.opts.json.part_ids.length===chosen.length);
+  test('handoff-zip-download',downloads.some(args=>String(args[1]).includes('illustrator-handoff-test_quality.zip')));
+  await handler(click('illustrator-handoff-reference'));
+  const zipReferenceJob=requests.filter(r=>r.path==='api/artboard/export').at(-1);
+  test('reference-explicit-opt-in',zipReferenceJob.opts.json.include_reference_raster===true&&zipReferenceJob.opts.json.part_ids.length===chosen.length);
+  test('handoff-no-paid-ai-retry',requests.filter(r=>r.path==='api/artboard/production').length===beforeHandoffAi);
+
   test('renderer-preserves-report-filenames',screens.at(-1).includes('editability-report.json')&&screens.at(-1).includes('color-groups.json'));
   test(33,screens.at(-1).includes('<h2>Adobe Illustrator</h2>')&&screens.at(-1).includes('Continue to Illustrator')&&!screens.at(-1).includes('Master ZIP & Illustrator'));
   test('scope',!requests.some(r=>r.path.startsWith('api/revector')));
