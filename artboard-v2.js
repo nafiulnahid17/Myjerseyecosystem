@@ -725,6 +725,16 @@
     if(a==='resume-vector')return resumeVectorStages();if(a==='start')return start();if(a==='resume-job')return resumeSavedJob();if(a==='refresh-job')return refreshSavedJob();if(a==='continue-vectorization')return continueToVectorization();if(a==='produce')return produce();if(a==='stop')return stop();
     if(a==='clear'){if(state.busy)return;state.files.artboard=null;const u=state.objectURLs.artboard;if(u)URL.revokeObjectURL(u);delete state.objectURLs.artboard;render();return}
     if(a==='home'||a==='new')return reset();
+    if(a==='toggle-compare'){
+      const selected=available().find(part=>part.side===ui.validationSide)||available().find(part=>ui.selected.has(part.side))||available()[0];
+      if(!selected||!ui.generatedUrls[selected.side]||!ui.vectorUrls[selected.side])return notify('AI artwork and saved SVG previews are both required for comparison');
+      ui.compareSource=!ui.compareSource;render();return;
+    }
+    if(a.startsWith('review-side:')){
+      const side=a.slice('review-side:'.length);
+      if(!available().some(part=>part.side===side)||ui.selected.size&&!ui.selected.has(side))return;
+      ui.validationSide=side;ui.compareSource=false;render();return;
+    }
     if(a==='illustrator')return continueSelectedIllustrator();if(a==='download-master-zip')return downloadMasterZip();if(a.startsWith('select-format:')){ui.downloadFormat=a.split(':')[1];render();return;}
     if(a==='previous'){if(state.busy)return notify('Active job: cancel processing before changing stages');if(ui.phase==='export'){ui.view='processing';ui.processingStage='Validation';}else if(ui.phase==='artwork'||ui.phase==='analyze')ui.view='input';else {ui.view='artwork';}render();return}
     if(a.startsWith('mode:')){if(state.busy)return;state.mode.artboard=a.split(':')[1];render();return}
