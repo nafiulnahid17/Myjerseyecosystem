@@ -17,10 +17,10 @@ const context={state,Date,setTimeout:(fn)=>setTimeout(fn,1),URL:{revokeObjectURL
  jobPoll:async(engine,path,terminal)=>{
    assert.equal(engine,'artboard');assert.equal(currentJob.job_id,path.split('/').at(-1));
    if(terminal==='Production' && process.env.BATCH2_NO_STAGE_EVENTS !== '1'){
-     for(const [step,stage] of [['Fable inspecting fine patterns and micro-dots','Analyzing'],['Generating flat rectangular print artwork','Artwork Creation'],['VTracer tracing vector paths','Artwork Creation'],['Validating vector fidelity','Artwork Creation']]){
+     for(const [step,stage] of [['Argon analyzing geometry, boundaries and micro-details','Analyzing'],['Generating flat rectangular print artwork','Artwork Creation'],['VTracer tracing vector paths','Artwork Creation'],['Validating vector fidelity','Artwork Creation']]){
        state.stage=step;state.progress=12;state.artboardEvents.push({step,at:'2026-11-01T00:00:00Z',progress:12});context.render();context.updateMonitor();
        assert(screens.at(-1).includes(stage),`Missing stage while real engine sends ${step}: ${stage}`);
-      if(stage==='Analyzing')assert(screens.at(-1).includes('Live Design Analysis'),'Fable event must keep the scan screen visible');
+      if(stage==='Analyzing')assert(screens.at(-1).includes('Live Design Analysis'),'Argon event must keep the scan screen visible');
        assert(screens.at(-1).includes('12%'),'Live UI must read the engine event progress field');
      }
    }else state.stage=terminal==='Prepare'?'Surface analysis complete':'Export complete';
@@ -38,13 +38,13 @@ const context={state,Date,setTimeout:(fn)=>setTimeout(fn,1),URL:{revokeObjectURL
           version:'analysis-generation-provenance/1',
           analysis:{
             status:item.type==='front_body'?'COMPLETED':'UNAVAILABLE',
-            model:item.type==='front_body'?'anthropic/claude-fable-5':null,
+            model:item.type==='front_body'?'google/gemini-4-argon':null,
             duration_ms:item.type==='front_body'?1902:null,
             summary:{fields:{base_colors:2,patterns:3,graphics:2,uncertain_details:1,layout_guidance:1}},
           },
           handoff:{
             status:item.type==='front_body'?'VERIFIED_IN_GENERATION_REQUEST':'SELF_ANALYSIS_ONLY',
-            generation_model:'openai/gpt-image-2.5-sunburst',
+            generation_model:'google/gemini-3-pro-image',
             included_analysis_characters:item.type==='front_body'?342:0,
             provider_prompt_confirmed:item.type==='front_body',
             prompt_sha256:item.type==='front_body'?'f'.repeat(64):null,
@@ -104,7 +104,7 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   if(process.env.ARTBOARD_PROOF_MISSING==='1'){
     test('legacy-proof-is-not-faked',screens.at(-1).includes('Audit not returned by deployed engine')&&!screens.at(-1).includes('Brief included in generator request'));
   }else{
-    test('analyzer-completed-from-backend',screens.at(-1).includes('anthropic/claude-fable-5')&&screens.at(-1).includes('1.902 seconds'));
+    test('analyzer-completed-from-backend',screens.at(-1).includes('google/gemini-4-argon')&&screens.at(-1).includes('1.902 seconds'));
     test('verified-prompt-transfer',screens.at(-1).includes('Brief included in generator request')&&screens.at(-1).includes('342 chars verified'));
     test('visual-followthrough-stays-review',screens.at(-1).includes('Generated artwork follows brief')&&screens.at(-1).includes('Review required'));
     test('fallback-shown-honestly',screens.at(-1).includes('Unavailable — image-model self-analysis'));

@@ -264,8 +264,13 @@
     const total=items.map(x=>x.validation?.path_count).filter(x=>Number.isFinite(x));
     const paths=total.length===items.length&&total.length?total.reduce((a,b)=>a+b,0):first(v.path_count,p.validation?.path_count);
     const physical=v.physical_artboard||p.validation?.artboard||{};
+    const native=items[0]?.part_id ? (p.artwork_resolution||{})[items[0].part_id]||{} : {};
+    const dims=value=>Array.isArray(value)&&value.length===2&&value.every(Number.isFinite)?value.join(' × ')+' px':'Not reported';
     const specs=[
       ['Vector paths',paths],['Main paths',first(v.main_path_count,p.validation?.main_path_count)],
+      ['AI image pixels',dims(native.received_dimensions)],
+      ['Native 4K status',native.native_4k_confirmed===true?'Verified by backend':native.received_dimensions?'Below 4K / not confirmed':'Not reported'],
+      ['Vector source pixels',dims(native.vectorization_source_dimensions)],
       ['Color mode',first(v.color_mode,p.validation?.color_mode)],
       ['PostScript level',first(v.postscript_level,p.validation?.postscript_level)],
       ['EPS version',first(v.eps_version,p.validation?.eps_version)],
