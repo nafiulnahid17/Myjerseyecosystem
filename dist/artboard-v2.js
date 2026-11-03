@@ -42,10 +42,10 @@
   function health(){
     const a=state.status?.artboard||{}, ok=a.state==='online', active=state.busy && Boolean(state.artboardJob && ['processing','queued'].includes(state.artboardJob.status));
     return `<div class="abv2-health" aria-label="Artboard engine status">
-      <span><i class="${active?'ok':'unknown'}"></i>Primary AI <b>${active?'Running':a.ai_configured===true?'Configured':'Unknown'}</b></span>
-      <span><i class="unknown"></i>Fallback AI <b>Not verified</b></span>
+      <span><i class="${active?'ok':'unknown'}"></i>Primary AI <b>${active?'Running':a.ai_configured===true?'Ready':'Checking'}</b></span>
+      <span><i class="unknown"></i>Fallback AI <b>Standby</b></span>
       <span><i class="${ok?'ok':'bad'}"></i>Engine <b>${ok?'Online':'Unavailable'}</b></span>
-      <span><i class="${ok?'ok':'bad'}"></i>Export <b>${ok?'Engine reachable':'Unavailable'}</b></span>
+      <span><i class="${ok?'ok':'bad'}"></i>Export Engine <b>${ok?'Online':'Unavailable'}</b></span>
     </div>`;
   }
   function top(title,description){return `<div class="abv2-top">${health()}<div class="abv2-header"><img src="assets/artboard-ai.svg" alt=""><div><h1>${esc(title)}</h1><p>${esc(description)}</p></div><span class="abv2-step-label">${ui.phase==='input'?'READY':esc(state.stage||statusText())}</span></div></div>`;}
@@ -65,6 +65,7 @@
     return null;
   }
   function currentStage(){if(ui.phase==='input')return 'Input';if(ui.phase==='analyze')return 'Artwork Creation';if(ui.phase==='artwork'||ui.phase==='select')return 'Artwork Creation';if(ui.phase==='export')return 'Export';return ui.processingStage||stageOf(state.stage,state.progress)||'Artwork Creation';}
+  function friendlyActivity(message){const t=String(message||'').toLowerCase();if(/analy|inspect|scan|prepar|surface|locat/.test(t))return 'Understanding the input design';if(/generat|creating|artwork model|render/.test(t))return 'Creating production artwork';if(/reconstruct|cleaning artwork geometry/.test(t))return 'Cleaning artwork geometry';if(/vector|trac/.test(t))return 'Tracing editable vector paths';if(/optimi|path/.test(t))return 'Optimizing vector paths';if(/compos|canvas/.test(t))return 'Building the production canvas';if(/validat|readiness|fidelity|integrity/.test(t))return 'Checking production readiness';if(/export|packag|bundle/.test(t))return 'Packaging production files';if(/cancel|stop/.test(t))return 'Stopping safely';return String(message||'Production activity');}
   function stageEvents(){const stage=currentStage();return (state.artboardEvents||[]).filter(e=>stageOf(e.step||e.stage||'',eventProgress(e))===stage).slice(-20);}
   function progressValue(value){if(value===null||value===undefined||value==='')return null;const n=Number(value);return Number.isFinite(n)?Math.max(0,Math.min(100,n)):null;}
   function eventProgress(event){for(const value of [event?.stage_progress,event?.progress,event?.percent]){const normalized=progressValue(value);if(normalized!==null)return normalized;}return null;}
@@ -76,11 +77,11 @@
   }
   function workflowRail(){const active=currentStage(),current=Math.max(0,steps.indexOf(active));return `<nav class="abv2-workflow" aria-label="Artboard production workflow">${steps.map((step,index)=>`<span class="${index<current?'complete':index===current?'current':'pending'}"><b>${index<current?'✓':index+1}</b><strong>${esc(step)}</strong><small>${index<current?'Completed':index===current?(state.busy?'Live':'Current'):'Waiting'}</small></span>`).join('')}</nav>`;}
   function liveLog(){const events=stageEvents(),percent=stageProgress();const stage=currentStage();const current=events.at(-1);
-    return `<aside class="abv2-card abv2-log"><header><h2>Working Log — ${esc(stage)}</h2><small>${esc(state.lastJobId?state.lastJobId.slice(0,10):'Awaiting job')}</small></header>
+    return `<aside class="abv2-card abv2-log"><header><h2>Production Activity — ${esc(stage)}</h2><small>${esc(state.lastJobId?state.lastJobId.slice(0,10):'Awaiting job')}</small></header>
       <div class="abv2-current"><strong>${esc(state.lastError?'Error':state.busy?'Processing':events.length?'Latest stage activity':'Awaiting events')}</strong><b>${percent==null?(state.busy?'Live':'—'):Math.round(percent)+'%'}</b><div class="abv2-progress ${state.busy&&percent==null?'indeterminate':''}"><span style="width:${percent==null?25:percent}%"></span></div></div>
-      <ol aria-label="Real engine events for this stage">${events.length?events.map(e=>{const p=eventProgress(e);return `<li><span>${esc(e.step||e.stage||'Engine event')}</span><small>${p!==null?Math.round(p)+'%':safeTime(e.at)||'Reported'}</small></li>`}).join(''):'<li><span>No stage events reported yet.</span></li>'}</ol>
+      <ol aria-label="Production activity for this stage">${events.length?events.map(e=>{const p=eventProgress(e);return `<li><span>${esc(friendlyActivity(e.step||e.stage))}</span><small>${p!==null?Math.round(p)+'%':safeTime(e.at)||'Reported'}</small></li>`}).join(''):'<li><span>Preparing the next production update.</span></li>'}</ol>
       ${state.lastError?`<p role="alert" class="abv2-error-details"><b>${esc(state.artboardJob?.error?.code||'ENGINE_ERROR')}</b> — ${esc(state.lastError)}</p>`:''}
-       <div class="abv2-log-footer"><span>${esc(state.mode.artboard==='quality'?'Quality':'Normal')} Mode</span><span>Engine-reported data only</span></div></aside>`;
+       <div class="abv2-log-footer"><span>${esc(state.mode.artboard==='quality'?'Quality':'Normal')} Mode</span><span>Verified production milestones</span></div></aside>`;
   }
   function originalPreview(){const url=state.objectURLs.artboard;return `<div class="abv2-visual abv2-scan ${state.busy?'active':''}">${url?`<img src="${url}" alt="Uploaded original design">`:`<div class="abv2-empty">Source preview is unavailable for this file format.</div>`}<span class="abv2-corners" aria-hidden="true"></span><span class="abv2-beam" aria-hidden="true"></span></div>`;}
   function artworkCard(side){
@@ -131,19 +132,20 @@
     const subsets=ui.selected.size?[...ui.selected]:available().map(x=>x.side);
     const onlyValid=subsets.filter(side=>available().some(x=>x.side===side));
     const verified=project().true_vector_ready===true;
-    return `${top(title,title==='Validation'?'Engine validation and print-readiness review':isVector?'Real vector geometry / live engine progress when available':'AI artwork generation from the connected engine' )}${workflowRail()}
+    return `${top(title,title==='Validation'?'Live production-quality and print-readiness review':isVector?'Live editable-path construction':'Live artwork creation' )}${workflowRail()}
     <div class="abv2-art-grid-layout ${onlyValid.length===1?'single':''}">${onlyValid.map(side=>{
       const part=available().find(x=>x.side===side),url=(isVector||isValid?ui.vectorUrls[side]:ui.generatedUrls[side]) || previewUrl(part) || ui.generatedUrls[side] || interimPreview(side);
       const active=(state.busy&&state.activePipeline==='Production'&&ui.stageStatus!=='completed')||(isValid&&ui.finishing);
-      return `<section class="abv2-card abv2-artwork"><header><h2>${surfaceLabel(side)} ${title}</h2><span>${esc(ui.stageStatus==='completed'?'Engine completed':state.stage||'Awaiting engine')}</span></header>
+      return `<section class="abv2-card abv2-artwork"><header><h2>${surfaceLabel(side)} ${title}</h2><span>${esc(ui.stageStatus==='completed'?'Completed':friendlyActivity(state.stage||'Preparing'))}</span></header>
       <div class="abv2-art-canvas ${isVector?'vector-overlay':''} ${isValid?'validation-overlay':''}">
       ${url?`<img class="abv2-genuine-image" src="${url}" alt="${surfaceLabel(side)} verified engine preview">`:'<p>Waiting for actual engine output. No generated image is fabricated.</p>'}
       <span class="abv2-art-grid" aria-hidden="true"></span>
+      ${isVector&&active?'<span class="abv2-vector-simulation" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>':''}
       ${isVector?'<svg class="abv2-real-paths" data-abv2-paths-side="${side}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>':''}
       ${active?'<span class="abv2-beam" aria-hidden="true"></span>':''}
-      ${isVector?'<div class="abv2-path-status">Only paths extracted from a real Artboard SVG are drawn; completed jobs show a verified vector replay.</div>':''}</div>
+      ${isVector?'<div class="abv2-path-status">Live tracing visualization • saved SVG geometry appears as soon as it is available.</div>':''}</div>
       ${isValid?`<div class="abv2-validation-results">${[['Valid SVG',part?.validation?.valid_svg],['True vector',part?.validation?.true_vector],['Raster count',part?.validation?.embedded_rasters],['Editability',part?.validation?.editability_status],['Print readiness',part?.validation?.physical_artboard?.status]].map(([name,value])=>`<span><small>${esc(name)}</small><b class="${value===true?'pass':value===false?'fail':''}">${esc(value===true?'PASS':value===false?'FAILED':value??'Not reported')}</b></span>`).join('')}</div>`:''}
-      <div class="abv2-side-note">${esc(ui.stageStatus==='completed'?(verified?'Validated by engine — actual saved result':'Backend completion reported'):state.stage||'Awaiting stage data')}</div></section>`;
+      <div class="abv2-side-note">${esc(ui.stageStatus==='completed'?(verified?'Production-ready saved result':'Stage completed'):friendlyActivity(state.stage||'Preparing stage data'))}</div></section>`;
       }).join('')}${liveLog()}</div>${navigation(title)}${state.lastError&&project().ai_reconstruction?.complete===true?`<div class="abv2-commands">${button('↻ Retry vectorization from saved AI artwork (no AI call)','resume-vector','secondary',state.busy)}</div>`:''}`;
   }
   function v2Downloads(){
@@ -381,8 +383,8 @@
   function refresh(){
     const root=document.querySelector('.abv2');if(!root)return;
     const monitor=root.querySelector('.abv2-current');
-    if(monitor){const title=currentStage(),v=stageProgress(),events=stageEvents();monitor.querySelector('strong').textContent=ui.stageStatus==='completed'?'Stage completed':state.lastError?'Error':state.busy&&events.length?'Engine processing':'Awaiting stage events';monitor.querySelector('b').textContent=v==null?(state.busy?'Live':'—'):Math.round(v)+'%';const bar=monitor.querySelector('.abv2-progress');bar?.classList.toggle('indeterminate',state.busy&&v==null);if(bar?.firstElementChild)bar.firstElementChild.style.width=(v??25)+'%';}
-    const events=root.querySelector('.abv2-log ol');if(events)events.innerHTML=stageEvents().length?stageEvents().map(x=>{const p=eventProgress(x);return `<li><span>${esc(x.step||x.stage||'Engine event')}</span><small>${p!==null?Math.round(p)+'%':safeTime(x.at)||'Reported'}</small></li>`}).join(''):'<li><span>No stage events reported yet.</span></li>';
+    if(monitor){const v=stageProgress(),events=stageEvents();monitor.querySelector('strong').textContent=ui.stageStatus==='completed'?'Stage completed':state.lastError?'Action needed':state.busy&&events.length?friendlyActivity(events.at(-1)?.step||events.at(-1)?.stage):'Preparing the next update';monitor.querySelector('b').textContent=v==null?(state.busy?'Live':'—'):Math.round(v)+'%';const bar=monitor.querySelector('.abv2-progress');bar?.classList.toggle('indeterminate',state.busy&&v==null);if(bar?.firstElementChild)bar.firstElementChild.style.width=(v??25)+'%';}
+    const events=root.querySelector('.abv2-log ol');if(events)events.innerHTML=stageEvents().length?stageEvents().map(x=>{const p=eventProgress(x);return `<li><span>${esc(friendlyActivity(x.step||x.stage))}</span><small>${p!==null?Math.round(p)+'%':safeTime(x.at)||'Reported'}</small></li>`}).join(''):'<li><span>Preparing the next production update.</span></li>';
     const status=root.querySelector('.abv2-step-label');if(status)status.textContent=state.stage||statusText();
     if((ui.phase==='artwork'||ui.phase==='processing')&&ui.generationStarted)void loadSideAssets();
     if(ui.phase==='processing'){

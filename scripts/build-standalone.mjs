@@ -8,6 +8,9 @@ const dataUri = path => `data:image/svg+xml;base64,${Buffer.from(read(path)).toS
 let html = read('index.html');
 const css = read('styles.css');
 let js = read('app.js');
+const artboardCss = read('artboard-v2.css');
+const artboardWorkflowCss = read('artboard-v2-workflow-fixes.css');
+let artboardJs = read('artboard-v2.js');
 
 const assets = [
   'atherious-labs.svg',
@@ -22,6 +25,7 @@ for (const name of assets) {
   const uri = dataUri(`assets/${name}`);
   html = html.replaceAll(`assets/${name}`, uri);
   js = js.replaceAll(`assets/${name}`, uri);
+  artboardJs = artboardJs.replaceAll(`assets/${name}`, uri);
 }
 
 const webpAssets=['tool-artboard','tool-frame','tool-assets','tool-autofly',
@@ -49,5 +53,8 @@ js = `const standaloneTemplateData=${JSON.stringify(templateMap)};\n${js}`;
 js = js.replace('src="templates/${encodeURIComponent(id)}.svg"', 'src="${standaloneTemplateData[id]||\'\'}"');
 
 html = html.replace('<link rel="stylesheet" href="styles.css">', `<style>${css}</style>`);
+html = html.replace('<link rel="stylesheet" href="artboard-v2.css">', `<style>${artboardCss}</style>`);
+html = html.replace('<link rel="stylesheet" href="artboard-v2-workflow-fixes.css">', `<style>${artboardWorkflowCss}</style>`);
 html = html.replace('<script src="app.js" defer></script>', `<script>${js}</script>`);
+html = html.replace('<script src="artboard-v2.js" defer></script>', `<script>${artboardJs}</script>`);
 writeFileSync(resolve(root, 'Standalone_Interactive_Preview.html'), html);

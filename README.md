@@ -12,8 +12,8 @@ This project replaces the former screenshot-overlay frontend. The UI is native H
 - Quality and Fast & Cost-Effective modes on all four tools; both map to the engines' existing `quality` and `cost_effective` values.
 - Frame Forge retains its three real mockup and three real video template IDs, now illustrated with optimized WebP crops from the user's approved design references. These are static reference artwork, not generated output.
 - Autofly remains a one-click Artboard orchestration workflow and does not duplicate Frame Forge templates.
-- Artboard's terminal follows the engine's real Upload → Analyze → AI Artwork → Vectorize → Validate → Export events instead of pinning the first step. It now sits directly below the live preview; its percentage/stage dock occupies the compact space below Input instead of forcing a stretched page.
-- Live Production Details shows only the current stage: analysis findings during Analyze, provider/model during AI Artwork, trace facts during Vectorize, and QC during Validate. Downloads, validation summary, EPS contract and Illustrator handoff live on the separate Export & Delivery surface.
+- Artboard follows the real five-stage Input → Artwork Creation → Vectorization → Validation → Export workflow. Reference analysis is shown inside Artwork Creation before the gradual render; it is not a separate navigation step.
+- Production Activity uses friendly stage names and verified progress milestones. Decorative scan/trace motion fills intervals where the backend cannot stream partial pixels, while generated artwork, saved SVG paths and validation values always come from real engine artifacts.
 - **Continue with Illustrator** hands a validated SVG to the operating-system app chooser where browser support exists; otherwise it downloads the SVG and opens Adobe's official Illustrator page. It does not fabricate native-app detection.
 - Credits, users, history, emergency and support submission screens fail closed until their real backends are connected; they do not show invented balances, members, jobs, providers or ticket confirmations.
 
@@ -33,7 +33,7 @@ This project replaces the former screenshot-overlay frontend. The UI is native H
 - **Before any backend connection:** status says not checked/not configured, generated-output areas are empty, processing is disabled.
 - **Real live health checks:** the gateway requests each engine's actual health endpoint using server-side credentials; only matching health payloads are shown as reachable.
 - **After a real job submission:** only actual job ID, state, progress, trace and generated file names returned by the API are displayed. Session Jobs only contains jobs submitted during that browser session.
-- **Artboard AI artwork:** the engine normalizes photographs, mockups, screenshots, scans or existing flat files into one straight-on, full-bleed 22 × 31 inch production canvas. It rejects garment/mockup/fabric presentation, extends source-supported abstract patterns through occluded areas, preserves visible brand identity, and directs the image model toward clean main shapes and a low purposeful path count. Existing controlled colour boost, deterministic optimization and true-vector validation remain unchanged.
+- **Artboard AI artwork:** The engine's configured mode and model routing remain authoritative. Analysis stays inside Artwork Creation, while the returned vectorization and validation results are presented on dedicated live UI surfaces without issuing duplicate image-generation requests.
 - **Frame Forge template images:** the six SVG previews are copied from the engine's actual source. They are static built-in template artwork, not fabricated generated results.
 - **Original artwork previews:** read locally from a file the operator selects. Never labeled as AI-generated output.
 - **No credits or billing UI:** those features require a real, separate backend contract.

@@ -183,10 +183,284 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{
 @media(max-width:820px){.artboard-console{padding:7px;border-radius:13px}.artboard-workbench{grid-template-columns:1fr}.artboard-workbench>.compact-output{grid-column:auto}.artboard-console .compact-preview .preview-box{height:320px}.export-contracts{grid-template-columns:1fr}.artboard-export-page .validation-checks{grid-template-columns:1fr 1fr}}
 @media(max-width:640px){.artboard-console .terminal-dock{height:285px}.terminal-dock .stepper{grid-template-columns:repeat(6,125px)}.stage-facts{grid-template-columns:1fr}}
 </style>
+<style>/* Artboard V2 — scoped exclusively to the Artboard AI tool. */
+.abv2{--ab-cyan:#00e5ff;--ab-blue:#0066ff;--ab-green:#00ff6a;--ab-ink:#040d1c;--ab-border:#158ddd;color:#eafaff;display:grid;gap:18px;padding:20px;max-width:1620px;margin:auto;min-height:calc(100dvh - 134px);isolation:isolate;background:radial-gradient(ellipse at 45% 8%,#006bd024,transparent 48%),linear-gradient(135deg,#020b19,#05182d 42%,#020817);border:1px solid #1479bb;border-radius:22px;box-shadow:inset 0 0 80px #0171ce17,0 30px 80px #0009;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
+.abv2 *, .abv2 *::before,.abv2 *::after{box-sizing:border-box}
+.abv2-top{display:grid;gap:16px}
+.abv2-health{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:#020e20e9;border:1px solid #188ace;border-radius:16px;box-shadow:inset 0 1px #64eaff42,0 0 18px #009bff30;overflow:hidden}
+.abv2-health>span{display:flex;align-items:center;gap:8px;justify-content:center;padding:12px 6px;font-size:12px;border-right:1px solid #13446d;white-space:nowrap}.abv2-health>span:last-child{border:none}.abv2-health b{font-size:11px;color:#b9dcff}.abv2-health i{flex:none;width:9px;height:9px;border-radius:50%;background:#60819a;box-shadow:0 0 9px #5274a1}.abv2-health i.ok{background:#00ee83;box-shadow:0 0 13px #00ff6a}.abv2-health i.bad{background:#ff3b4d;box-shadow:0 0 10px #ff3b4d}.abv2-health i.unknown{background:#35a7ed;box-shadow:0 0 12px #0cf}
+.abv2-header{display:flex;align-items:center;gap:16px;padding:8px 12px 16px;border-bottom:1px solid #0e6b9c;background:radial-gradient(ellipse at 50% 100%,#008cff28,transparent 68%)}.abv2-header img{width:64px;height:64px;filter:drop-shadow(0 0 12px #08caff7a)}.abv2-header h1{margin:0;font-size:clamp(25px,3vw,40px);letter-spacing:-.03em;text-shadow:0 0 23px #00cfff55}.abv2-header p{color:#a9d2e9;font-size:13px;letter-spacing:.04em;margin:3px 0 0}.abv2-step-label{margin-left:auto;color:#65e6ff;font-size:12px;border:1px solid #1595c8;padding:9px 12px;border-radius:13px;max-width:32%;overflow-wrap:anywhere}
+.abv2-card{background:linear-gradient(155deg,#062242e5,#031025f5 70%);border:1px solid #0d90d4;border-radius:19px;padding:14px;box-shadow:inset 0 1px #a2fbff27,inset 0 0 25px #0089ff13,0 0 20px #007df325;min-width:0}
+.abv2-card>header{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #0c4d75;padding-bottom:12px;margin-bottom:12px}.abv2-card h2{font-size:clamp(15px,1.6vw,23px);margin:0;line-height:1.2}.abv2-card header>span,.abv2-card header>small{font-size:12px;color:#62dfff}
+.abv2-btn{font-family:inherit;font-size:14px;font-weight:700;line-height:1.2;border:1px solid #0879b0;background:linear-gradient(180deg,#123a66,#04172b);color:#f4ffff;border-radius:15px;padding:13px 19px;min-height:46px;cursor:pointer;text-shadow:0 0 10px #00aaff5e;box-shadow:inset 0 1px #9ad5ff80,0 0 15px #047eee35;transition:filter .15s,transform .15s,box-shadow .15s}.abv2-btn:hover:not(:disabled){filter:brightness(1.18);transform:translateY(-1px);box-shadow:0 0 27px #00bbff66}.abv2-btn:focus-visible{outline:3px solid #fff;outline-offset:3px}.abv2-btn.primary{background:linear-gradient(110deg,#008cff,#0b55fa 55%,#00d9f3);border-color:#00e5ff;box-shadow:inset 0 1px #fff9,0 0 24px #00aaff72}.abv2-btn.active{border-color:#00e5ff;box-shadow:inset 0 0 14px #00e5ff5f,0 0 23px #00e5ff5f}.abv2-btn.danger{border-color:#ff3b4d;background:linear-gradient(145deg,#45132c,#190918);box-shadow:0 0 14px #ff29515e}.abv2-btn.amber{border-color:#ffb347;background:#3d250b;color:#ffdeb0}.abv2-btn:disabled{cursor:not-allowed;opacity:.4;box-shadow:none}
+.abv2-input-shell{width:min(100%,1050px);margin:0 auto;display:grid;gap:17px;align-content:start;padding:10px 0 35px;position:relative}.abv2-input-shell:after{content:"";position:absolute;left:18%;right:18%;bottom:0;height:15px;border:2px solid #02bfff;border-radius:50%;box-shadow:0 0 32px 10px #0077ef57,0 0 75px #12ccfa;pointer-events:none;opacity:.7}.abv2-modes{display:flex;align-items:center;gap:15px;padding:11px 16px;background:#071b34;border-radius:15px;border:1px solid #126baa}.abv2-modes>b{min-width:155px}.abv2-modes>div{flex:1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.abv2-drop{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:240px;border:2px dashed #00c8e6;border-radius:20px;background:radial-gradient(ellipse at bottom,#0063c033,transparent 60%),linear-gradient(#04152c,#021021);gap:7px;cursor:pointer;transition:background .2s}.abv2-drop:hover,.abv2-drop.over{background:linear-gradient(#073557,#04172b);border-color:#fff}.abv2-upload-icon{font-size:56px;color:#2fe4ff;text-shadow:0 0 25px #00e5ff}.abv2-drop strong{font-size:clamp(17px,2vw,24px)}.abv2-drop small{color:#9fcfe6}.abv2-drop p{margin:8px 0 0;font-size:11px;color:#69d8f0;letter-spacing:.15em}.abv2-drop input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
+.abv2-file{display:flex;align-items:center;gap:13px;border:1px solid #148bcd;border-radius:15px;background:#071d36;padding:10px 14px;box-shadow:inset 0 0 15px #00e5ff14}.abv2-file img{width:58px;height:58px;object-fit:contain;border-radius:9px;background:#000}.abv2-file div{display:flex;flex-direction:column;gap:6px;min-width:0}.abv2-file strong{overflow-wrap:anywhere}.abv2-file small{color:#b5d1e4}.abv2-file>span{margin-left:auto;color:#2ff3ce;font-size:12px;white-space:nowrap}.abv2-commands{display:grid;grid-template-columns:1fr 1.55fr;gap:14px;padding:10px 5%}
+.abv2-process-grid{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(280px,1fr);gap:18px;align-items:start}.abv2-primary{display:grid;gap:16px;min-width:0}.abv2-preview{min-height:470px}.abv2-visual{height:clamp(320px,52vh,570px);min-height:300px;display:grid;place-items:center;position:relative;overflow:hidden;border-radius:16px;background:radial-gradient(ellipse at 50% 60%,#0878d44c,transparent 68%),linear-gradient(#03162c,#030d1a);border:1px solid #065c99}.abv2-visual img{position:relative;z-index:2;width:95%;height:94%;object-fit:contain;filter:drop-shadow(0 0 18px #08cafa66)}.abv2-visual:before,.abv2-art-canvas:before{content:"";position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(#00e5ff0e 1px,transparent 1px),linear-gradient(90deg,#00e5ff0e 1px,transparent 1px);background-size:29px 29px;z-index:1}.abv2-visual:after{content:"";position:absolute;bottom:3%;height:45px;width:64%;border:3px solid #00cfff;border-radius:50%;box-shadow:0 0 22px #00aaff,0 0 45px #027bff;pointer-events:none}.abv2-corners{z-index:3;position:absolute;inset:10%;border:2px solid #00dfff2f;border-image:linear-gradient(130deg,#00e5ff,transparent 30%,transparent 70%,#00e5ff) 1;pointer-events:none}.abv2-beam{display:none;position:absolute;z-index:5;top:5%;left:5%;right:5%;height:3px;background:#34ffff;box-shadow:0 0 18px 5px #00e5ff,0 0 46px 10px #009cff88;pointer-events:none}.abv2-scan.active .abv2-beam,.abv2-art-canvas .abv2-beam{display:block;animation:abv2-sweep 3.2s ease-in-out infinite alternate}@keyframes abv2-sweep{0%{top:6%}100%{top:90%}}.abv2-preview-foot{display:flex;justify-content:space-between;gap:7px;font-size:12px;color:#31efbf;padding-top:12px}.abv2-empty{color:#9cbfd2;max-width:250px;text-align:center}
+.abv2-nav{display:flex;gap:12px;justify-content:space-between}.abv2-nav>.abv2-btn{flex:1}.abv2-log{min-height:470px;display:flex;flex-direction:column;max-height:720px}.abv2-current{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;padding:12px;background:#03152b;border-radius:12px;border:1px solid #09588b}.abv2-current>b{color:#00edff}.abv2-current>.abv2-progress{grid-column:1/-1}.abv2-progress{height:9px;border:1px solid #119fff;background:#001025;border-radius:99px;overflow:hidden}.abv2-progress>span{display:block;height:100%;background:linear-gradient(90deg,#00ffe3,#009aff);border-radius:inherit;box-shadow:0 0 12px #00e5ff}.abv2-progress.indeterminate>span{animation:abv2-indet 1.8s ease-in-out infinite}@keyframes abv2-indet{0%{transform:translateX(-150%)}100%{transform:translateX(480%)}}.abv2-log ol{list-style:none;margin:12px 0;max-height:460px;min-height:190px;overflow:auto;padding:0;flex:1}.abv2-log li{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;border-bottom:1px solid #135078;padding:12px 5px;font-size:12px}.abv2-log li:before{content:"●";color:#00ffe3;grid-row:1;grid-column:1;font-size:9px}.abv2-log li>span{grid-row:1;grid-column:1;margin-left:16px;overflow-wrap:anywhere}.abv2-log li small{color:#79d6f8;white-space:nowrap}.abv2-log-footer{border-top:1px solid #15547e;padding:12px 0 0;display:flex;justify-content:space-between;color:#83bdce;font-size:11px}
+.abv2-select-summary{color:#9fe7ed;font-size:13px}.abv2-art-grid-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(290px,.95fr);gap:15px;align-items:start}.abv2-art-grid-layout.single{grid-template-columns:minmax(0,1.9fr) minmax(290px,.95fr)}.abv2-artwork{min-height:520px;display:flex;flex-direction:column}.abv2-artwork.selected{border-color:#00ffc4;box-shadow:0 0 28px #00debc36,inset 0 0 16px #00bfbd23}.abv2-art-canvas{position:relative;flex:1;min-height:330px;display:grid;place-items:center;overflow:hidden;border-radius:16px;background:radial-gradient(ellipse at center,#0b3062,transparent 70%),#020d1b;border:1px solid #0e669c}.abv2-art-canvas img{position:relative;width:96%;height:94%;object-fit:contain;z-index:2}.abv2-art-canvas p{position:relative;z-index:2;text-align:center;color:#99c3dd;padding:16px}.abv2-art-canvas .abv2-art-grid{position:absolute;inset:5%;border:1px dashed #00e5ff36;z-index:3;pointer-events:none}.abv2-select{display:flex;align-items:center;gap:12px;padding:14px 4px;font-size:13px;color:#d4feff;cursor:pointer}.abv2-select input{width:18px;height:18px;accent-color:#00edec}.abv2-artwork>.abv2-btn{margin:12px 0}.abv2-source-note{font-size:10px;color:#98becf}.abv2-side-note{padding:12px 3px;color:#98c1da;font-size:11px}.abv2-select-actions{display:flex;justify-content:flex-end;gap:14px}.abv2-select-actions .abv2-btn.primary{min-width:300px}.abv2-art-canvas.vector-overlay:after{content:"";position:absolute;inset:5%;z-index:3;pointer-events:none;border:1px solid #00e5ff33;background-image:linear-gradient(35deg,transparent 49.6%,#00e5ff40 50%,transparent 50.4%);background-size:70px 65px;opacity:.6}.abv2-art-canvas.validation-overlay:after{content:"⌖";position:absolute;inset:0;display:grid;place-items:center;z-index:3;font-size:80px;color:#00ffa544;pointer-events:none}
+.abv2-export-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(235px,.85fr) minmax(230px,.85fr);gap:15px;align-items:start}.abv2-export-preview,.abv2-export-settings,.abv2-package{min-height:440px}.abv2-export-arts{display:flex;gap:12px;min-height:360px}.abv2-export-arts>div{flex:1;min-width:0;display:flex;flex-direction:column;text-align:center;gap:10px;border-radius:12px;border:1px solid #117bb4;background:#041a36;padding:10px}.abv2-export-arts strong{color:#65eaff}.abv2-export-arts img{max-width:100%;max-height:320px;height:300px;object-fit:contain}.abv2-format-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.abv2-format{border:1px solid #1972b2;background:#061a31;padding:17px 4px;border-radius:11px;color:white;font-weight:700;cursor:pointer}.abv2-format.selected{border-color:#00ffe3;box-shadow:inset 0 0 14px #00e5ff55}.abv2-facts{display:grid;gap:10px;margin-top:24px}.abv2-facts>span{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #0a5778;font-size:12px;padding-bottom:10px}.abv2-package p{font-size:12px;color:#9ebdd2}.abv2-package .output-list{list-style:none;padding:0;display:grid;gap:7px}.abv2-package .output-list li button{width:100%;text-align:left;border:1px solid #159fce;padding:10px;color:#d8ffff;background:#071b32;border-radius:9px}.abv2-package .abv2-btn{width:100%;margin-top:12px}.abv2-export-bottom{display:flex;gap:12px;justify-content:space-between}.abv2-export-bottom .abv2-btn.primary{margin-left:auto}
+@media(max-width:1250px){.abv2-art-grid-layout{grid-template-columns:repeat(2,minmax(0,1fr))}.abv2-art-grid-layout>.abv2-log{grid-column:1/-1;min-height:290px}.abv2-art-grid-layout.single>.abv2-log{grid-column:auto}.abv2-art-grid-layout.single{grid-template-columns:minmax(0,1fr) minmax(280px,.8fr)}.abv2-export-grid{grid-template-columns:1fr 1fr}.abv2-export-grid>.abv2-export-preview{grid-column:1/-1}}
+@media(max-width:900px){.abv2{padding:12px;gap:12px}.abv2-health{grid-template-columns:repeat(2,1fr)}.abv2-health>span:nth-child(2){border-right:0}.abv2-health>span:nth-child(-n+2){border-bottom:1px solid #13446d}.abv2-process-grid,.abv2-art-grid-layout,.abv2-art-grid-layout.single{grid-template-columns:1fr}.abv2-art-grid-layout>.abv2-log,.abv2-art-grid-layout.single>.abv2-log{grid-column:auto}.abv2-visual{height:400px}.abv2-artwork{min-height:450px}.abv2-log{min-height:300px}.abv2-export-grid{grid-template-columns:1fr}.abv2-export-grid>.abv2-export-preview{grid-column:auto}}
+@media(max-width:590px){.abv2{padding:8px;border-radius:12px}.abv2-health>span{font-size:10px;gap:5px}.abv2-health b{font-size:10px}.abv2-header{gap:9px}.abv2-header img{width:41px;height:41px}.abv2-header h1{font-size:24px}.abv2-header p{font-size:10px}.abv2-step-label{display:none}.abv2-modes{display:block}.abv2-modes>div{margin-top:8px}.abv2-btn{padding:12px 8px;font-size:12px}.abv2-commands{grid-template-columns:1fr}.abv2-drop{min-height:215px}.abv2-nav{flex-wrap:wrap}.abv2-nav .abv2-btn{min-width:40%}.abv2-select-actions{flex-direction:column}.abv2-select-actions .abv2-btn.primary{min-width:auto}.abv2-export-bottom{flex-wrap:wrap}.abv2-export-bottom>.abv2-btn{flex:1;min-width:42%}.abv2-visual{height:330px}.abv2-export-arts{flex-direction:column}}
+@media(prefers-reduced-motion:reduce){.abv2 .abv2-beam,.abv2 .abv2-progress.indeterminate>span{animation:none!important}.abv2 .abv2-btn{transition:none!important}}
+.abv2-visible-gate{margin:14px 0 4px;background:linear-gradient(135deg,#082340,#03162c);border:1px solid #1596bb;padding:16px;border-radius:14px}.abv2-visible-gate strong{display:block;font-size:14px}.abv2-visible-gate p{font-size:12px;color:#a4c9d7;margin:6px 0 10px}.abv2-visible-gate>div{display:flex;gap:18px;margin-bottom:14px}.abv2-visible-gate label{display:flex;align-items:center;gap:7px;cursor:pointer}.abv2-visible-gate input{accent-color:#00e5ff;width:18px;height:18px}.abv2-visible-gate .abv2-btn{width:100%}
+
+/* ARTBOARD VISUAL-ASSET RESTORATION — purely decorative UI, never production output */
+.abv2:has(.abv2-input-shell){position:relative;overflow:hidden;background-image:
+ radial-gradient(ellipse 66% 36% at 50% 12%,#006bff4a,transparent 81%),
+ url("assets/artboard-v2/energy-waves.svg"),
+ linear-gradient(140deg,#010716,#04132a 45%,#010614);
+ background-size:100% 100%,120% 66%,100% 100%;
+ background-position:center,center 3%,center;
+ background-repeat:no-repeat}
+.abv2:has(.abv2-input-shell)::after{content:"";pointer-events:none;position:absolute;left:13%;right:13%;bottom:-30px;height:156px;z-index:0;
+ background:url("assets/artboard-v2/holo-platform.svg") center bottom/contain no-repeat;filter:drop-shadow(0 0 20px #007dff80);opacity:.94}
+.abv2:has(.abv2-input-shell)>.abv2-top,
+.abv2:has(.abv2-input-shell)>.abv2-input-shell{position:relative;z-index:1}
+.abv2:has(.abv2-input-shell) .abv2-header{justify-content:center;text-align:center;border-bottom:0;padding:21px 12px 18px;background:radial-gradient(ellipse at center,#00aeff26,transparent 65%)}
+.abv2:has(.abv2-input-shell) .abv2-header img{width:76px;height:76px;filter:drop-shadow(0 0 21px #00bfff)}
+.abv2:has(.abv2-input-shell) .abv2-header h1{font-size:clamp(27px,3.3vw,50px);font-style:italic;letter-spacing:-.045em}
+.abv2:has(.abv2-input-shell) .abv2-header p{font-size:11px;letter-spacing:.25em}
+.abv2:has(.abv2-input-shell) .abv2-step-label{display:none}
+.abv2-input-shell{width:min(100%,830px);padding:8px 0 82px;margin:0 auto 14px;isolation:isolate;z-index:2}
+.abv2-input-shell::before,.abv2-input-shell::after{content:"";position:absolute;top:86px;width:clamp(165px,17vw,256px);height:clamp(260px,34vw,410px);background-repeat:no-repeat;background-size:contain;background-position:top center;pointer-events:none;z-index:-1;opacity:1;filter:drop-shadow(0 0 23px #00bfff75) drop-shadow(0 18px 20px #0009)}
+.abv2-input-shell::before{background-image:url("assets/artboard-v2/jersey-front.svg");right:calc(100% - 38px);transform:rotate(-6deg)}
+.abv2-input-shell::after{background-image:url("assets/artboard-v2/jersey-back.svg");left:calc(100% - 38px);transform:rotate(6deg)}
+.abv2-input-shell .abv2-modes,.abv2-input-shell .abv2-drop,.abv2-input-shell .abv2-file,.abv2-input-shell .abv2-commands{position:relative;z-index:1}
+.abv2-input-shell .abv2-modes{backdrop-filter:blur(12px);background:linear-gradient(160deg,#072343ef,#010d20ee);box-shadow:inset 0 1px #c8ffff35,0 0 26px #006eff47;border-color:#1989c6;border-radius:18px}
+.abv2-input-shell .abv2-drop{min-height:260px;border-radius:23px;background:
+ url("assets/artboard-v2/energy-waves.svg") center bottom/110% 85% no-repeat,
+ radial-gradient(ellipse at 50% 75%,#0266ee46,transparent 68%),
+ linear-gradient(170deg,#041c36f5,#020a1bf8);
+ box-shadow:inset 0 0 45px #00bfff18,0 0 25px #0098ff3d}
+.abv2-input-shell .abv2-drop:hover,.abv2-input-shell .abv2-drop.over{background:
+ url("assets/artboard-v2/energy-waves.svg") center bottom/110% 85% no-repeat,
+ radial-gradient(ellipse at 50% 70%,#008eff66,transparent 68%),
+ linear-gradient(170deg,#092b4b,#020d20)}
+.abv2-input-shell .abv2-upload-icon{line-height:1.1;filter:drop-shadow(0 0 12px #00e5ff)}
+.abv2-input-shell .abv2-file{background:linear-gradient(120deg,#082a49f5,#031020f7);backdrop-filter:blur(10px);box-shadow:inset 0 1px #66dfff68,0 0 16px #026dff3f}
+.abv2-input-shell .abv2-commands .abv2-btn{min-height:60px;font-size:clamp(14px,1.4vw,20px);border-radius:22px}
+.abv2-visual{background:
+ url("assets/artboard-v2/scan-hud.svg") center/100% 100% no-repeat,
+ url("assets/artboard-v2/energy-waves.svg") center bottom/120% 65% no-repeat,
+ radial-gradient(ellipse at 50% 54%,#057de960,transparent 65%),#020c1c}
+.abv2-art-canvas{background:
+ url("assets/artboard-v2/scan-hud.svg") center/100% 100% no-repeat,
+ url("assets/artboard-v2/holo-platform.svg") center bottom/90% auto no-repeat,
+ radial-gradient(ellipse at 50% 40%,#085bb950,transparent 70%),#020c1c}
+.abv2-art-canvas.validation-overlay{background-color:#031926}
+.abv2-export-arts>div{background:
+ url("assets/artboard-v2/holo-platform.svg") center bottom/100% auto no-repeat,
+ radial-gradient(ellipse at 50% 48%,#0058cc42,transparent 70%),#041a36}
+.abv2-art-canvas img,.abv2-visual img{filter:drop-shadow(0 0 16px #00d5ff40)}
+.abv2-card{box-shadow:inset 0 1px #c0ffff30,inset 0 0 26px #008fff19,0 0 24px #007dff2d}
+@media (max-width:1340px){.abv2-input-shell{width:min(100%,730px)}.abv2-input-shell::before,.abv2-input-shell::after{opacity:.85;width:180px}.abv2-input-shell::before{right:calc(100% - 18px)}.abv2-input-shell::after{left:calc(100% - 18px)}}
+@media (max-width:1120px){.abv2-input-shell{width:min(100%,780px)}.abv2-input-shell::before,.abv2-input-shell::after{opacity:.19;width:170px;top:125px;filter:drop-shadow(0 0 10px #009dff75)}.abv2-input-shell::before{right:calc(100% - 75px)}.abv2-input-shell::after{left:calc(100% - 75px)}}
+@media (max-width:820px){.abv2-input-shell::before,.abv2-input-shell::after{display:none}.abv2-input-shell{padding-bottom:65px}.abv2:has(.abv2-input-shell)::after{left:4%;right:4%;bottom:-30px;height:120px}.abv2:has(.abv2-input-shell) .abv2-header img{width:54px;height:54px}}
+@media (prefers-reduced-motion:reduce){.abv2:has(.abv2-input-shell)::after{filter:none}}
+</style>
+<style>/* V2 workflow corrections, Artboard scope only. */
+.abv2{gap:11px;padding:12px;max-width:1540px;min-height:calc(100dvh - 128px)}
+.abv2-top{gap:8px}
+.abv2-health>span{padding:8px 5px;font-size:11px}
+.abv2-header{padding:5px 9px 8px;gap:10px}
+.abv2-header img{width:44px;height:44px}
+.abv2-header h1,.abv2 .abv2-card h2,.abv2 .abv2-modes>b{font-size:14px;line-height:1.35}
+.abv2-header p,.abv2 .abv2-card header>small,.abv2 .abv2-card header>span,.abv2 .abv2-step-label,.abv2 .abv2-modes small{font-size:11px;line-height:1.45}
+.abv2-card{padding:11px;border-radius:14px}
+.abv2-card>header{margin-bottom:8px;padding-bottom:8px}
+.abv2-btn{font-size:12px;padding:9px 13px;min-height:39px;border-radius:11px}
+.abv2-workflow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;padding:8px;border:1px solid #126894;border-radius:13px;background:#031326cc;overflow:hidden}
+.abv2-workflow>span{position:relative;display:grid;grid-template-columns:25px minmax(0,1fr);grid-template-rows:auto auto;column-gap:7px;align-items:center;min-width:0;padding:7px 8px;border:1px solid #154a6c;border-radius:10px;background:#05192d;color:#7fa9bd}
+.abv2-workflow>span>b{grid-row:1/3;display:grid;place-items:center;width:25px;height:25px;border-radius:50%;border:1px solid #246382;font-size:10px;color:#96c6d8;background:#082139}
+.abv2-workflow>span>strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;line-height:1.25}
+.abv2-workflow>span>small{font-size:9px;line-height:1.25;color:#7097aa}
+.abv2-workflow>span.complete{border-color:#08705d;background:#052c2d;color:#5af3c3}
+.abv2-workflow>span.complete>b{border-color:#20d7a0;background:#0a604f;color:#eafff8}
+.abv2-workflow>span.current{border-color:#00d8ff;background:linear-gradient(130deg,#07314a,#062557);color:#d8fcff;box-shadow:inset 0 0 14px #00cfff28,0 0 13px #008cff38}
+.abv2-workflow>span.current>b{border-color:#66f7ff;background:#087ca3;color:white;box-shadow:0 0 10px #00d8ff88}
+.abv2-workflow>span.current>small{color:#58eaff}
+.abv2-process-grid,.abv2-art-grid-layout,.abv2-export-grid{gap:11px}
+.abv2-preview{min-height:0}
+.abv2-visual{height:clamp(240px,45vh,445px);min-height:240px}
+.abv2-log{min-height:0;max-height:565px}
+.abv2-log li{padding:7px 4px;font-size:11px}
+.abv2-log ol{min-height:125px;margin:8px 0}
+.abv2-current{padding:9px}
+.abv2-artwork{min-height:340px}
+.abv2-art-canvas{min-height:260px}
+.abv2-art-grid-layout.single{grid-template-columns:minmax(0,1.8fr) minmax(255px,.9fr)}
+.abv2-select-actions{gap:9px;align-items:center;flex-wrap:wrap}
+.abv2-select-actions .abv2-nav{flex:1;min-width:195px}
+.abv2-select-actions .abv2-btn.primary{min-width:210px}
+.abv2-drop{min-height:210px;isolation:isolate;overflow:hidden}
+.abv2-drop:has(.abv2-upload-preview){padding:20px}
+.abv2-upload-preview{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#010b1de8;opacity:.55;z-index:-1;filter:drop-shadow(0 0 11px #0099ff88)}
+.abv2-drop:has(.abv2-upload-preview)::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;background:linear-gradient(180deg,#000714b9,#04163176,#000714b9)}
+.abv2-drop>strong,.abv2-drop>small,.abv2-drop>.abv2-upload-icon,.abv2-drop>p{position:relative;z-index:1}
+.abv2-drop>input{z-index:2}
+.abv2-pdf-preview{z-index:0;max-width:95%;overflow-wrap:anywhere;font-size:11px;color:#7ce8ff}
+.abv2-input-shell{gap:11px;padding-bottom:34px}
+.abv2-input-shell .abv2-drop{min-height:210px}
+.abv2-input-shell .abv2-commands{padding:7px 4%}
+.abv2-nav{justify-content:flex-start;gap:9px}
+.abv2-nav>.abv2-btn{flex:0 1 180px}
+.abv2-result-summary{margin-top:8px;padding:9px 11px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border:1px solid #157ab0;border-radius:11px;color:#b2e5f8;font-size:11px}
+.abv2-result-summary b{font-size:12px;color:#3bf5c9}
+.abv2-path-status{position:absolute;bottom:12px;left:10px;right:10px;text-align:center;color:#a0e0fc;font-size:11px;background:#04182ac8;border:1px solid #2071aa;padding:7px;border-radius:8px;z-index:4}
+.abv2-art-canvas.validation-overlay .abv2-beam{background:#7bffc4;box-shadow:0 0 19px 6px #04f38f,0 0 30px #02cd7c}
+.abv2-visual .abv2-beam{background:#00f3ff;box-shadow:0 0 18px 6px #00e5ff,0 0 34px 12px #008fff66}
+.abv2-info{color:#a7d9ef;font-size:11px;line-height:1.5}
+.abv2-format-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.abv2-format{padding:11px 5px;font-size:11px}
+.abv2-format:disabled{opacity:.3;cursor:not-allowed}
+.abv2-format-downloads{min-height:40px;display:flex;gap:8px;flex-wrap:wrap;align-content:start;margin-top:12px}
+.abv2-export-grid{grid-template-columns:minmax(0,1.5fr) minmax(230px,.9fr) minmax(190px,.7fr)}
+.abv2-export-preview,.abv2-export-settings,.abv2-package{min-height:0}
+.abv2-export-arts{min-height:270px}
+.abv2-export-arts img{height:240px;max-height:250px}
+.abv2-package .abv2-btn{width:100%}
+.abv2-current-message{font-size:11px;color:#7be8ff}
+@media(max-width:1100px){.abv2-art-grid-layout.single{grid-template-columns:1fr 1fr}.abv2-art-grid-layout.single>.abv2-log{grid-column:1/-1}.abv2-export-grid{grid-template-columns:1fr 1fr}.abv2-export-grid>.abv2-export-preview{grid-column:1/-1}}
+@media(max-width:760px){.abv2-workflow{display:flex;overflow-x:auto;scroll-snap-type:x proximity}.abv2-workflow>span{flex:0 0 132px;scroll-snap-align:start}.abv2-art-grid-layout.single,.abv2-export-grid{grid-template-columns:1fr}.abv2-art-grid-layout.single>.abv2-log,.abv2-export-grid>.abv2-export-preview{grid-column:auto}.abv2-header img{width:38px;height:38px}.abv2-visual{height:300px}.abv2-log{max-height:410px}.abv2-nav>.abv2-btn{flex:1}.abv2-export-arts{flex-wrap:wrap}}
+@media(prefers-reduced-motion:reduce){.abv2 .abv2-beam,.abv2 .abv2-progress.indeterminate>span{animation:none!important}}
+.abv2-real-paths{position:absolute;inset:3% 2%;height:94%;width:96%;z-index:4;overflow:visible;pointer-events:none;opacity:.72;filter:drop-shadow(0 0 3px #00e5ff)}
+.abv2-real-paths .abv2-trace-path{animation:abv2-trace 3.8s ease-in-out infinite alternate;stroke-linecap:round}
+@keyframes abv2-trace{0%{stroke-dashoffset:var(--path-length,1500);opacity:.25}100%{stroke-dashoffset:0;opacity:1}}
+@media(prefers-reduced-motion:reduce){.abv2-real-paths .abv2-trace-path{animation:none;stroke-dashoffset:0!important}}
+/* Overrides the earlier premium-input selectors without affecting other tools. */
+.abv2:has(.abv2-input-shell) .abv2-header h1{font-size:14px!important;letter-spacing:-.015em}
+.abv2:has(.abv2-input-shell) .abv2-header p{font-size:11px!important;letter-spacing:.06em}
+.abv2:has(.abv2-input-shell) .abv2-header img{width:42px!important;height:42px!important}
+.abv2:has(.abv2-input-shell) .abv2-input-shell .abv2-drop{min-height:214px!important}
+.abv2:has(.abv2-input-shell) .abv2-input-shell .abv2-commands .abv2-btn{min-height:45px!important;font-size:12px!important}
+.abv2-input-shell .abv2-drop strong{font-size:14px!important}
+.abv2-input-shell .abv2-upload-icon{font-size:28px!important}
+.abv2 .abv2-modes>b,.abv2 .abv2-modes strong{font-size:14px!important}
+.abv2 .abv2-modes button small{font-size:11px!important}
+
+/* Batch 02 / Artboard AI only. Supports the existing header hamburger. */
+body.artboard-workspace #menuButton{display:grid!important;flex:0 0 40px;cursor:pointer;z-index:52}
+@media(min-width:871px){
+  body.artboard-workspace.sidebar-collapsed .shell{grid-template-columns:0 minmax(0,1fr)}
+  body.artboard-workspace.sidebar-collapsed .sidebar{width:0;min-width:0;padding:0!important;border:0;opacity:0;pointer-events:none;overflow:hidden}
+  body.artboard-workspace .shell{transition:grid-template-columns .22s ease}
+  body.artboard-workspace .sidebar{transition:opacity .2s ease,padding .2s ease}
+}
+/* Issue #27: preserve the entire original image including portrait and panorama uploads. */
+.abv2 .abv2-visual{display:flex;align-items:center;justify-content:center;min-width:0;min-height:240px;overflow:hidden;padding:8px}
+.abv2 .abv2-visual>img{display:block!important;position:relative!important;flex:0 1 auto;max-width:100%!important;max-height:100%!important;width:100%!important;height:100%!important;object-fit:contain!important;object-position:center!important;transform:none!important;margin:auto;filter:none}
+.abv2 .abv2-visual:after{opacity:.32;z-index:0}
+.abv2 .abv2-visual .abv2-beam{z-index:6}
+/* Issue #28: reveal real image assets as delivered; never invent image pixels. */
+.abv2 .abv2-art-canvas .abv2-genuine-image{display:block;width:100%;height:100%;max-height:100%;object-fit:contain;object-position:center;animation:abv2-reveal-real-image 2s ease-out both}
+@keyframes abv2-reveal-real-image{0%{opacity:.15;clip-path:inset(0 0 99% 0)}100%{opacity:1;clip-path:inset(0 0 0 0)}}
+.abv2-generation-placeholder{position:relative;z-index:2;display:grid;align-content:center;justify-items:center;gap:18px;text-align:center;max-width:90%;padding:15px;color:#aee5f5}
+.abv2-creation-orb{display:block;width:80px;height:80px;border-radius:50%;border:3px dotted #00cfff;box-shadow:0 0 25px #009eff5e,inset 0 0 25px #00deff18;animation:abv2-creation-spin 3s linear infinite}
+@keyframes abv2-creation-spin{to{transform:rotate(360deg)}}
+.abv2-creating .abv2-beam{display:block;animation:abv2-sweep 3.2s ease-in-out infinite alternate}
+/* Issues #29–30: distinct usable Vectorization/Validation preview surfaces. */
+.abv2 .abv2-art-canvas.vector-overlay{min-height:300px;border-color:#11bdfa}
+.abv2 .abv2-art-canvas.validation-overlay{min-height:300px;border-color:#1ae7ad;background-color:#052437}
+.abv2 .abv2-art-canvas.validation-overlay .abv2-beam{background:#13ffab;box-shadow:0 0 18px #1decb8}
+/* Issues #31–33: detailed strip below the preview, distinct ZIP and Illustrator cards. */
+.abv2-export-left{min-width:0;display:grid;gap:10px;align-content:start}
+.abv2-export-actions{min-width:0;display:grid;gap:10px;align-content:start}
+.abv2-production-details{border:1px solid #168dbe;background:linear-gradient(155deg,#08233c,#021327);border-radius:13px;padding:11px 13px;box-shadow:inset 0 1px #85e9ff31}
+.abv2-production-details h2{font-size:14px;margin:0 0 10px;color:#b9faff}
+.abv2-tech-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.abv2-tech-grid>div{min-width:0;display:flex;flex-direction:column;gap:4px;padding:8px;border:1px solid #115079;background:#04192d;border-radius:8px}
+.abv2-tech-grid span{font-size:10px;color:#73b5d7}
+.abv2-tech-grid b{font-size:11px;color:#e1faff;overflow-wrap:anywhere}
+.abv2-illustrator{border-color:#92632b!important}
+.abv2-export-actions .abv2-btn{width:100%}
+.abv2 .abv2-export-arts img{height:245px;max-height:255px;object-fit:contain}
+@media(max-width:1100px){.abv2-export-grid>.abv2-export-left{grid-column:1/-1}.abv2-export-actions{grid-column:2}}
+@media(max-width:780px){.abv2-export-grid>.abv2-export-left,.abv2-export-actions{grid-column:auto}.abv2-tech-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.abv2-tech-grid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.abv2 .abv2-genuine-image,.abv2-creation-orb{animation:none!important;clip-path:none!important}}
+
+/* Export delivery corrections: preview expanded; ZIP below formats; independent
+   Illustrator and New Production actions; production metrics in right column. */
+.abv2 .abv2-export-grid{display:grid;grid-template-columns:minmax(0,1.50fr) minmax(260px,.83fr) minmax(220px,.68fr);align-items:start;gap:12px}
+.abv2 .abv2-export-left,.abv2 .abv2-export-center,.abv2 .abv2-export-right{min-width:0;display:grid;gap:12px;align-content:start}
+.abv2 .abv2-export-preview{min-height:0}
+.abv2 .abv2-export-arts{min-height:clamp(360px,53vh,640px);gap:12px;align-items:stretch}
+.abv2 .abv2-export-arts>div{min-height:340px;justify-content:center}
+.abv2 .abv2-export-arts img{display:block;width:100%;height:clamp(320px,48vh,550px);max-height:550px;object-fit:contain;object-position:center}
+.abv2 .abv2-export-center .abv2-card{min-height:0}
+.abv2 .abv2-export-center .abv2-btn{width:100%;min-height:40px}
+.abv2 .abv2-export-right .abv2-production-details{min-height:0}
+.abv2 .abv2-export-right .abv2-tech-grid{grid-template-columns:1fr;gap:7px}
+.abv2 .abv2-export-right .abv2-tech-grid>div{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:9px}
+.abv2 .abv2-export-right .abv2-tech-grid b{text-align:right;max-width:60%}
+.abv2 .abv2-new-production{border-color:#167caf}
+.abv2 .abv2-new-production .abv2-btn{margin-top:6px}
+.abv2 .abv2-package [data-abv2-zip-status]{min-height:30px;overflow-wrap:anywhere}
+.abv2 .abv2-export-bottom{justify-content:flex-start;gap:9px;margin-top:2px}
+.abv2 .abv2-export-bottom .abv2-btn{flex:0 1 190px;min-height:38px}
+@media(max-width:1250px){.abv2 .abv2-export-grid{grid-template-columns:minmax(0,1.3fr) minmax(280px,.85fr)}.abv2 .abv2-export-right{grid-column:1/-1}.abv2 .abv2-export-right .abv2-tech-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.abv2 .abv2-export-right .abv2-tech-grid>div{flex-direction:column;align-items:flex-start}.abv2 .abv2-export-right .abv2-tech-grid b{text-align:left;max-width:none}}
+@media(max-width:800px){.abv2 .abv2-export-grid{grid-template-columns:minmax(0,1fr)}.abv2 .abv2-export-right{grid-column:auto}.abv2 .abv2-export-arts{min-height:310px}.abv2 .abv2-export-arts>div{min-height:275px}.abv2 .abv2-export-arts img{height:clamp(240px,41vh,400px)}.abv2 .abv2-export-right .abv2-tech-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:500px){.abv2 .abv2-export-right .abv2-tech-grid{grid-template-columns:1fr}.abv2 .abv2-export-bottom .abv2-btn{flex:1 1 45%}}
+/* Artwork selection is a deliberate checkpoint after genuine AI artwork previews. */
+.abv2 .abv2-artwork .abv2-select{margin-top:9px;border-top:1px solid #12698e;font-size:12px;line-height:1.4}
+.abv2 .abv2-artwork .abv2-select input:disabled{opacity:.42}
+.abv2 .abv2-select-summary{padding:10px 12px;border:1px solid #1272ae;border-radius:10px;background:#031e38;line-height:1.55;font-size:11px}
+.abv2 .abv2-select-actions [data-abv2="continue-vectorization"]{min-width:220px;background:linear-gradient(130deg,#006eb6,#02c8e7);box-shadow:0 0 23px #03aeff53;color:#f1ffff}
+.abv2 .abv2-select-actions [data-abv2="continue-vectorization"]:disabled{background:#11334a;box-shadow:none;color:#8a9caf}
+/* Vectorization: actual returned vector paths, never a drawn fake pattern. */
+.abv2 .abv2-art-canvas.vector-overlay{background:radial-gradient(ellipse at center,#023e7166,transparent 72%),url("assets/artboard-v2/scan-hud.svg") center / contain no-repeat,#010b1c}
+.abv2 .abv2-art-canvas.vector-overlay:after{content:none}
+.abv2 .abv2-art-canvas.vector-overlay .abv2-real-paths{inset:2%;height:96%;width:96%;opacity:.95;mix-blend-mode:screen}
+/* Validation: true green scanning rather than a decorative oversized crosshair. */
+.abv2 .abv2-art-canvas.validation-overlay{background:radial-gradient(ellipse at center,#046f5766,transparent 72%),url("assets/artboard-v2/scan-hud.svg") center / contain no-repeat,#021c23;border-color:#04dda2}
+.abv2 .abv2-art-canvas.validation-overlay:after{content:none}
+.abv2 .abv2-validation-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:10px}
+.abv2 .abv2-validation-results>span{display:flex;align-items:center;justify-content:space-between;gap:7px;border:1px solid #0c6f66;background:#042b33;border-radius:7px;padding:7px}
+.abv2 .abv2-validation-results small{font-size:10px;color:#8fced7}
+.abv2 .abv2-validation-results b{font-size:10px;color:#dafafe}
+.abv2 .abv2-validation-results b.pass{color:#2df6b0}.abv2 .abv2-validation-results b.fail{color:#ffb087}
+@media(max-width:780px){.abv2 .abv2-select-actions [data-abv2="continue-vectorization"]{min-width:0;width:100%}}
+@media(prefers-reduced-motion:reduce){.abv2 .abv2-art-canvas.vector-overlay .abv2-trace-path{animation:none!important;stroke-dashoffset:0!important}}
+
+/* Recovery after refresh is deliberate, never an automatic processing redirect. */
+.abv2 .abv2-recovery{margin:16px 0;border:1px solid rgba(75,166,224,.48);border-radius:14px;background:rgba(15,43,69,.75);padding:16px}
+.abv2 .abv2-recovery header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.abv2 .abv2-recovery p{margin:10px 0 14px;color:#bad0e0;line-height:1.45}
+.abv2 .abv2-recovery .abv2-commands{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+@media(max-width:650px){.abv2 .abv2-recovery .abv2-commands .abv2-btn{flex:1 1 100%}}
+
+/* Mockup-matched production cockpit: bright cyan frame, dark glass panels and
+   purely presentational motion between verified production milestones. */
+.abv2{position:relative;overflow:hidden;border-color:#10bff4;background:
+ radial-gradient(ellipse 72% 34% at 50% 0%,#006dff36,transparent 75%),
+ linear-gradient(145deg,#010713 0%,#03142b 46%,#010714 100%);box-shadow:inset 0 0 0 1px #0ae6ff22,inset 0 0 90px #006fff20,0 0 38px #0075ff35,0 30px 80px #000b}
+.abv2::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.42;background:
+ linear-gradient(135deg,transparent 0 4%,#00d9ff28 4.1% 4.25%,transparent 4.35% 95.65%,#00d9ff28 95.75% 95.9%,transparent 96%),
+ linear-gradient(0deg,transparent 0 7%,#006cff24 7.1% 7.25%,transparent 7.35%)}
+.abv2>*{position:relative;z-index:1}
+.abv2-health{max-width:1260px;width:100%;margin-inline:auto;border-color:#10bce9;background:linear-gradient(180deg,#08223fe8,#020b19ed);box-shadow:inset 0 1px #bcffff48,0 0 22px #008cff50}
+.abv2-header{border-bottom-color:#0aaae8}.abv2-header h1{color:#f6fbff}.abv2-header p{color:#a9cce1}
+.abv2-card{border-color:#0db9ed;background:linear-gradient(150deg,#082848e8,#020b1bed 72%);box-shadow:inset 0 1px #bffcff45,inset 0 0 31px #008eff22,0 0 21px #007dff33}
+.abv2-art-canvas,.abv2-visual{border-color:#0ed9ff;box-shadow:inset 0 0 40px #006cff26,0 0 18px #00bfff40}
+.abv2-art-canvas .abv2-genuine-image{filter:drop-shadow(0 0 16px #0ad8ff8a)}
+.abv2-log li::before{color:#19ff95;text-shadow:0 0 8px #00ff84}.abv2-log li:last-child::before{color:#19e7ff;text-shadow:0 0 8px #00d9ff}
+.abv2-progress{box-shadow:inset 0 0 10px #001}.abv2-progress>span{background:repeating-linear-gradient(120deg,#05dcff 0 14px,#77f9ff 14px 25px,#0f9fff 25px 38px)}
+.abv2-vector-simulation{position:absolute;inset:9%;z-index:3;border:1px solid #11eaff55;clip-path:polygon(8% 5%,93% 3%,98% 82%,82% 97%,17% 95%,2% 75%);background:
+ linear-gradient(30deg,transparent 48%,#09eaff72 49% 50%,transparent 51%) 0 0/92px 88px,
+ linear-gradient(-34deg,transparent 48%,#087cff72 49% 50%,transparent 51%) 0 0/118px 102px;filter:drop-shadow(0 0 5px #00c8ff);animation:abv2-mesh-breathe 1.8s ease-in-out infinite alternate}
+.abv2-vector-simulation i{position:absolute;width:7px;height:7px;border-radius:50%;background:#baffff;box-shadow:0 0 8px 3px #00e5ff;animation:abv2-node-pulse 1.25s ease-in-out infinite alternate}
+.abv2-vector-simulation i:nth-child(1){left:9%;top:12%}.abv2-vector-simulation i:nth-child(2){left:35%;top:28%;animation-delay:-.3s}.abv2-vector-simulation i:nth-child(3){left:72%;top:16%;animation-delay:-.7s}.abv2-vector-simulation i:nth-child(4){left:18%;top:69%;animation-delay:-.5s}.abv2-vector-simulation i:nth-child(5){left:57%;top:57%;animation-delay:-.9s}.abv2-vector-simulation i:nth-child(6){left:84%;top:78%;animation-delay:-.15s}
+@keyframes abv2-mesh-breathe{from{opacity:.32;transform:scale(.985)}to{opacity:.88;transform:scale(1.01)}}
+@keyframes abv2-node-pulse{from{transform:scale(.55);opacity:.45}to{transform:scale(1.3);opacity:1}}
+.abv2-art-canvas.validation-overlay::before{background-image:linear-gradient(#00ffb51c 1px,transparent 1px),linear-gradient(90deg,#00ffb51c 1px,transparent 1px);background-size:25px 25px}
+.abv2-validation-results>span{box-shadow:inset 0 0 10px #00d9a51f}
+@media(prefers-reduced-motion:reduce){.abv2-vector-simulation,.abv2-vector-simulation i{animation:none!important}}
+</style>
 </head>
 <body>
 <header class="topbar"><div class="brands"><button type="button" id="menuButton" class="menu-button" aria-controls="sidebar" aria-expanded="true" aria-label="Toggle navigation"><span></span><span></span><span></span></button><img class="brand-logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJBdGhlcmlvdXMgTGFicyI+CiAgPGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJhIiB4MT0iOCIgeTE9IjY4IiB4Mj0iNjgiIHkyPSI4Ij48c3RvcCBzdG9wLWNvbG9yPSIjMDA3MWZmIi8+PHN0b3Agb2Zmc2V0PSIuNDgiIHN0b3AtY29sb3I9IiMwZmU3ZmYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM4YjVjZmYiLz48L2xpbmVhckdyYWRpZW50PjxmaWx0ZXIgaWQ9ImciPjxmZUdhdXNzaWFuQmx1ciBzdGREZXZpYXRpb249IjIiIHJlc3VsdD0iYiIvPjxmZU1lcmdlPjxmZU1lcmdlTm9kZSBpbj0iYiIvPjxmZU1lcmdlTm9kZSBpbj0iU291cmNlR3JhcGhpYyIvPjwvZmVNZXJnZT48L2ZpbHRlcj48L2RlZnM+CiAgPHBhdGggZD0iTTEwIDY1IDM1IDljMi01IDgtNSAxMSAwbDI0IDU2LTE1LTgtNi0xNUgyOGwtNiAxNS0xMiA4Wm0yNC0zNy0zLjggOWgxNi43bC00LTEwLjJjLTEuNSAzLjgtNS4yIDUuMS04LjkgMS4yWiIgZmlsbD0idXJsKCNhKSIgZmlsdGVyPSJ1cmwoI2cpIi8+CiAgPHBhdGggZD0iTTQgNDVjMTkgMTggNTMgMTggNzItMk05IDI5YzE4LTE0IDQ1LTE0IDYyIDEiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzQzZWFmZiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIG9wYWNpdHk9Ii45Ii8+PGNpcmNsZSBjeD0iNjgiIGN5PSIyOSIgcj0iMyIgZmlsbD0iIzg0ZjdmZiIvPgo8L3N2Zz4K" alt="Atherious Labs"><div class="lab-text"><strong>Atherious Labs</strong><small>Innovate · Build · Dominate</small></div><span class="brand-divider"></span><img class="product-logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJNeSBKZXJzZXkgRWNvc3lzdGVtIj4KICA8ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9Im0iIHgxPSI4IiB5MT0iOCIgeDI9IjU2IiB5Mj0iNTYiPjxzdG9wIHN0b3AtY29sb3I9IiNjMGZmNjQiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM1ZmUxNDkiLz48L2xpbmVhckdyYWRpZW50PjxmaWx0ZXIgaWQ9InMiPjxmZUdhdXNzaWFuQmx1ciBzdGREZXZpYXRpb249IjIiIHJlc3VsdD0iYiIvPjxmZU1lcmdlPjxmZU1lcmdlTm9kZSBpbj0iYiIvPjxmZU1lcmdlTm9kZSBpbj0iU291cmNlR3JhcGhpYyIvPjwvZmVNZXJnZT48L2ZpbHRlcj48L2RlZnM+CiAgPHJlY3QgeD0iNiIgeT0iNiIgd2lkdGg9IjUyIiBoZWlnaHQ9IjUyIiByeD0iOSIgZmlsbD0idXJsKCNtKSIgZmlsdGVyPSJ1cmwoI3MpIi8+PHBhdGggZD0iTTE4IDE2aDE1djhIMjVsOCA4LTYgNi05LTl2N2gtOFYyMWMwLTIuOCAyLjItNSA1LTVoM1ptMjggMzJIMzF2LThoOGwtOC04IDYtNiA5IDl2LTdoOHYxNWMwIDIuOC0yLjIgNS01IDVoLTNaIiBmaWxsPSIjMDUyNTFkIi8+Cjwvc3ZnPgo=" alt="My Jersey Ecosystem"><div class="product-text"><strong>My Jersey Ecosystem</strong><small>AI-Powered Design &amp; Creative Suite</small></div></div><div class="header-right"><div id="serviceIndicators" class="service-indicators" aria-label="Live engine status"><span class="service-cell"><i>◆</i><small>Engines</small><b>Not connected</b></span><span class="service-cell"><i>⬡</i><small>AI Config</small><b>Not checked</b></span></div></div></header>
-<div class="menu-backdrop" id="menuBackdrop" hidden></div><div class="shell"><aside class="sidebar" id="sidebar"><div class="sidebar-head"><span>MENU</span><button type="button" id="menuClose" aria-label="Close menu">×</button></div><nav id="mainNav" aria-label="Main navigation"><button data-tool="home" class="nav-item selected"><span>⌂</span> Home</button><button data-tool="overview" class="nav-item"><span>▦</span> Overview</button><div class="nav-separator compact"></div><button data-tool="artboard" class="nav-item"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJBcnRib2FyZCBBSSI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iOSIgeTE9IjU1IiB4Mj0iNTUiIHkyPSI5Ij48c3RvcCBzdG9wLWNvbG9yPSIjMGFjODhmIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNjFmZmUwIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3QgeD0iOCIgeT0iOCIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiByeD0iMTQiIGZpbGw9IiMwNjFkMjkiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSIyIi8+PHBhdGggZD0iTTE4IDQzYzctMSA4LTE5IDE4LTIwIDUgMCA3IDYgMTAgMTUiIGZpbGw9Im5vbmUiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48ZyBmaWxsPSIjZDhmZmY2Ij48Y2lyY2xlIGN4PSIxOCIgY3k9IjQzIiByPSI0Ii8+PGNpcmNsZSBjeD0iMzYiIGN5PSIyMyIgcj0iNCIvPjxjaXJjbGUgY3g9IjQ2IiBjeT0iMzgiIHI9IjQiLz48L2c+PC9zdmc+Cg==" alt=""> Artboard AI</button><button data-tool="frame" class="nav-item"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJGcmFtZSBGb3JnZSBBSSI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iOCIgeTE9IjU0IiB4Mj0iNTYiIHkyPSIxMCI+PHN0b3Agc3RvcC1jb2xvcj0iIzA4N2VmZiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzY4ZTZmZiIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHg9IjciIHk9IjExIiB3aWR0aD0iNTAiIGhlaWdodD0iNDIiIHJ4PSIxMSIgZmlsbD0iIzA3MWMzOSIgc3Ryb2tlPSJ1cmwoI2cpIiBzdHJva2Utd2lkdGg9IjIiLz48cGF0aCBkPSJNMTMgMjBoMzhNMTMgNDVoMzgiIHN0cm9rZT0iIzU3Y2ZmZiIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtZGFzaGFycmF5PSI1IDUiLz48cGF0aCBkPSJtMjggMjUgMTMgNy0xMyA4VjI1WiIgZmlsbD0idXJsKCNnKSIvPjxwYXRoIGQ9Im00NyA3IDEuNyA1LjJMNTQgMTRsLTUuMyAxLjhMNDcgMjFsLTEuOC01LjJMNDAgMTRsNS4yLTEuOEw0NyA3WiIgZmlsbD0iI2M4ZjhmZiIvPjwvc3ZnPgo=" alt=""> Frame Forge AI</button><button data-tool="assets" class="nav-item"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJBc3NldHNYIEFJIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSI3IiB5MT0iNTYiIHgyPSI1NyIgeTI9IjgiPjxzdG9wIHN0b3AtY29sb3I9IiM3MjQ1ZWYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNkNzliZmYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cGF0aCBkPSJtMzIgNiAyMyAxM3YyNkwzMiA1OCA5IDQ1VjE5TDMyIDZaIiBmaWxsPSIjMTcxMjJkIiBzdHJva2U9InVybCgjZykiIHN0cm9rZS13aWR0aD0iMiIvPjxwYXRoIGQ9Im0xMCAxOSAyMiAxMyAyMi0xM00zMiAzMnYyNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYjc3Y2ZmIiBzdHJva2Utd2lkdGg9IjIiLz48cGF0aCBkPSJtMjIgMjAgMjAgMjRNNDIgMjAgMjIgNDQiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48ZyBmaWxsPSIjZjRlM2ZmIj48Y2lyY2xlIGN4PSIyMiIgY3k9IjIwIiByPSIzIi8+PGNpcmNsZSBjeD0iNDIiIGN5PSIyMCIgcj0iMyIvPjxjaXJjbGUgY3g9IjIyIiBjeT0iNDQiIHI9IjMiLz48Y2lyY2xlIGN4PSI0MiIgY3k9IjQ0IiByPSIzIi8+PC9nPjwvc3ZnPgo=" alt=""> AssetsX AI</button><button data-tool="autofly" class="nav-item"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJBdXRvZmx5Ij48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSI4IiB5MT0iNTMiIHgyPSI1NSIgeTI9IjkiPjxzdG9wIHN0b3AtY29sb3I9IiNmZjljMzIiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNmZmYwNzgiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSIzMiIgY3k9IjMyIiByPSIyNSIgZmlsbD0iIzI1MWMwYyIgc3Ryb2tlPSJ1cmwoI2cpIiBzdHJva2Utd2lkdGg9IjIiLz48cGF0aCBkPSJNMTMgMzNjMTAtMSAxOC03IDI4LTE5LTEgMTItNSAyMi0xMiAzMGwxIDgtNy01LTEwIDIgNy04Yy0yLTMtNC01LTctOFoiIGZpbGw9InVybCgjZykiLz48cGF0aCBkPSJtMzMgMjUtNiAxMGg2bC01IDkgMTMtMTRoLTdsNS01aC02WiIgZmlsbD0iIzRhMmMwNSIvPjwvc3ZnPgo=" alt=""> Autofly <em>BONUS</em></button><button data-tool="emergency" class="nav-item emergency-link"><span>△</span> Emergency Tools</button><div class="nav-separator compact"></div><button data-tool="history" class="nav-item"><span>◷</span> Work History</button><button data-tool="credits" class="nav-item"><span>▣</span> Add Credits</button><button data-tool="users" class="nav-item"><span>♙</span> Users</button><button data-tool="support" class="nav-item"><span>?</span> Support</button><button data-tool="get-support" class="nav-item"><span>◉</span> Get Support</button><button data-tool="report" class="nav-item"><span>!</span> Report a Problem</button><button data-tool="settings" class="nav-item"><span>⚙</span> Settings</button></nav><div class="side-bottom"><span>DESIGN</span><span>CREATE</span><span>DOMINATE</span><div class="mini-brand"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJBdGhlcmlvdXMgTGFicyI+CiAgPGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJhIiB4MT0iOCIgeTE9IjY4IiB4Mj0iNjgiIHkyPSI4Ij48c3RvcCBzdG9wLWNvbG9yPSIjMDA3MWZmIi8+PHN0b3Agb2Zmc2V0PSIuNDgiIHN0b3AtY29sb3I9IiMwZmU3ZmYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM4YjVjZmYiLz48L2xpbmVhckdyYWRpZW50PjxmaWx0ZXIgaWQ9ImciPjxmZUdhdXNzaWFuQmx1ciBzdGREZXZpYXRpb249IjIiIHJlc3VsdD0iYiIvPjxmZU1lcmdlPjxmZU1lcmdlTm9kZSBpbj0iYiIvPjxmZU1lcmdlTm9kZSBpbj0iU291cmNlR3JhcGhpYyIvPjwvZmVNZXJnZT48L2ZpbHRlcj48L2RlZnM+CiAgPHBhdGggZD0iTTEwIDY1IDM1IDljMi01IDgtNSAxMSAwbDI0IDU2LTE1LTgtNi0xNUgyOGwtNiAxNS0xMiA4Wm0yNC0zNy0zLjggOWgxNi43bC00LTEwLjJjLTEuNSAzLjgtNS4yIDUuMS04LjkgMS4yWiIgZmlsbD0idXJsKCNhKSIgZmlsdGVyPSJ1cmwoI2cpIi8+CiAgPHBhdGggZD0iTTQgNDVjMTkgMTggNTMgMTggNzItMk05IDI5YzE4LTE0IDQ1LTE0IDYyIDEiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzQzZWFmZiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIG9wYWNpdHk9Ii45Ii8+PGNpcmNsZSBjeD0iNjgiIGN5PSIyOSIgcj0iMyIgZmlsbD0iIzg0ZjdmZiIvPgo8L3N2Zz4K" alt=""> Atherious Labs</div></div></aside>
+<div class="menu-backdrop" id="menuBackdrop" hidden></div><div class="shell"><aside class="sidebar" id="sidebar"><div class="sidebar-head"><span>MENU</span><button type="button" id="menuClose" aria-label="Close menu">×</button></div><nav id="mainNav" aria-label="Main navigation"><button data-tool="home" class="nav-item selected"><span>⌂</span> Home</button><button data-tool="overview" class="nav-item"><span>▦</span> Overview</button><div class="nav-separator compact"></div><button data-tool="artboard" class="nav-item"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5NiA5NiIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJBcnRib2FyZCBBSSI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImFiLWEiIHgxPSIxOCIgeTE9IjgyIiB4Mj0iNzciIHkyPSIxMiIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIHN0b3AtY29sb3I9IiMxMjU4ZmYiLz48c3RvcCBvZmZzZXQ9Ii40OCIgc3RvcC1jb2xvcj0iIzAwZDhmZiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzc1ZmZmZiIvPjwvbGluZWFyR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImFiLWNvcmUiPjxzdG9wIHN0b3AtY29sb3I9IiM5YWZmZmYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwMGE1ZmYiLz48L3JhZGlhbEdyYWRpZW50PgogICAgPGZpbHRlciBpZD0iYWItZ2xvdyIgeD0iLTYwJSIgeT0iLTYwJSIgd2lkdGg9IjIyMCUiIGhlaWdodD0iMjIwJSI+PGZlR2F1c3NpYW5CbHVyIHN0ZERldmlhdGlvbj0iNCIgcmVzdWx0PSJiIi8+PGZlTWVyZ2U+PGZlTWVyZ2VOb2RlIGluPSJiIi8+PGZlTWVyZ2VOb2RlIGluPSJTb3VyY2VHcmFwaGljIi8+PC9mZU1lcmdlPjwvZmlsdGVyPgogIDwvZGVmcz4KICA8cGF0aCBkPSJNNDggOCA4NSA4Mkg2N0w1OCA2MkgzNEwyNCA4Mkg4TDQ1IDhaIiBmaWxsPSJ1cmwoI2FiLWEpIiBvcGFjaXR5PSIuOTYiIGZpbHRlcj0idXJsKCNhYi1nbG93KSIvPgogIDxwYXRoIGQ9Im00OCAyOC05IDIxaDE4WiIgZmlsbD0iIzAyMTUyZiIgc3Ryb2tlPSIjYTVmZmZmIiBzdHJva2Utd2lkdGg9IjIiLz4KICA8cGF0aCBkPSJNMjAgNzVjMjEtNCAzOS0xNyA1NS0zOS04IDI1LTI3IDQzLTU1IDQ5WiIgZmlsbD0iIzA4MzRiZCIgb3BhY2l0eT0iLjkiLz4KICA8Y2lyY2xlIGN4PSI0OCIgY3k9IjQ3IiByPSI0LjUiIGZpbGw9InVybCgjYWItY29yZSkiIGZpbHRlcj0idXJsKCNhYi1nbG93KSIvPgo8L3N2Zz4K" alt=""> Artboard AI</button><button data-tool="frame" class="nav-item"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJGcmFtZSBGb3JnZSBBSSI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iOCIgeTE9IjU0IiB4Mj0iNTYiIHkyPSIxMCI+PHN0b3Agc3RvcC1jb2xvcj0iIzA4N2VmZiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzY4ZTZmZiIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHg9IjciIHk9IjExIiB3aWR0aD0iNTAiIGhlaWdodD0iNDIiIHJ4PSIxMSIgZmlsbD0iIzA3MWMzOSIgc3Ryb2tlPSJ1cmwoI2cpIiBzdHJva2Utd2lkdGg9IjIiLz48cGF0aCBkPSJNMTMgMjBoMzhNMTMgNDVoMzgiIHN0cm9rZT0iIzU3Y2ZmZiIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtZGFzaGFycmF5PSI1IDUiLz48cGF0aCBkPSJtMjggMjUgMTMgNy0xMyA4VjI1WiIgZmlsbD0idXJsKCNnKSIvPjxwYXRoIGQ9Im00NyA3IDEuNyA1LjJMNTQgMTRsLTUuMyAxLjhMNDcgMjFsLTEuOC01LjJMNDAgMTRsNS4yLTEuOEw0NyA3WiIgZmlsbD0iI2M4ZjhmZiIvPjwvc3ZnPgo=" alt=""> Frame Forge AI</button><button data-tool="assets" class="nav-item"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJBc3NldHNYIEFJIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSI3IiB5MT0iNTYiIHgyPSI1NyIgeTI9IjgiPjxzdG9wIHN0b3AtY29sb3I9IiM3MjQ1ZWYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNkNzliZmYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cGF0aCBkPSJtMzIgNiAyMyAxM3YyNkwzMiA1OCA5IDQ1VjE5TDMyIDZaIiBmaWxsPSIjMTcxMjJkIiBzdHJva2U9InVybCgjZykiIHN0cm9rZS13aWR0aD0iMiIvPjxwYXRoIGQ9Im0xMCAxOSAyMiAxMyAyMi0xM00zMiAzMnYyNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYjc3Y2ZmIiBzdHJva2Utd2lkdGg9IjIiLz48cGF0aCBkPSJtMjIgMjAgMjAgMjRNNDIgMjAgMjIgNDQiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48ZyBmaWxsPSIjZjRlM2ZmIj48Y2lyY2xlIGN4PSIyMiIgY3k9IjIwIiByPSIzIi8+PGNpcmNsZSBjeD0iNDIiIGN5PSIyMCIgcj0iMyIvPjxjaXJjbGUgY3g9IjIyIiBjeT0iNDQiIHI9IjMiLz48Y2lyY2xlIGN4PSI0MiIgY3k9IjQ0IiByPSIzIi8+PC9nPjwvc3ZnPgo=" alt=""> AssetsX AI</button><button data-tool="autofly" class="nav-item"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJBdXRvZmx5Ij48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSI4IiB5MT0iNTMiIHgyPSI1NSIgeTI9IjkiPjxzdG9wIHN0b3AtY29sb3I9IiNmZjljMzIiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNmZmYwNzgiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSIzMiIgY3k9IjMyIiByPSIyNSIgZmlsbD0iIzI1MWMwYyIgc3Ryb2tlPSJ1cmwoI2cpIiBzdHJva2Utd2lkdGg9IjIiLz48cGF0aCBkPSJNMTMgMzNjMTAtMSAxOC03IDI4LTE5LTEgMTItNSAyMi0xMiAzMGwxIDgtNy01LTEwIDIgNy04Yy0yLTMtNC01LTctOFoiIGZpbGw9InVybCgjZykiLz48cGF0aCBkPSJtMzMgMjUtNiAxMGg2bC01IDkgMTMtMTRoLTdsNS01aC02WiIgZmlsbD0iIzRhMmMwNSIvPjwvc3ZnPgo=" alt=""> Autofly <em>BONUS</em></button><button data-tool="emergency" class="nav-item emergency-link"><span>△</span> Emergency Tools</button><div class="nav-separator compact"></div><button data-tool="history" class="nav-item"><span>◷</span> Work History</button><button data-tool="credits" class="nav-item"><span>▣</span> Add Credits</button><button data-tool="users" class="nav-item"><span>♙</span> Users</button><button data-tool="support" class="nav-item"><span>?</span> Support</button><button data-tool="get-support" class="nav-item"><span>◉</span> Get Support</button><button data-tool="report" class="nav-item"><span>!</span> Report a Problem</button><button data-tool="settings" class="nav-item"><span>⚙</span> Settings</button></nav><div class="side-bottom"><span>DESIGN</span><span>CREATE</span><span>DOMINATE</span><div class="mini-brand"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJBdGhlcmlvdXMgTGFicyI+CiAgPGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJhIiB4MT0iOCIgeTE9IjY4IiB4Mj0iNjgiIHkyPSI4Ij48c3RvcCBzdG9wLWNvbG9yPSIjMDA3MWZmIi8+PHN0b3Agb2Zmc2V0PSIuNDgiIHN0b3AtY29sb3I9IiMwZmU3ZmYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM4YjVjZmYiLz48L2xpbmVhckdyYWRpZW50PjxmaWx0ZXIgaWQ9ImciPjxmZUdhdXNzaWFuQmx1ciBzdGREZXZpYXRpb249IjIiIHJlc3VsdD0iYiIvPjxmZU1lcmdlPjxmZU1lcmdlTm9kZSBpbj0iYiIvPjxmZU1lcmdlTm9kZSBpbj0iU291cmNlR3JhcGhpYyIvPjwvZmVNZXJnZT48L2ZpbHRlcj48L2RlZnM+CiAgPHBhdGggZD0iTTEwIDY1IDM1IDljMi01IDgtNSAxMSAwbDI0IDU2LTE1LTgtNi0xNUgyOGwtNiAxNS0xMiA4Wm0yNC0zNy0zLjggOWgxNi43bC00LTEwLjJjLTEuNSAzLjgtNS4yIDUuMS04LjkgMS4yWiIgZmlsbD0idXJsKCNhKSIgZmlsdGVyPSJ1cmwoI2cpIi8+CiAgPHBhdGggZD0iTTQgNDVjMTkgMTggNTMgMTggNzItMk05IDI5YzE4LTE0IDQ1LTE0IDYyIDEiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzQzZWFmZiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIG9wYWNpdHk9Ii45Ii8+PGNpcmNsZSBjeD0iNjgiIGN5PSIyOSIgcj0iMyIgZmlsbD0iIzg0ZjdmZiIvPgo8L3N2Zz4K" alt=""> Atherious Labs</div></div></aside>
 <div class="workspace"><main id="mainContent" class="content" tabindex="-1"></main><footer class="app-footer"><span>◎ &nbsp; My Jersey Ecosystem &nbsp; <b>v1.0.0</b></span><span>Smarter Tools. Better Jerseys. Bigger Dreams.</span><span><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJBdGhlcmlvdXMgTGFicyI+CiAgPGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJhIiB4MT0iOCIgeTE9IjY4IiB4Mj0iNjgiIHkyPSI4Ij48c3RvcCBzdG9wLWNvbG9yPSIjMDA3MWZmIi8+PHN0b3Agb2Zmc2V0PSIuNDgiIHN0b3AtY29sb3I9IiMwZmU3ZmYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM4YjVjZmYiLz48L2xpbmVhckdyYWRpZW50PjxmaWx0ZXIgaWQ9ImciPjxmZUdhdXNzaWFuQmx1ciBzdGREZXZpYXRpb249IjIiIHJlc3VsdD0iYiIvPjxmZU1lcmdlPjxmZU1lcmdlTm9kZSBpbj0iYiIvPjxmZU1lcmdlTm9kZSBpbj0iU291cmNlR3JhcGhpYyIvPjwvZmVNZXJnZT48L2ZpbHRlcj48L2RlZnM+CiAgPHBhdGggZD0iTTEwIDY1IDM1IDljMi01IDgtNSAxMSAwbDI0IDU2LTE1LTgtNi0xNUgyOGwtNiAxNS0xMiA4Wm0yNC0zNy0zLjggOWgxNi43bC00LTEwLjJjLTEuNSAzLjgtNS4yIDUuMS04LjkgMS4yWiIgZmlsbD0idXJsKCNhKSIgZmlsdGVyPSJ1cmwoI2cpIi8+CiAgPHBhdGggZD0iTTQgNDVjMTkgMTggNTMgMTggNzItMk05IDI5YzE4LTE0IDQ1LTE0IDYyIDEiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzQzZWFmZiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIG9wYWNpdHk9Ii45Ii8+PGNpcmNsZSBjeD0iNjgiIGN5PSIyOSIgcj0iMyIgZmlsbD0iIzg0ZjdmZiIvPgo8L3N2Zz4K" alt=""> Powered by Atherious Labs</span></footer></div></div>
 <div id="notification" class="notification" aria-live="polite" role="status" hidden></div>
 
@@ -207,9 +481,9 @@ const realTemplates = {
     {template_id:'video_kinetic_social',name:'Kinetic Social Promo',description:'Fast premium social cuts'}
   ]
 };
-const engineMeta={artboard:{name:'Artboard AI',icon:'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJBcnRib2FyZCBBSSI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iOSIgeTE9IjU1IiB4Mj0iNTUiIHkyPSI5Ij48c3RvcCBzdG9wLWNvbG9yPSIjMGFjODhmIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNjFmZmUwIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3QgeD0iOCIgeT0iOCIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiByeD0iMTQiIGZpbGw9IiMwNjFkMjkiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSIyIi8+PHBhdGggZD0iTTE4IDQzYzctMSA4LTE5IDE4LTIwIDUgMCA3IDYgMTAgMTUiIGZpbGw9Im5vbmUiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48ZyBmaWxsPSIjZDhmZmY2Ij48Y2lyY2xlIGN4PSIxOCIgY3k9IjQzIiByPSI0Ii8+PGNpcmNsZSBjeD0iMzYiIGN5PSIyMyIgcj0iNCIvPjxjaXJjbGUgY3g9IjQ2IiBjeT0iMzgiIHI9IjQiLz48L2c+PC9zdmc+Cg==',desc:'AI Artwork Reconstruction & Editable Vector Production',tag:'One or two independently visible jersey surfaces'},frame:{name:'Frame Forge AI',icon:'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJGcmFtZSBGb3JnZSBBSSI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iOCIgeTE9IjU0IiB4Mj0iNTYiIHkyPSIxMCI+PHN0b3Agc3RvcC1jb2xvcj0iIzA4N2VmZiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzY4ZTZmZiIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHg9IjciIHk9IjExIiB3aWR0aD0iNTAiIGhlaWdodD0iNDIiIHJ4PSIxMSIgZmlsbD0iIzA3MWMzOSIgc3Ryb2tlPSJ1cmwoI2cpIiBzdHJva2Utd2lkdGg9IjIiLz48cGF0aCBkPSJNMTMgMjBoMzhNMTMgNDVoMzgiIHN0cm9rZT0iIzU3Y2ZmZiIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtZGFzaGFycmF5PSI1IDUiLz48cGF0aCBkPSJtMjggMjUgMTMgNy0xMyA4VjI1WiIgZmlsbD0idXJsKCNnKSIvPjxwYXRoIGQ9Im00NyA3IDEuNyA1LjJMNTQgMTRsLTUuMyAxLjhMNDcgMjFsLTEuOC01LjJMNDAgMTRsNS4yLTEuOEw0NyA3WiIgZmlsbD0iI2M4ZjhmZiIvPjwvc3ZnPgo=',desc:'Template-Driven Mockup & Video Generation',tag:'3 mockup templates · 3 video templates'},assets:{name:'AssetsX AI',icon:'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJBc3NldHNYIEFJIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSI3IiB5MT0iNTYiIHgyPSI1NyIgeTI9IjgiPjxzdG9wIHN0b3AtY29sb3I9IiM3MjQ1ZWYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNkNzliZmYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cGF0aCBkPSJtMzIgNiAyMyAxM3YyNkwzMiA1OCA5IDQ1VjE5TDMyIDZaIiBmaWxsPSIjMTcxMjJkIiBzdHJva2U9InVybCgjZykiIHN0cm9rZS13aWR0aD0iMiIvPjxwYXRoIGQ9Im0xMCAxOSAyMiAxMyAyMi0xM00zMiAzMnYyNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYjc3Y2ZmIiBzdHJva2Utd2lkdGg9IjIiLz48cGF0aCBkPSJtMjIgMjAgMjAgMjRNNDIgMjAgMjIgNDQiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48ZyBmaWxsPSIjZjRlM2ZmIj48Y2lyY2xlIGN4PSIyMiIgY3k9IjIwIiByPSIzIi8+PGNpcmNsZSBjeD0iNDIiIGN5PSIyMCIgcj0iMyIvPjxjaXJjbGUgY3g9IjIyIiBjeT0iNDQiIHI9IjMiLz48Y2lyY2xlIGN4PSI0MiIgY3k9IjQ0IiByPSIzIi8+PC9nPjwvc3ZnPgo=',desc:'Visual Asset Analysis, Editing & Vectorization',tag:'Universal asset workflow · basic editing v0.1.0'},autofly:{name:'Autofly',icon:'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJBdXRvZmx5Ij48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSI4IiB5MT0iNTMiIHgyPSI1NSIgeTI9IjkiPjxzdG9wIHN0b3AtY29sb3I9IiNmZjljMzIiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNmZmYwNzgiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSIzMiIgY3k9IjMyIiByPSIyNSIgZmlsbD0iIzI1MWMwYyIgc3Ryb2tlPSJ1cmwoI2cpIiBzdHJva2Utd2lkdGg9IjIiLz48cGF0aCBkPSJNMTMgMzNjMTAtMSAxOC03IDI4LTE5LTEgMTItNSAyMi0xMiAzMGwxIDgtNy01LTEwIDIgNy04Yy0yLTMtNC01LTctOFoiIGZpbGw9InVybCgjZykiLz48cGF0aCBkPSJtMzMgMjUtNiAxMGg2bC01IDkgMTMtMTRoLTdsNS01aC02WiIgZmlsbD0iIzRhMmMwNSIvPjwvc3ZnPgo=',desc:'One-Click Artboard AI Orchestration',tag:'Brief · Separate Panels · Combined Image'}};
+const engineMeta={artboard:{name:'Artboard AI',icon:'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5NiA5NiIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJBcnRib2FyZCBBSSI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImFiLWEiIHgxPSIxOCIgeTE9IjgyIiB4Mj0iNzciIHkyPSIxMiIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIHN0b3AtY29sb3I9IiMxMjU4ZmYiLz48c3RvcCBvZmZzZXQ9Ii40OCIgc3RvcC1jb2xvcj0iIzAwZDhmZiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzc1ZmZmZiIvPjwvbGluZWFyR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImFiLWNvcmUiPjxzdG9wIHN0b3AtY29sb3I9IiM5YWZmZmYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwMGE1ZmYiLz48L3JhZGlhbEdyYWRpZW50PgogICAgPGZpbHRlciBpZD0iYWItZ2xvdyIgeD0iLTYwJSIgeT0iLTYwJSIgd2lkdGg9IjIyMCUiIGhlaWdodD0iMjIwJSI+PGZlR2F1c3NpYW5CbHVyIHN0ZERldmlhdGlvbj0iNCIgcmVzdWx0PSJiIi8+PGZlTWVyZ2U+PGZlTWVyZ2VOb2RlIGluPSJiIi8+PGZlTWVyZ2VOb2RlIGluPSJTb3VyY2VHcmFwaGljIi8+PC9mZU1lcmdlPjwvZmlsdGVyPgogIDwvZGVmcz4KICA8cGF0aCBkPSJNNDggOCA4NSA4Mkg2N0w1OCA2MkgzNEwyNCA4Mkg4TDQ1IDhaIiBmaWxsPSJ1cmwoI2FiLWEpIiBvcGFjaXR5PSIuOTYiIGZpbHRlcj0idXJsKCNhYi1nbG93KSIvPgogIDxwYXRoIGQ9Im00OCAyOC05IDIxaDE4WiIgZmlsbD0iIzAyMTUyZiIgc3Ryb2tlPSIjYTVmZmZmIiBzdHJva2Utd2lkdGg9IjIiLz4KICA8cGF0aCBkPSJNMjAgNzVjMjEtNCAzOS0xNyA1NS0zOS04IDI1LTI3IDQzLTU1IDQ5WiIgZmlsbD0iIzA4MzRiZCIgb3BhY2l0eT0iLjkiLz4KICA8Y2lyY2xlIGN4PSI0OCIgY3k9IjQ3IiByPSI0LjUiIGZpbGw9InVybCgjYWItY29yZSkiIGZpbHRlcj0idXJsKCNhYi1nbG93KSIvPgo8L3N2Zz4K',desc:'AI Artwork Reconstruction & Editable Vector Production',tag:'One or two independently visible jersey surfaces'},frame:{name:'Frame Forge AI',icon:'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJGcmFtZSBGb3JnZSBBSSI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iOCIgeTE9IjU0IiB4Mj0iNTYiIHkyPSIxMCI+PHN0b3Agc3RvcC1jb2xvcj0iIzA4N2VmZiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzY4ZTZmZiIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHg9IjciIHk9IjExIiB3aWR0aD0iNTAiIGhlaWdodD0iNDIiIHJ4PSIxMSIgZmlsbD0iIzA3MWMzOSIgc3Ryb2tlPSJ1cmwoI2cpIiBzdHJva2Utd2lkdGg9IjIiLz48cGF0aCBkPSJNMTMgMjBoMzhNMTMgNDVoMzgiIHN0cm9rZT0iIzU3Y2ZmZiIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtZGFzaGFycmF5PSI1IDUiLz48cGF0aCBkPSJtMjggMjUgMTMgNy0xMyA4VjI1WiIgZmlsbD0idXJsKCNnKSIvPjxwYXRoIGQ9Im00NyA3IDEuNyA1LjJMNTQgMTRsLTUuMyAxLjhMNDcgMjFsLTEuOC01LjJMNDAgMTRsNS4yLTEuOEw0NyA3WiIgZmlsbD0iI2M4ZjhmZiIvPjwvc3ZnPgo=',desc:'Template-Driven Mockup & Video Generation',tag:'3 mockup templates · 3 video templates'},assets:{name:'AssetsX AI',icon:'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJBc3NldHNYIEFJIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSI3IiB5MT0iNTYiIHgyPSI1NyIgeTI9IjgiPjxzdG9wIHN0b3AtY29sb3I9IiM3MjQ1ZWYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNkNzliZmYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cGF0aCBkPSJtMzIgNiAyMyAxM3YyNkwzMiA1OCA5IDQ1VjE5TDMyIDZaIiBmaWxsPSIjMTcxMjJkIiBzdHJva2U9InVybCgjZykiIHN0cm9rZS13aWR0aD0iMiIvPjxwYXRoIGQ9Im0xMCAxOSAyMiAxMyAyMi0xM00zMiAzMnYyNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYjc3Y2ZmIiBzdHJva2Utd2lkdGg9IjIiLz48cGF0aCBkPSJtMjIgMjAgMjAgMjRNNDIgMjAgMjIgNDQiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48ZyBmaWxsPSIjZjRlM2ZmIj48Y2lyY2xlIGN4PSIyMiIgY3k9IjIwIiByPSIzIi8+PGNpcmNsZSBjeD0iNDIiIGN5PSIyMCIgcj0iMyIvPjxjaXJjbGUgY3g9IjIyIiBjeT0iNDQiIHI9IjMiLz48Y2lyY2xlIGN4PSI0MiIgY3k9IjQ0IiByPSIzIi8+PC9nPjwvc3ZnPgo=',desc:'Visual Asset Analysis, Editing & Vectorization',tag:'Universal asset workflow · basic editing v0.1.0'},autofly:{name:'Autofly',icon:'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJBdXRvZmx5Ij48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSI4IiB5MT0iNTMiIHgyPSI1NSIgeTI9IjkiPjxzdG9wIHN0b3AtY29sb3I9IiNmZjljMzIiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNmZmYwNzgiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSIzMiIgY3k9IjMyIiByPSIyNSIgZmlsbD0iIzI1MWMwYyIgc3Ryb2tlPSJ1cmwoI2cpIiBzdHJva2Utd2lkdGg9IjIiLz48cGF0aCBkPSJNMTMgMzNjMTAtMSAxOC03IDI4LTE5LTEgMTItNSAyMi0xMiAzMGwxIDgtNy01LTEwIDIgNy04Yy0yLTMtNC01LTctOFoiIGZpbGw9InVybCgjZykiLz48cGF0aCBkPSJtMzMgMjUtNiAxMGg2bC01IDkgMTMtMTRoLTdsNS01aC02WiIgZmlsbD0iIzRhMmMwNSIvPjwvc3ZnPgo=',desc:'One-Click Artboard AI Orchestration',tag:'Brief · Separate Panels · Combined Image'}};
 const toolCardSteps={artboard:['Upload','Analyze','Artwork','Vectorize','Export'],frame:['Input','Template','Mockup','Video','Download'],assets:['Input','Analyze','Edit','Vectorize','Export'],autofly:['Input','Artboard','One Click','Export']};
-const state={tool:'home',mode:{artboard:'quality',frame:'quality',assets:'quality',autofly:'quality'},status:{},files:{artboard:null,frame:null,assets:null,autofly:null,autofly_back:null,logo:null},objectURLs:{},selectedMockup:'mockup_luxury_float',selectedVideo:'video_luxury_360',templates:structuredClone(realTemplates),formats:{artboard:['eps','svg','pdf'],assets:['png','transparent_png','svg','eps','pdf','zip'],autofly:['svg','eps']},assetInfo:null,assetsJob:null,assetElements:new Set(),editing:'none',frames:{mockup:null,video:null},formValues:{},artboardProject:null,artboardResult:null,artboardJob:null,artboardEvents:[],artboardEventKeys:new Set(),activePipeline:'',autoflyJob:null,autoflyWorkflow:'combined',jobs:[],busy:false,stage:'',progress:null,output:null,logs:[],lastError:'',lastTask:'',artboardPreviewPath:'',failedStage:'',failedFormats:[],lastMode:'',lastJobId:'',restoredArtboardJob:false};
+const state={tool:'home',mode:{artboard:'quality',frame:'quality',assets:'quality',autofly:'quality'},status:{},files:{artboard:null,frame:null,assets:null,autofly:null,autofly_back:null,logo:null},objectURLs:{},selectedMockup:'mockup_luxury_float',selectedVideo:'video_luxury_360',templates:structuredClone(realTemplates),formats:{artboard:['eps','svg','pdf'],assets:['png','transparent_png','svg','eps','pdf','zip'],autofly:['svg','eps']},assetInfo:null,assetsJob:null,assetElements:new Set(),editing:'none',frames:{mockup:null,video:null},formValues:{},artboardProject:null,artboardResult:null,artboardJob:null,artboardEvents:[],artboardEventKeys:new Set(),activePipeline:'',autoflyJob:null,autoflyWorkflow:'combined',jobs:[],busy:false,stage:'',progress:null,output:null,logs:[],lastError:'',lastTask:'',artboardPreviewPath:'',failedStage:'',failedFormats:[],lastMode:'',lastJobId:'',restoredArtboardJob:false,pendingArtboardJob:null};
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtSize=n=>n==null?'':n<1048576?`${(n/1024).toFixed(1)} KB`:`${(n/1048576).toFixed(2)} MB`;
 const m=()=>state.mode[state.tool]||'quality';
@@ -220,12 +494,20 @@ function notify(s){const e=document.querySelector('#notification');e.textContent
 function stamp(){return new Date().toLocaleTimeString('en-GB',{hour12:false})}
 function log(message){state.logs.push(`[${stamp()}] ${String(message)}`);if(state.logs.length>80)state.logs.shift();updateMonitor()}
 function apiError(j){return j?.error?.message||j?.error?.technical_summary||j?.detail?.message||j?.detail||j?.message||'Request failed'}
-async function call(engine,path,{method='GET',json=null,body=null,response='json'}={}){
+async function call(engine,path,{method='GET',json=null,body=null,response='json',timeoutMs=null}={}){
  const headers={};let content=body;
  if(json!==null){headers['Content-Type']='application/json';content=JSON.stringify(json)}
- const r=await fetch('/api/engine/'+engine+'/'+path,{method,headers,body:content,cache:'no-store',credentials:'same-origin'});
- if(!r.ok){const payload=await r.json().catch(()=>({}));throw Error(engine+': '+apiError(payload)+' (HTTP '+r.status+')')}
- return response==='blob'?r.blob():r.json();
+ const controller=typeof AbortController==='function'?new AbortController():null;
+ const requestTimeout=timeoutMs??(method==='GET'?45000:180000);
+ const timer=controller&&requestTimeout>0?setTimeout(()=>controller.abort(),requestTimeout):null;
+ try{
+  const r=await fetch('/api/engine/'+engine+'/'+path,{method,headers,body:content,cache:'no-store',credentials:'same-origin',signal:controller?.signal});
+  if(!r.ok){const payload=await r.json().catch(()=>({}));throw Error(engine+': '+apiError(payload)+' (HTTP '+r.status+')')}
+  return response==='blob'?r.blob():r.json();
+ }catch(e){
+  if(e?.name==='AbortError')throw Error(engine+': request timed out while waiting for the server');
+  throw e;
+ }finally{if(timer)clearTimeout(timer)}
 }
 async function statusCheck(){
  try{
@@ -240,36 +522,24 @@ async function statusCheck(){
  if(!state.restoredArtboardJob){state.restoredArtboardJob=true;await restoreArtboardSession()}
 }
 async function restoreArtboardSession(){
+ // Never automatically reopen a previous workflow or start job polling on page load.
  let saved=null;
  try{saved=JSON.parse(sessionStorage.getItem('mj_artboard_job')||'null')}catch{return}
  if(!saved?.project_id||!saved?.job_id)return;
  try{
   const project=await call('artboard','api/artboard/projects/'+encodeURIComponent(saved.project_id));
-  state.artboardProject=project;
-  state.artboardResult=project;
+  const job=await call('artboard','api/artboard/jobs/'+encodeURIComponent(saved.job_id));
+  if(job.project_id!==project.project_id)throw Error('Job/project identity mismatch');
+  state.artboardProject=project;state.artboardResult=project;state.artboardJob=job;
+  state.pendingArtboardJob=job;
   state.lastMode=saved.mode||project.processing_mode||state.mode.artboard;
-  const j=await call('artboard','api/artboard/jobs/'+encodeURIComponent(saved.job_id));
-  state.artboardJob=j;
-  state.activePipeline=j.stage==='export'?'Export':j.stage==='artboard-prepare'?'Prepare':'Production';
-  state.tool='artboard';
-  state.lastJobId=j.job_id;
-  state.stage=j.step||j.stage||'Previous job';
-  state.progress=typeof j.progress==='number'?j.progress:null;
-  log('Restored Artboard job '+j.job_id+' · '+j.status);
-  if(j.preview_path)await loadArtboardPreview(j.project_id,j.preview_path);
-  if(['queued','processing'].includes(j.status)){
-   state.busy=true;render();
-   try{await jobPoll('artboard','api/artboard/jobs/'+j.job_id,j.stage==='export'?'Export':j.stage==='artboard-prepare'?'Prepare':'Production')}
-   catch(e){state.lastError=e.message;log('Recovered job error: '+e.message)}
-   finally{state.busy=false;state.artboardResult=await call('artboard','api/artboard/projects/'+saved.project_id);render()}
-  }else if(j.status==='failed'){
-   state.failedStage=j.stage==='artboard-production'?'production':j.stage==='export'?'export':'prepare';
-   state.lastError=j.error?.message||'Previous Artboard job failed';
-   state.lastExportErrors=j.result?.export_errors||null;
-   state.failedFormats=[...new Set(Object.values(state.lastExportErrors||{}).map(x=>x.format).filter(Boolean))];
-   render();
-  }else{render()}
- }catch(e){log('Saved job could not be restored: '+e.message)}
+  state.lastJobId=job.job_id;
+  state.activePipeline=job.stage==='export'?'Export':job.stage==='artboard-prepare'?'Prepare':'Production';
+  state.stage=job.step||job.stage||'Previous job';
+  state.progress=typeof job.progress==='number'?job.progress:null;
+  log('Saved Artboard job verified: '+job.status+' — user choice required');
+  render();
+ }catch(e){log('Saved Artboard job could not be verified: '+e.message)}
 }
 function resetJob(){if(state.busy)return;state.logs=[];state.progress=null;state.stage='';state.lastError='';state.lastTask=''}
 function toolIcon(t,cls='tool-icon'){const x=engineMeta[t];return `<img class="${cls}" src="${x.icon}" alt="${esc(x.name)} logo">`}
@@ -472,15 +742,25 @@ async function loadArtboardPreview(projectId, path) {
  } catch(e){log('Intermediate preview unavailable: '+e.message)}
 }
 async function jobPoll(engine,path,terminal,limitMs=600000){
- let started=Date.now(),lastEvent='';
+ let started=Date.now(),lastEvent='',consecutivePollErrors=0;
  state.activePipeline=terminal;
  while(Date.now()-started<limitMs){
-  const j=await call(engine,path);
+  let j;
+  try{
+   j=await call(engine,path,{timeoutMs:30000});consecutivePollErrors=0;
+  }catch(e){
+   consecutivePollErrors++;
+   if(consecutivePollErrors>3)throw e;
+   state.stage='Reconnecting to live job status';state.progress=null;
+   log(terminal+': status connection interrupted; retry '+consecutivePollErrors+'/3');
+   updateMonitor();await new Promise(resolve=>setTimeout(resolve,1600));continue;
+  }
   state.lastJobId=j.job_id||'';
   state.stage=j.step||j.stage||j.status||'processing';
   state.progress=typeof j.progress==='number'?Math.max(0,Math.min(100,j.progress)):null;
   if(engine==='artboard'){
    state.artboardJob=j;
+   if(state.pendingArtboardJob?.job_id===j.job_id)state.pendingArtboardJob=j;
    for(const event of (j.events||[])){
     const key=[j.job_id,event.at,event.step,event.progress].join('|');
     if(state.artboardEventKeys.has(key))continue;
@@ -496,6 +776,7 @@ async function jobPoll(engine,path,terminal,limitMs=600000){
   if(engine==='artboard'&&j.preview_path)await loadArtboardPreview(j.project_id,j.preview_path);
   const status=j.status||j.state;
   if(status==='completed'||status==='ready'||status==='review_required'||status==='awaiting_desktop'){
+   state.progress=100;state.stage=j.step||terminal+' complete';updateMonitor();
    if(j.result?.export_errors&&Object.keys(j.result.export_errors).length){
     state.failedFormats=[...new Set(Object.values(j.result.export_errors).map(e=>e.format).filter(Boolean))];
     state.failedStage='export';state.lastExportErrors=j.result.export_errors;
@@ -518,6 +799,7 @@ function captureJob(engine,obj){
  if(!obj?.job_id)return;
  state.jobs.unshift({engine,job_id:obj.job_id,status:obj.status||obj.state||'queued',created_at:obj.created_at||new Date().toISOString()});
  if(engine.toLowerCase().includes('artboard')&&obj.project_id){
+  state.artboardJob=obj;state.pendingArtboardJob=null;
   try{sessionStorage.setItem('mj_artboard_job',JSON.stringify({
    project_id:obj.project_id,job_id:obj.job_id,stage:obj.stage,mode:state.lastMode||state.mode.artboard
   }))}catch(e){log('Could not persist current job reference: '+e.message)}
@@ -656,5 +938,653 @@ document.querySelector('#menuClose').addEventListener('click',closeMenu);
 document.querySelector('#menuBackdrop').addEventListener('click',closeMenu);
 render();
 statusCheck();
+</script>
+<script>'use strict';
+/* Artboard AI V2: frontend-only replacement. Existing gateways, endpoints and other tools untouched. */
+(() => {
+  const ui = {
+    vectorOverlaySource:null, analysisDone:false, generationStarted:false, processingStage:'', downloadFormat:'',
+    phase: 'input', preferInput:false, workspaceEpoch:0, selected: new Set(), prepared: [], inspected: false,
+    view: null, visitedStages: new Set(), stageStatus: '', lastPreviewPath:'', dimensions: '', awaitingSurfaces: false, visibleChoice: new Set(['front_body']), processingStarted: false, cancelRequested: false, productionDone:false, continued:false, finishing:false, exportStarted:false, zipBusy:false, generatedUrls:{}, vectorUrls:{}, assetBusy:new Set(), assetRetry:{}, generationError:""
+  };
+  const steps = ['Input','Artwork Creation','Vectorization','Validation','Export'];
+  const surfName = x => /back/i.test(String(x?.type || x?.name || x || '')) ? 'back_body' : 'front_body';
+  const surfaceLabel = x => x === 'back_body' ? 'Back' : 'Front';
+  const project = () => state.artboardResult || state.artboardProject || {};
+  const available = () => {
+    const canonical=new Map();
+    for(const item of (project().surfaces||[])){
+      const raw=String(item?.type||item?.name||'');
+      if(!/front|back/i.test(raw))continue;
+      const side=surfName(item);if(!canonical.has(side))canonical.set(side,{...item,side});
+    }
+    return [...canonical.values()];
+  };
+  const previewUrl = p => {
+    if(!p || !project().project_id) return '';
+    const key = p.previews?.svg || p.previews?.png || p.exports?.svg || p.exports?.png || p.preview_path;
+    if(typeof key !== 'string' || !key.startsWith('projects/' + project().project_id + '/')) return '';
+    const rel = key.slice(('projects/' + project().project_id + '/').length);
+    return '/api/engine/artboard/api/artboard/projects/' + encodeURIComponent(project().project_id) + '/artifacts/' + rel.split('/').map(encodeURIComponent).join('/');
+  };
+  function interimPreview(side){
+    const path=state.artboardPreviewPath||'',url=state.objectURLs.artboard_live||'';
+    if(!path||!url||!path.startsWith('projects/'+project().project_id+'/'))return '';
+    const normalized=path.toLowerCase();
+    if(/front[_\/-]|front_body/.test(normalized))return side==='front_body'?url:'';
+    if(/back[_\/-]|back_body/.test(normalized))return side==='back_body'?url:'';
+    return available().length===1&&available()[0].side===side?url:'';
+  }
+  const pct = () => typeof state.progress === 'number' ? `${Math.round(state.progress)}%` : 'Processing';
+  const statusText = () => state.lastError ? 'Error' : state.busy ? (state.stage || 'Processing') : 'Ready';
+  const safeTime = v => {
+    const ms=Date.parse(v||'');return Number.isFinite(ms)?new Date(ms).toLocaleTimeString():'';
+  };
+  function health(){
+    const a=state.status?.artboard||{}, ok=a.state==='online', active=state.busy && Boolean(state.artboardJob && ['processing','queued'].includes(state.artboardJob.status));
+    return `<div class="abv2-health" aria-label="Artboard engine status">
+      <span><i class="${active?'ok':'unknown'}"></i>Primary AI <b>${active?'Running':a.ai_configured===true?'Ready':'Checking'}</b></span>
+      <span><i class="unknown"></i>Fallback AI <b>Standby</b></span>
+      <span><i class="${ok?'ok':'bad'}"></i>Engine <b>${ok?'Online':'Unavailable'}</b></span>
+      <span><i class="${ok?'ok':'bad'}"></i>Export Engine <b>${ok?'Online':'Unavailable'}</b></span>
+    </div>`;
+  }
+  function top(title,description){return `<div class="abv2-top">${health()}<div class="abv2-header"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5NiA5NiIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJBcnRib2FyZCBBSSI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImFiLWEiIHgxPSIxOCIgeTE9IjgyIiB4Mj0iNzciIHkyPSIxMiIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIHN0b3AtY29sb3I9IiMxMjU4ZmYiLz48c3RvcCBvZmZzZXQ9Ii40OCIgc3RvcC1jb2xvcj0iIzAwZDhmZiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzc1ZmZmZiIvPjwvbGluZWFyR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImFiLWNvcmUiPjxzdG9wIHN0b3AtY29sb3I9IiM5YWZmZmYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwMGE1ZmYiLz48L3JhZGlhbEdyYWRpZW50PgogICAgPGZpbHRlciBpZD0iYWItZ2xvdyIgeD0iLTYwJSIgeT0iLTYwJSIgd2lkdGg9IjIyMCUiIGhlaWdodD0iMjIwJSI+PGZlR2F1c3NpYW5CbHVyIHN0ZERldmlhdGlvbj0iNCIgcmVzdWx0PSJiIi8+PGZlTWVyZ2U+PGZlTWVyZ2VOb2RlIGluPSJiIi8+PGZlTWVyZ2VOb2RlIGluPSJTb3VyY2VHcmFwaGljIi8+PC9mZU1lcmdlPjwvZmlsdGVyPgogIDwvZGVmcz4KICA8cGF0aCBkPSJNNDggOCA4NSA4Mkg2N0w1OCA2MkgzNEwyNCA4Mkg4TDQ1IDhaIiBmaWxsPSJ1cmwoI2FiLWEpIiBvcGFjaXR5PSIuOTYiIGZpbHRlcj0idXJsKCNhYi1nbG93KSIvPgogIDxwYXRoIGQ9Im00OCAyOC05IDIxaDE4WiIgZmlsbD0iIzAyMTUyZiIgc3Ryb2tlPSIjYTVmZmZmIiBzdHJva2Utd2lkdGg9IjIiLz4KICA8cGF0aCBkPSJNMjAgNzVjMjEtNCAzOS0xNyA1NS0zOS04IDI1LTI3IDQzLTU1IDQ5WiIgZmlsbD0iIzA4MzRiZCIgb3BhY2l0eT0iLjkiLz4KICA8Y2lyY2xlIGN4PSI0OCIgY3k9IjQ3IiByPSI0LjUiIGZpbGw9InVybCgjYWItY29yZSkiIGZpbHRlcj0idXJsKCNhYi1nbG93KSIvPgo8L3N2Zz4K" alt=""><div><h1>${esc(title)}</h1><p>${esc(description)}</p></div><span class="abv2-step-label">${ui.phase==='input'?'READY':esc(state.stage||statusText())}</span></div></div>`;}
+  function button(text,action,cls='',disabled=false){return `<button type="button" class="abv2-btn ${cls}" data-abv2="${action}" ${disabled?'disabled':''}>${text}</button>`;}
+  function navigation(current){const idx=steps.indexOf(current);return `<div class="abv2-nav">${button('← Previous Step','previous','',idx<=0)}${button('■ Cancel Job','stop','danger',!state.busy&&!state.artboardJob?.job_id&&!state.pendingArtboardJob?.job_id)}</div>`;}
+  function bars(){return `<div class="abv2-progress ${state.busy&&state.progress==null?'indeterminate':''}" aria-label="Current engine progress"><span style="width:${state.progress==null?26:Math.max(0,Math.min(100,state.progress))}%"></span></div>`;}
+  function stageOf(message, progress=null){
+    const t=String(message||'').toLowerCase(),p=progressValue(progress);
+    // A 3% production-request preflight is not print/vector validation.
+    if(/validating production request|validation of production request/.test(t))return 'Artwork Creation';
+    if(/vector|trac|path|vtracer|potrace|optimi|compos|svg/.test(t))return 'Vectorization';
+    if(/running validate|validate completed|validating vector|saving validated|validation passed|print.ready|quality check|preflight|integrity|fidelity/.test(t))
+      return p!==null&&p<88?'Artwork Creation':'Validation';
+    if(/validat/.test(t))return p!==null&&p<88?'Artwork Creation':'Validation';
+    if(/generat|artwork|reconstruct|provider|model|image|analy|upload|prepar|surface|locat|geometry|scan/.test(t))return 'Artwork Creation';
+    if(/export|deliver|bundle|format/.test(t))return 'Export';
+    return null;
+  }
+  function currentStage(){if(ui.phase==='input')return 'Input';if(ui.phase==='analyze')return 'Artwork Creation';if(ui.phase==='artwork'||ui.phase==='select')return 'Artwork Creation';if(ui.phase==='export')return 'Export';return ui.processingStage||stageOf(state.stage,state.progress)||'Artwork Creation';}
+  function friendlyActivity(message){const t=String(message||'').toLowerCase();if(/analy|inspect|scan|prepar|surface|locat/.test(t))return 'Understanding the input design';if(/generat|creating|artwork model|render/.test(t))return 'Creating production artwork';if(/reconstruct|cleaning artwork geometry/.test(t))return 'Cleaning artwork geometry';if(/vector|trac/.test(t))return 'Tracing editable vector paths';if(/optimi|path/.test(t))return 'Optimizing vector paths';if(/compos|canvas/.test(t))return 'Building the production canvas';if(/validat|readiness|fidelity|integrity/.test(t))return 'Checking production readiness';if(/export|packag|bundle/.test(t))return 'Packaging production files';if(/cancel|stop/.test(t))return 'Stopping safely';return String(message||'Production activity');}
+  function stageEvents(){const stage=currentStage();return (state.artboardEvents||[]).filter(e=>stageOf(e.step||e.stage||'',eventProgress(e))===stage).slice(-20);}
+  function progressValue(value){if(value===null||value===undefined||value==='')return null;const n=Number(value);return Number.isFinite(n)?Math.max(0,Math.min(100,n)):null;}
+  function eventProgress(event){for(const value of [event?.stage_progress,event?.progress,event?.percent]){const normalized=progressValue(value);if(normalized!==null)return normalized;}return null;}
+  function stageProgress(){
+    const eventValue=eventProgress(stageEvents().at(-1)),jobValue=progressValue(state.progress);
+    if(jobValue===100)return 100;
+    if(eventValue!==null&&jobValue!==null)return Math.max(eventValue,jobValue);
+    return eventValue??jobValue;
+  }
+  function workflowRail(){const active=currentStage(),current=Math.max(0,steps.indexOf(active));return `<nav class="abv2-workflow" aria-label="Artboard production workflow">${steps.map((step,index)=>`<span class="${index<current?'complete':index===current?'current':'pending'}"><b>${index<current?'✓':index+1}</b><strong>${esc(step)}</strong><small>${index<current?'Completed':index===current?(state.busy?'Live':'Current'):'Waiting'}</small></span>`).join('')}</nav>`;}
+  function liveLog(){const events=stageEvents(),percent=stageProgress();const stage=currentStage();const current=events.at(-1);
+    return `<aside class="abv2-card abv2-log"><header><h2>Production Activity — ${esc(stage)}</h2><small>${esc(state.lastJobId?state.lastJobId.slice(0,10):'Awaiting job')}</small></header>
+      <div class="abv2-current"><strong>${esc(state.lastError?'Error':state.busy?'Processing':events.length?'Latest stage activity':'Awaiting events')}</strong><b>${percent==null?(state.busy?'Live':'—'):Math.round(percent)+'%'}</b><div class="abv2-progress ${state.busy&&percent==null?'indeterminate':''}"><span style="width:${percent==null?25:percent}%"></span></div></div>
+      <ol aria-label="Production activity for this stage">${events.length?events.map(e=>{const p=eventProgress(e);return `<li><span>${esc(friendlyActivity(e.step||e.stage))}</span><small>${p!==null?Math.round(p)+'%':safeTime(e.at)||'Reported'}</small></li>`}).join(''):'<li><span>Preparing the next production update.</span></li>'}</ol>
+      ${state.lastError?`<p role="alert" class="abv2-error-details"><b>${esc(state.artboardJob?.error?.code||'ENGINE_ERROR')}</b> — ${esc(state.lastError)}</p>`:''}
+       <div class="abv2-log-footer"><span>${esc(state.mode.artboard==='quality'?'Quality':'Normal')} Mode</span><span>Verified production milestones</span></div></aside>`;
+  }
+  function originalPreview(){const url=state.objectURLs.artboard;return `<div class="abv2-visual abv2-scan ${state.busy?'active':''}">${url?`<img src="${url}" alt="Uploaded original design">`:`<div class="abv2-empty">Source preview is unavailable for this file format.</div>`}<span class="abv2-corners" aria-hidden="true"></span><span class="abv2-beam" aria-hidden="true"></span></div>`;}
+  function artworkCard(side){
+    const item=available().find(x=>x.side===side),label=surfaceLabel(side),chosen=ui.selected.has(side);
+    const url=ui.generatedUrls[side] || (ui.productionDone?(ui.vectorUrls[side]||previewUrl(item)):'') || interimPreview(side);
+    const generating=ui.generationStarted&&!ui.productionDone&&state.busy;
+    return `<article class="abv2-card abv2-artwork ${chosen?'selected':''}"><header><h2>${label} Artwork</h2><span>${!item?'Not detected':url?'Generated artwork ready':generating?'Creating artwork':'Awaiting artwork'}</span></header>
+      <div class="abv2-art-canvas ${generating?'abv2-creating':''}">${url?`<img class="abv2-genuine-image" src="${url}" alt="Real ${label} engine-produced artwork preview">`:
+      `<div class="abv2-generation-placeholder"><span class="abv2-creation-orb" aria-hidden="true"></span><p>${generating?'AI creating '+label+' artwork — awaiting real preview':item?'Artwork preview awaiting engine output':'No independently visible '+label+' detected'}</p></div>`}
+      <span class="abv2-art-grid" aria-hidden="true"></span>${generating?'<span class="abv2-beam" aria-hidden="true"></span>':''}</div>
+      ${item?`<label class="abv2-select"><input type="checkbox" data-abv2-select="${side}" ${chosen?'checked':''} ${url?'':'disabled'}> Select ${label} for Vectorization</label>`:
+      button('✦ Recreate '+label+' with AI (Unavailable)','recreate:'+side,'secondary',true)}
+      ${!url&&item?'<small class="abv2-source-note">No invented preview: authentic artwork appears when the engine exposes it.</small>':''}
+    </article>`;
+  }
+  function savedJob(){return state.pendingArtboardJob || (state.artboardJob?.job_id&&project().project_id?state.artboardJob:null);}
+  function jobNotice(){
+    const job=savedJob();if(!job?.job_id)return '';
+    const active=['queued','processing','cancelling'].includes(job.status);
+    const lastAt=Date.parse(job.updated_at||job.events?.at(-1)?.at||job.started_at||'');
+    const stale=active&&Number.isFinite(lastAt)&&Date.now()-lastAt>180000;
+    const status=job.status==='cancelling'?'Cancellation in progress':stale?'No progress recently':job.status==='failed'?'Previous job failed':job.status==='completed'?'Previous job completed':'Unfinished production found';
+    const info=job.status==='cancelling'?'The server is stopping at the next safe boundary.':active?'The job is on the server; refreshing never cancels paid work.':'You can review saved output or begin a new input.';
+    return `<section class="abv2-card abv2-recovery" role="status"><header><h2>${esc(status)}</h2><small>${esc(job.job_id.slice(0,12))}</small></header><p>${esc(info)}</p><div class="abv2-commands">${button('Resume Production','resume-job','primary',job.status==='cancelling')}${button(active?'Cancel & New Input':'Start New Input','stop','danger')}${active?button('Check Status','refresh-job','secondary'):''}${job.status==='failed'&&project().ai_reconstruction?.complete===true?button('↻ Retry saved vector stages (no AI)','resume-vector','secondary'):''}</div></section>`;
+  }
+  function input(){
+    const file=state.files.artboard, url=state.objectURLs.artboard;
+    return `${top('Artboard AI','AI JERSEY ARTWORK ENGINE')}<div class="abv2-input-shell">
+      <div class="abv2-modes"><b>Production Mode</b><div>${button('◇ Quality Mode','mode:quality',state.mode.artboard==='quality'?'active':'')}${button('⚡ Normal Mode','mode:cost_effective',state.mode.artboard==='cost_effective'?'active':'')}</div></div>
+      <div class="abv2-drop" data-droptool="artboard">${url?`<img class="abv2-upload-preview" src="${url}" alt="Uploaded artwork preview">`:file?`<span class="abv2-pdf-preview">${esc(file.name)}</span>`:""}<div class="abv2-upload-icon">${file?"✓":"⇧"}</div><strong>${file?"Replace Uploaded Design":"Drag &amp; Drop Your Design Here"}</strong><small>${file?"Click to replace this file":"or click to upload"}</small><p>PNG · JPG · WEBP · PDF</p><input type="file" data-file="artboard" aria-label="Upload artwork" accept=".png,.jpg,.jpeg,.webp,.pdf"></div>
+      ${file?`<div class="abv2-file">${url?`<img src="${url}" alt="Input thumbnail">`:''}<div><strong>${esc(file.name)}</strong><small>${fmtSize(file.size)} · ${esc(file.type||'Unknown media type')}${ui.dimensions?' · '+esc(ui.dimensions):''}</small></div><span>Selected input</span></div>`:''}
+      ${jobNotice()}<div class="abv2-commands">${button('▤ Clear Input','clear','danger',!file||state.busy)}${button('▷ Start Production','start','primary',!file||state.busy||!connected('artboard')||['queued','processing','cancelling'].includes(savedJob()?.status))}</div>
+    </div>`;
+  }
+  function analyze(){return `${top('Artwork Creation','Image model prepares the source and builds the print artwork')}${workflowRail()}<div class="abv2-process-grid"><div class="abv2-primary"><section class="abv2-card abv2-preview"><header><h2>Live Input Scan</h2><span>${esc(statusText())}</span></header>${originalPreview()}<div class="abv2-preview-foot"><span>Original input • ${esc(state.files.artboard?.name||'No file')}</span><span>${ui.analysisDone?'Source prepared':state.busy?'Preparing reference':'Awaiting source'}</span></div>${ui.analysisDone?`<div class="abv2-result-summary"><b>Source preparation</b><span>${available().length} ${available().length===1?'print field':'print fields'} ready for image-model reconstruction</span></div>`:''}</section>${navigation('Analyze')}</div>${liveLog()}</div>`;}
+  function select(){ui.phase='artwork';const prepared=available();
+    if(!ui.analysisDone)return analyze();
+    const ready=prepared.filter(x=>Boolean(ui.generatedUrls[x.side]||ui.vectorUrls[x.side]||previewUrl(x)||interimPreview(x.side)));
+    const canContinue=ui.selected.size>0&&[...ui.selected].every(side=>ready.some(x=>x.side===side));
+    const status=ui.generationError?'Production failed: '+esc(ui.generationError):ui.productionDone?'Generated artwork ready — select Front, Back or Both and continue':state.busy?'Engine creating flat 2D artwork; previews appear as real files arrive':'Waiting for artwork generation';
+    return `${top('Artwork Creation','AI artwork is generated and previewed here. Select one or both sides to proceed.')}${workflowRail()}<div class="abv2-select-summary" role="status">${esc(status)} • ${ui.selected.size} selected</div>
+    <div class="abv2-art-grid-layout ${prepared.length===1?'single':''}">${artworkCard('front_body')}${artworkCard('back_body')}${liveLog()}</div>
+    <div class="abv2-select-actions">${navigation('Artwork Creation')}${ui.analysisDone&&!ui.generationStarted?button('▷ Generate Artwork','produce','primary'):''}${button('Continue to Vectorization →','continue-vectorization','primary',!canContinue||ui.continued)}</div>`;
+  }
+  function processTitle(){const stage=stageOf(state.stage);return stage==='Validation'?'Validation':stage==='Vectorization'?'Vectorization':stage==='Export'?'Export':'Artwork Creation';}
+  function processing(){const title=ui.processingStage||processTitle();
+    const isVector=title==='Vectorization',isValid=title==='Validation';
+    const subsets=ui.selected.size?[...ui.selected]:available().map(x=>x.side);
+    const onlyValid=subsets.filter(side=>available().some(x=>x.side===side));
+    const verified=project().true_vector_ready===true;
+    return `${top(title,title==='Validation'?'Live production-quality and print-readiness review':isVector?'Live editable-path construction':'Live artwork creation' )}${workflowRail()}
+    <div class="abv2-art-grid-layout ${onlyValid.length===1?'single':''}">${onlyValid.map(side=>{
+      const part=available().find(x=>x.side===side),url=(isVector||isValid?ui.vectorUrls[side]:ui.generatedUrls[side]) || previewUrl(part) || ui.generatedUrls[side] || interimPreview(side);
+      const active=(state.busy&&state.activePipeline==='Production'&&ui.stageStatus!=='completed')||(isValid&&ui.finishing);
+      return `<section class="abv2-card abv2-artwork"><header><h2>${surfaceLabel(side)} ${title}</h2><span>${esc(ui.stageStatus==='completed'?'Completed':friendlyActivity(state.stage||'Preparing'))}</span></header>
+      <div class="abv2-art-canvas ${isVector?'vector-overlay':''} ${isValid?'validation-overlay':''}">
+      ${url?`<img class="abv2-genuine-image" src="${url}" alt="${surfaceLabel(side)} verified engine preview">`:'<p>Waiting for actual engine output. No generated image is fabricated.</p>'}
+      <span class="abv2-art-grid" aria-hidden="true"></span>
+      ${isVector&&active?'<span class="abv2-vector-simulation" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>':''}
+      ${isVector?'<svg class="abv2-real-paths" data-abv2-paths-side="${side}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>':''}
+      ${active?'<span class="abv2-beam" aria-hidden="true"></span>':''}
+      ${isVector?'<div class="abv2-path-status">Live tracing visualization • saved SVG geometry appears as soon as it is available.</div>':''}</div>
+      ${isValid?`<div class="abv2-validation-results">${[['Valid SVG',part?.validation?.valid_svg],['True vector',part?.validation?.true_vector],['Raster count',part?.validation?.embedded_rasters],['Editability',part?.validation?.editability_status],['Print readiness',part?.validation?.physical_artboard?.status]].map(([name,value])=>`<span><small>${esc(name)}</small><b class="${value===true?'pass':value===false?'fail':''}">${esc(value===true?'PASS':value===false?'FAILED':value??'Not reported')}</b></span>`).join('')}</div>`:''}
+      <div class="abv2-side-note">${esc(ui.stageStatus==='completed'?(verified?'Production-ready saved result':'Stage completed'):friendlyActivity(state.stage||'Preparing stage data'))}</div></section>`;
+      }).join('')}${liveLog()}</div>${navigation(title)}${state.lastError&&project().ai_reconstruction?.complete===true?`<div class="abv2-commands">${button('↻ Retry vectorization from saved AI artwork (no AI call)','resume-vector','secondary',state.busy)}</div>`:''}`;
+  }
+  function v2Downloads(){
+    const p=project();const found=[];
+    const parts=(p.surfaces||[]).filter(x=>!ui.selected.size||ui.selected.has(surfName(x)));
+    for(const part of parts)for(const [format,path] of Object.entries(part.exports||{}))if(typeof path==='string'&&path)found.push({format,path,label:part.name||surfaceLabel(surfName(part))});
+    for(const [format,path] of Object.entries(p.exports||{}))if(typeof path==='string'&&path)found.push({format,path,label:'Project'});
+    if(!found.length)return '<p>No completed engine export files are available yet.</p>';
+    return `<ul class="output-list">${found.map(item=>{const relative=item.path.replace(/^projects\/[^/]+\//,'');const uri='api/artboard/projects/'+encodeURIComponent(p.project_id)+'/artifacts/'+relative.split('/').map(encodeURIComponent).join('/');return `<li><button type="button" class="chip" data-download="artboard|${esc(uri)}">${esc(item.label)} · ${esc(item.format.toUpperCase())} ↓</button></li>`}).join('')}</ul>`;
+  }
+  function productionDetails(){
+    const p=project(),items=available().filter(x=>!ui.selected.size||ui.selected.has(x.side));
+    const validations=items.map(x=>x.validation||{}),v=validations[0]||p.validation||{};
+    const first=(...values)=>{for(const value of values)if(value!==undefined&&value!==null&&value!=='')return value;return 'Not reported'};
+    const total=items.map(x=>x.validation?.path_count).filter(x=>Number.isFinite(x));
+    const paths=total.length===items.length&&total.length?total.reduce((a,b)=>a+b,0):first(v.path_count,p.validation?.path_count);
+    const physical=v.physical_artboard||p.validation?.artboard||{};
+    const specs=[
+      ['Vector paths',paths],['Main paths',first(v.main_path_count,p.validation?.main_path_count)],
+      ['Color mode',first(v.color_mode,p.validation?.color_mode)],
+      ['PostScript level',first(v.postscript_level,p.validation?.postscript_level)],
+      ['EPS version',first(v.eps_version,p.validation?.eps_version)],
+      ['Canvas',physical.width_in&&physical.height_in?`${physical.width_in} × ${physical.height_in} in`:'22 × 31 in (requested)'],
+      ['Raster DPI',first(v.dpi,p.validation?.dpi)],
+      ['Editable true vector',p.true_vector_ready===true?'Engine-confirmed':p.true_vector_ready===false?'Not confirmed':'Not reported'],
+      ['Print validation',first(v.status,p.validation?.status)]];
+    return `<section class="abv2-production-details" aria-label="Production details"><h2>Production Details</h2><div class="abv2-tech-grid">${specs.map(([label,value])=>`<div><span>${esc(label)}</span><b>${esc(value)}</b></div>`).join('')}</div></section>`;
+  }
+  // A returned server ZIP is preferred. When the existing API returns only individual
+  // artifacts, assemble an uncompressed, standards-compliant ZIP in the browser.
+  // This does NOT run AI, alter vector files, or make any new production API requests.
+  function exportedArtifacts(){
+    const p=project(),parts=available().filter(x=>!ui.selected.size||ui.selected.has(x.side)),items=[];
+    for(const part of parts)for(const [format,path] of Object.entries(part.exports||{}))
+      if(typeof path==='string'&&path)items.push({format:format.toLowerCase(),path,label:surfaceLabel(part.side)});
+    if(ui.selected.size===available().length)for(const [format,path] of Object.entries(p.exports||{}))
+      if(typeof path==='string'&&path)items.push({format:format.toLowerCase(),path,label:'Project'});
+    return items;
+  }
+  function artifactEndpoint(projectId,path){
+    if(typeof path!=='string'||!path||!projectId)throw Error('Missing verified export path');
+    const relative=path.replace(/^projects\/[^/]+\//,'');
+    if(!relative||relative.startsWith('/')||relative.split('/').some(segment=>segment==='..'||segment==='.'||!segment))
+      throw Error('Invalid export path in engine manifest');
+    return 'api/artboard/projects/'+encodeURIComponent(projectId)+'/artifacts/'+relative.split('/').map(encodeURIComponent).join('/');
+  }
+  function crc32(bytes){
+    let crc=0xffffffff;
+    for(const byte of bytes){crc^=byte;for(let i=0;i<8;i++)crc=(crc>>>1)^((crc&1)?0xedb88320:0);}
+    return (crc^0xffffffff)>>>0;
+  }
+  function assembleMasterZip(entries){
+    if(!entries.length)throw Error('No exported files are available to package');
+    if(entries.length>65535)throw Error('Too many files for a standard ZIP');
+    const encoder=new TextEncoder(),local=[],central=[];
+    let offset=0,centralSize=0;
+    for(const entry of entries){
+      const filename=encoder.encode(entry.name),data=entry.data;
+      if(!filename.length||filename.length>65535||data.length>=0xffffffff)throw Error('ZIP entry exceeds standard size limits');
+      const sum=crc32(data);
+      const header=new Uint8Array(30+filename.length),h=new DataView(header.buffer);
+      h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x800,true);
+      h.setUint16(8,0,true);h.setUint32(14,sum,true);h.setUint32(18,data.length,true);h.setUint32(22,data.length,true);
+      h.setUint16(26,filename.length,true);header.set(filename,30);local.push(header,data);
+      const record=new Uint8Array(46+filename.length),c=new DataView(record.buffer);
+      c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x800,true);
+      c.setUint16(10,0,true);c.setUint32(16,sum,true);c.setUint32(20,data.length,true);c.setUint32(24,data.length,true);
+      c.setUint16(28,filename.length,true);c.setUint32(42,offset,true);record.set(filename,46);central.push(record);
+      centralSize+=record.length;offset+=header.length+data.length;
+      if(offset>=0xffffffff||centralSize>=0xffffffff)throw Error('Master ZIP exceeds the standard 4 GB ZIP limit');
+    }
+    const end=new Uint8Array(22),e=new DataView(end.buffer);
+    e.setUint32(0,0x06054b50,true);e.setUint16(8,entries.length,true);e.setUint16(10,entries.length,true);
+    e.setUint32(12,centralSize,true);e.setUint32(16,offset,true);
+    return new Blob([...local,...central,end],{type:'application/zip'});
+  }
+  async function downloadMasterZip(){
+    if(ui.zipBusy)return;
+    const p=project(),items=exportedArtifacts(),serverZip=items.find(item=>item.format==='zip');
+    if(!p.project_id)return notify('No completed project is available');
+    // Download an actual engine-supplied ZIP untouched when the API returns one.
+    if(serverZip&&ui.selected.size===available().length)return download('artboard',artifactEndpoint(p.project_id,serverZip.path));
+    const files=items.filter(item=>item.format!=='zip');
+    if(!files.length)return notify('No exported files are available for a master ZIP');
+    const button=document.querySelector('[data-abv2="download-master-zip"]');
+    const label=document.querySelector('[data-abv2-zip-status]');
+    ui.zipBusy=true;if(button)button.disabled=true;
+    const update=message=>{if(label)label.textContent=message;};
+    try{
+      const seen=new Set(),entries=[];
+      for(let i=0;i<files.length;i++){
+        const item=files[i];update('Packaging existing files: '+(i+1)+' / '+files.length);
+        const blob=await call('artboard',artifactEndpoint(p.project_id,item.path),{response:'blob'});
+        if(!blob?.size)throw Error('Engine returned an empty '+item.format.toUpperCase()+' file');
+        const data=new Uint8Array(await blob.arrayBuffer());
+        const raw=(item.path.split('/').pop()||'artifact.'+item.format).replace(/[^a-zA-Z0-9_. -]/g,'_');
+        const folder=item.label==='Project'?'Project':item.label;
+        let name=folder+'/'+raw,index=1;
+        while(seen.has(name))name=folder+'/'+index+++'_'+raw;
+        seen.add(name);entries.push({name,data});
+      }
+      update('Building ZIP from '+entries.length+' exported files…');
+      const zip=assembleMasterZip(entries);
+      const href=URL.createObjectURL(zip),a=document.createElement('a');
+      a.href=href;a.download='Artboard_'+String(p.project_id).replace(/[^a-zA-Z0-9_-]/g,'').slice(0,48)+'_Master_'+(p.processing_mode==='quality'?'quality':'normal')+'.zip';
+      document.body.appendChild(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(href),60000);
+      update('ZIP downloaded: '+entries.length+' existing files. No new production was started.');
+      log('Downloaded client-assembled ZIP from '+entries.length+' actual Artboard artifacts');
+    }catch(error){update('ZIP download failed: '+error.message);notify('ZIP download failed: '+error.message);}
+    finally{ui.zipBusy=false;if(button)button.disabled=false;}
+  }
+  async function continueSelectedIllustrator(){
+    const p=project(),items=exportedArtifacts(),item=items.find(x=>x.format==='svg'&&x.label!=='Project')||items.find(x=>x.format==='svg');
+    if(!p.project_id||!item)return notify('No selected-side editable SVG export is available');
+    try{
+      const blob=await call('artboard',artifactEndpoint(p.project_id,item.path),{response:'blob'});
+      if(!blob?.size)throw Error('The selected SVG artifact is empty');
+      const cleanName=(item.path.split('/').pop()||'Artboard_'+(p.processing_mode==='quality'?'quality':'normal')+'.svg').replace(/[^a-zA-Z0-9_.-]/g,'_');
+      const file=new File([blob],cleanName,{type:'image/svg+xml'});
+      if(navigator.canShare?.({files:[file]})){
+        await navigator.share({files:[file],title:'Open '+item.label+' SVG in Illustrator'});
+        log('Offered selected '+item.label+' SVG to OS app chooser');return;
+      }
+      const href=URL.createObjectURL(blob),a=document.createElement('a');
+      a.href=href;a.download=cleanName;document.body.appendChild(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(href),60000);
+      window.open('https://www.adobe.com/products/illustrator.html','_blank','noopener,noreferrer');
+      log('Downloaded selected '+item.label+' SVG and opened Adobe Illustrator website');
+    }catch(e){if(e?.name==='AbortError'){notify('Illustrator handoff cancelled');return;}
+      notify('Illustrator handoff failed: '+e.message);log('Illustrator handoff failed: '+e.message);}
+  }
+  function exportPage(){
+    const p=project(),parts=available().filter(x=>!ui.selected.size||ui.selected.has(x.side)),confirmed=p.true_vector_ready===true;
+    const items=exportedArtifacts(),formats=[...new Set(items.map(x=>x.format))];
+    const format=ui.downloadFormat||'';
+    const links=items.filter(x=>x.format===format);
+    const dl=item=>`<button type="button" class="abv2-btn" data-download="artboard|${esc(artifactEndpoint(p.project_id,item.path))}">↓ Download ${esc(item.label)}</button>`;
+    const hasZip=items.some(x=>x.format==='zip'),canZip=items.length>0;
+    return `${top('Export Production','Validated output files — select a format or download the complete available package')}${workflowRail()}<div class="abv2-export-grid">
+      <section class="abv2-export-left"><div class="abv2-card abv2-export-preview"><header><h2>Validated Artwork Preview</h2><span>${confirmed?'Validated vector':'Review engine validation'}</span></header>
+      <div class="abv2-export-arts">${parts.map(part=>`<div><strong>${surfaceLabel(part.side)}</strong>${previewUrl(part)?`<img src="${previewUrl(part)}" alt="Real ${surfaceLabel(part.side)} completed artwork">`:'<p>Preview not available from the engine</p>'}</div>`).join('')||'<p>No final artwork detected.</p>'}</div></div></section>
+      <div class="abv2-export-center">
+        <section class="abv2-card abv2-export-settings"><header><h2>Available Downloads</h2><small>${formats.filter(f=>f!=='zip').length} real formats</small></header>
+          <div class="abv2-format-grid">${['eps','svg','pdf','png'].map(f=>`<button type="button" class="abv2-format ${format===f?'selected':''}" data-abv2="select-format:${f}" aria-pressed="${format===f}" ${!formats.includes(f)?'disabled':''}>${f.toUpperCase()}</button>`).join('')}</div>
+          <p class="abv2-info">${format?'Available '+format.toUpperCase()+' files':'No format preselected. Choose a ready format to download.'}</p>
+          <div class="abv2-format-downloads">${links.map(dl).join('')}</div>
+        </section>
+        <section class="abv2-card abv2-package"><header><h2>Master ZIP</h2></header><p>${hasZip?'Download the verified master ZIP returned by the engine.':'Download a ZIP containing all existing, available export files — assembled in your browser without regenerating artwork.'}</p>
+          ${button('↓ Download Master ZIP','download-master-zip','primary',!canZip)}<p class="abv2-info" role="status" aria-live="polite" data-abv2-zip-status>${hasZip?'Engine ZIP ready':canZip?'Ready to package '+items.length+' existing exported files':'No downloadable files returned by engine'}</p>
+        </section>
+        <section class="abv2-card abv2-illustrator"><header><h2>Adobe Illustrator</h2></header><p>Open an editable SVG via a supported desktop handoff, or download it for Illustrator.</p>
+          ${button('Continue to Illustrator','illustrator','amber',!formats.includes('svg'))}</section>
+        <section class="abv2-card abv2-new-production"><header><h2>New Production</h2></header><p>Start again with a new design.</p>${button('＋ New Production','new','primary')}</section>
+      </div>
+      <aside class="abv2-export-right">${productionDetails()}</aside>
+    </div><div class="abv2-export-bottom">${button('⌂ Home (Input Page)','home')}${button('← Previous Step','previous')}</div>`;
+  }
+
+  function display(){
+    // Never reopen old processing screens automatically on refresh or tool entry.
+    const phase=ui.preferInput?'input':ui.view||ui.phase;
+    return `<section class="abv2" data-abv2-root>${phase==='input'?input():phase==='analyze'?analyze():phase==='artwork'||phase==='select'?select():phase==='export'?exportPage():processing()}</section>`;
+  }
+  let lastRenderedTool=state.tool;
+  const ecosystemRender=render;
+  render=function(...args){
+    const entering=state.tool==='artboard'&&lastRenderedTool!=='artboard';
+    document.body.classList.toggle('artboard-workspace',state.tool==='artboard');
+    if(entering){document.body.classList.add('sidebar-collapsed');if(typeof closeMenu==='function')closeMenu();}
+    if(state.tool!=='artboard')document.body.classList.remove('sidebar-collapsed');
+    lastRenderedTool=state.tool;
+    const btn=document.querySelector('#menuButton');
+    if(btn&&state.tool==='artboard'&&typeof innerWidth!=='undefined'&&innerWidth>870)btn.setAttribute('aria-expanded',String(!document.body.classList.contains('sidebar-collapsed')));
+    return ecosystemRender(...args);
+  };
+  const oldPreview=updateArtboardPreview, oldMonitor=updateMonitor;
+  artboardPageV4=display;
+  updateArtboardPreview=function(){if(state.tool==='artboard'&&document.querySelector('.abv2')){if(state.artboardPreviewPath&&state.artboardPreviewPath!==ui.lastPreviewPath){ui.lastPreviewPath=state.artboardPreviewPath;render();return;}refresh();return;}return oldPreview()};
+  updateMonitor=function(){if(state.tool==='artboard'&&document.querySelector('.abv2')){refresh();return;}return oldMonitor()};
+  // Verified engine output only: both panels use their own real SVG paths.
+  const traced=new WeakMap();
+  async function paintVectorOverlay(){
+    if(ui.processingStage!=='Vectorization')return;
+    const roots=[...document.querySelectorAll('[data-abv2-paths-side]')];
+    for(const root of roots){
+      const side=root.dataset.abv2PathsSide,url=ui.vectorUrls[side];
+      if(!url||traced.get(root)===url)continue;
+      try{
+        const response=await fetch(url);if(!response.ok)throw Error('SVG geometry not available');
+        const text=await response.text();if(text.length>5_000_000)continue;
+        const doc=new DOMParser().parseFromString(text,'image/svg+xml');if(doc.querySelector('parsererror'))continue;
+        const origin=doc.documentElement,raw=origin.getAttribute('viewBox');
+        if(!raw||!/^[-\d., eE+]+$/.test(raw))continue;
+        root.replaceChildren();root.setAttribute('viewBox',raw);root.setAttribute('preserveAspectRatio','xMidYMid meet');
+        const paths=[...doc.querySelectorAll('path[d]')].slice(0,160);
+        for(const node of paths){
+          const d=node.getAttribute('d');if(!d||d.length>100_000||!/^[MmLlHhVvCcSsQqTtAaZz0-9.eE,+\-\s]+$/.test(d))continue;
+          const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+          path.setAttribute('d',d);path.setAttribute('fill','none');path.setAttribute('stroke','#16f8ff');path.setAttribute('stroke-width','1.25');
+          const transforms=[];for(let x=node;x&&x!==origin;x=x.parentElement)if(x.getAttribute('transform'))transforms.unshift(x.getAttribute('transform'));
+          if(transforms.length&&transforms.join(' ').length<500)path.setAttribute('transform',transforms.join(' '));
+          root.appendChild(path);let length=0;try{length=path.getTotalLength()}catch{}
+          if(length>0){path.style.strokeDasharray=String(length);path.style.strokeDashoffset=String(length);path.style.setProperty('--path-length',String(length));path.classList.add('abv2-trace-path');}
+        }
+        traced.set(root,url);
+      }catch(e){/* The UI does not invent geometry when SVG cannot be read. */}
+    }
+  }
+  async function loadSideAssets(force=false){
+    const p=project(),id=p.project_id;if(!id||!available().length)return;
+    for(const part of available())for(const [kind,suffix] of [['generated','working/'+part.part_id+'-ai-vectorization-source.png'],['vector','vectors/'+part.part_id+'.svg']]){
+      const cache=kind==='generated'?ui.generatedUrls:ui.vectorUrls,key=kind+':'+part.part_id;
+      if(cache[part.side]||ui.assetBusy.has(key)||!force&&Date.now()-(ui.assetRetry[key]||0)<3500)continue;
+      // Do not probe before the engine has started production.
+      if(!ui.generationStarted)continue;
+      ui.assetBusy.add(key);ui.assetRetry[key]=Date.now();
+      try{
+        const blob=await call('artboard',artifactEndpoint(id,'projects/'+id+'/'+suffix),{response:'blob'});
+        if(!blob?.size)continue;
+        // Only a real artifact from the engine becomes a preview, never a mockup.
+        cache[part.side]=URL.createObjectURL(blob);
+        if(state.tool==='artboard')render();
+      }catch(e){/* 404 until generated: normal, no invented preview. */}
+      finally{ui.assetBusy.delete(key)}
+    }
+  }
+  function syncProductionStage(){
+    if(ui.phase!=='processing'||!ui.continued||ui.finishing||ui.view||state.activePipeline!=='Production')return;
+    // Only use the CURRENT engine event. Historical preflight events must not skip stages.
+    const order={'Artwork Creation':0,'Vectorization':1,'Validation':2};
+    const next=stageOf(state.stage,state.progress);
+    if(next&&next in order&&order[next]>order[ui.processingStage||'Artwork Creation']){ui.processingStage=next;ui.visitedStages.add(next);render();}
+  }
+  function refresh(){
+    const root=document.querySelector('.abv2');if(!root)return;
+    const monitor=root.querySelector('.abv2-current');
+    if(monitor){const v=stageProgress(),events=stageEvents();monitor.querySelector('strong').textContent=ui.stageStatus==='completed'?'Stage completed':state.lastError?'Action needed':state.busy&&events.length?friendlyActivity(events.at(-1)?.step||events.at(-1)?.stage):'Preparing the next update';monitor.querySelector('b').textContent=v==null?(state.busy?'Live':'—'):Math.round(v)+'%';const bar=monitor.querySelector('.abv2-progress');bar?.classList.toggle('indeterminate',state.busy&&v==null);if(bar?.firstElementChild)bar.firstElementChild.style.width=(v??25)+'%';}
+    const events=root.querySelector('.abv2-log ol');if(events)events.innerHTML=stageEvents().length?stageEvents().map(x=>{const p=eventProgress(x);return `<li><span>${esc(friendlyActivity(x.step||x.stage))}</span><small>${p!==null?Math.round(p)+'%':safeTime(x.at)||'Reported'}</small></li>`}).join(''):'<li><span>Preparing the next production update.</span></li>';
+    const status=root.querySelector('.abv2-step-label');if(status)status.textContent=state.stage||statusText();
+    if((ui.phase==='artwork'||ui.phase==='processing')&&ui.generationStarted)void loadSideAssets();
+    if(ui.phase==='processing'){
+      const live=state.objectURLs.artboard_live;
+      if(live){for(const [side,item] of available().map(x=>[x.side,x])){
+        const img=root.querySelector('.abv2-artwork img[alt="'+surfaceLabel(side)+' verified engine preview"]');
+        const url=ui.vectorUrls[side]||previewUrl(item)||ui.generatedUrls[side]||interimPreview(side);if(img&&url&&img.getAttribute('src')!==url)img.src=url;
+      }}
+      if(ui.processingStage==='Vectorization')void paintVectorOverlay();
+      syncProductionStage();
+    }
+    if(ui.phase==='processing'&&ui.processingStage==='Artwork Creation'&&state.objectURLs.artboard_live){
+      const previewSide=available().length===1?available()[0].side:null;
+      if(previewSide){const image=root.querySelector('.abv2-artwork img');const url=interimPreview(previewSide);if(image&&url&&image.getAttribute('src')!==url)image.src=url;}
+    }
+  }
+  async function start(){const f=state.files.artboard;if(!f)return notify('Upload a supported file first');if(!connected('artboard'))return notify('Artboard engine is unavailable');
+    if(['queued','processing','cancelling'].includes(savedJob()?.status))return notify('Resume or cancel existing job before starting a paid production');
+    const epoch=++ui.workspaceEpoch;
+    state.pendingArtboardJob=null;state.artboardJob=null;try{sessionStorage.removeItem('mj_artboard_job')}catch{}
+    ui.preferInput=false;ui.selected.clear();ui.prepared=[];ui.visitedStages.clear();ui.stageStatus='';ui.lastPreviewPath='';state.artboardPreviewPath='';ui.view=null;ui.phase='artwork';ui.analysisDone=false;ui.generationStarted=false;ui.processingStage='';ui.downloadFormat='';ui.cancelRequested=false;ui.productionDone=false;ui.continued=false;ui.finishing=false;ui.exportStarted=false;ui.generationError='';ui.generatedUrls={};ui.vectorUrls={};ui.assetRetry={};ui.assetBusy.clear();
+    await run('Artboard source upload',async()=>{state.artboardEvents=[];state.artboardEventKeys.clear();state.artboardJob=null;state.lastMode=state.mode.artboard;state.progress=null;
+      const p=await call('artboard','api/artboard/projects',{method:'POST',json:{name:f.name.slice(0,120),processing_mode:state.lastMode}});state.artboardProject=p;state.artboardResult=p;
+      const fd=new FormData();fd.append('project_id',p.project_id);fd.append('file',f);state.artboardResult=await call('artboard','api/artboard/upload',{method:'POST',body:fd});state.activePipeline='Upload';state.stage='Source uploaded';state.progress=null;});
+    if(ui.workspaceEpoch!==epoch)return;
+    if(ui.cancelRequested){reset(true);return;}
+    if(!state.lastError)await analyzeSurfaces();
+  }
+  async function waitForPreparedProject(id,attempts=7){
+    let latest=null;
+    for(let attempt=0;attempt<attempts;attempt++){
+      latest=await call('artboard','api/artboard/projects/'+id,{timeoutMs:30000});
+      state.artboardResult=latest;
+      if(available().length)return latest;
+      state.stage='Source references ready — syncing artwork inputs';state.progress=100;render();
+      if(attempt<attempts-1)await sleep(450+attempt*250);
+    }
+    return latest;
+  }
+  async function analyzeSurfaces(){const id=project().project_id,epoch=ui.workspaceEpoch;if(!id||ui.cancelRequested)return;await run('Analyze uploaded artwork',async()=>{
+    ui.phase='artwork';state.activePipeline='Prepare';state.stage='Preparing artwork reference';state.progress=null;render();
+    // The v0.3.1 engine needs surface names in its prepare request. Try both, then
+    // automatically fall back to a verified single surface only if detection fails.
+    let prepared=false,lastFailure=null;const attempts=[['front_body','back_body'],['front_body'],['back_body']];
+    for(const surfaces of attempts){try{
+      state.artboardEvents=[];state.artboardEventKeys.clear();state.stage='Scanning '+surfaces.map(surfaceLabel).join(' + ');state.progress=null;render();
+      const job=await call('artboard','api/artboard/prepare',{method:'POST',json:{project_id:id,surfaces,auto:true,self_analysis:true,width_in:22,height_in:31}});
+      captureJob('Artboard',job);if(ui.cancelRequested){void stop();return;}await jobPoll('artboard','api/artboard/jobs/'+job.job_id,'Prepare');
+      if(ui.cancelRequested||epoch!==ui.workspaceEpoch)return;
+      state.stage='Source references ready — syncing artwork inputs';state.progress=100;render();
+      await waitForPreparedProject(id);
+      if(available().length){prepared=true;break;}throw Error('Engine returned no prepared surfaces');
+    }catch(e){lastFailure=e;
+      if(!/surface|not visible|not found|locat|detect|independently|component|geometry|missing/i.test(e.message))throw e;
+      log('Auto-detection attempt reported: '+e.message);
+    }}
+    if(ui.cancelRequested||epoch!==ui.workspaceEpoch)return;
+    if(!prepared)throw Error('Unable to verify a visible surface automatically: '+(lastFailure?.message||'No result'));
+    ui.analysisDone=true;ui.prepared=available();ui.selected.clear();ui.phase='artwork';ui.processingStage='Artwork Creation';state.stage='Reference ready — generating artwork';state.progress=null;render();
+  });
+    if(ui.analysisDone&&!state.lastError&&!ui.cancelRequested&&ui.workspaceEpoch===epoch)await produce();
+  }
+  async function produce(){
+    if(ui.cancelRequested)return;
+    const epoch=ui.workspaceEpoch,id=project().project_id;if(!id||!available().length)return notify('Prepare a visible artwork surface first');
+    ui.generationStarted=true;ui.productionDone=false;ui.phase='artwork';ui.processingStage='Artwork Creation';ui.visitedStages.clear();ui.stageStatus='';
+    await run('Artboard AI artwork creation',async()=>{
+      state.activePipeline='Production';state.stage='Generating flat 2D artwork';state.progress=null;state.artboardEvents=[];state.artboardEventKeys.clear();render();
+      const j=await call('artboard','api/artboard/production',{method:'POST',json:{project_id:id,ai_reconstruction:true,processing_mode:state.lastMode||state.mode.artboard}});
+      captureJob('Artboard',j);if(ui.cancelRequested){void stop();return;}await jobPoll('artboard','api/artboard/jobs/'+j.job_id,'Production');
+      if(ui.cancelRequested||ui.workspaceEpoch!==epoch||project().project_id!==id)return;
+      state.artboardResult=await call('artboard','api/artboard/projects/'+id);
+      if(state.artboardResult.true_vector_ready!==true)throw Error('Vector validation is not confirmed by the engine');
+      ui.productionDone=true;ui.stageStatus='completed';state.stage='Artwork generated — choose Front, Back or Both';state.progress=null;
+      await loadSideAssets(true);
+      render();
+    });
+    if(ui.workspaceEpoch!==epoch)return;
+    if(state.lastError)ui.generationError=state.lastError;
+    if(!ui.cancelRequested&&ui.continued&&ui.productionDone)void completeSelectedWorkflow();
+    render();
+  }
+  function sleep(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
+  async function continueToVectorization(){
+    if(ui.continued)return;
+    if(!ui.selected.size)return notify('Select at least one generated artwork side');
+    const ready=[...ui.selected].every(side=>Boolean(ui.generatedUrls[side]||ui.vectorUrls[side]||previewUrl(available().find(x=>x.side===side))||interimPreview(side)));
+    if(!ready)return notify('Selected artwork preview is not ready yet');
+    ui.continued=true;ui.phase='processing';ui.view=null;ui.processingStage='Vectorization';ui.stageStatus=ui.productionDone?'completed':'';ui.visitedStages.add('Vectorization');render();
+    if(ui.productionDone)await completeSelectedWorkflow();
+  }
+  async function completeSelectedWorkflow(){
+    const epoch=ui.workspaceEpoch;
+    if(ui.cancelRequested||ui.finishing||ui.exportStarted||!ui.continued||!ui.productionDone)return;
+    ui.finishing=true;
+    try{
+      // The current engine runs artwork + vectorization + validation inside one job.
+      // When selection follows completion, show only its real, saved vector geometry
+      // and confirmed historical events. Never pretend this is a new engine job.
+      ui.phase='processing';ui.processingStage='Vectorization';ui.stageStatus='completed';state.activePipeline='Vectorization';
+      state.stage='Engine-confirmed vector result — showing saved geometry';render();await loadSideAssets(true);if(typeof document.querySelectorAll==='function')await paintVectorOverlay();await sleep(3500);
+      if(ui.cancelRequested||ui.workspaceEpoch!==epoch)return;
+      ui.processingStage='Validation';ui.visitedStages.add('Validation');state.activePipeline='Validation';
+      state.stage='Engine-confirmed validation — reviewing quality';render();await sleep(2500);
+      if(ui.exportStarted||ui.cancelRequested||ui.workspaceEpoch!==epoch)return;
+      ui.exportStarted=true;
+      const id=project().project_id;
+      await run('Prepare Artboard export files',async()=>{
+        ui.phase='processing';ui.processingStage='Validation';ui.stageStatus='completed';state.activePipeline='Export';state.stage='Preparing EPS SVG PDF PNG ZIP';state.progress=null;render();
+        const j=await call('artboard','api/artboard/export',{method:'POST',json:{project_id:id,formats:['eps','svg','pdf','png','zip'],bundle:'production_pack'}});
+        captureJob('Artboard',j);if(ui.cancelRequested){void stop();return;}await jobPoll('artboard','api/artboard/jobs/'+j.job_id,'Export');
+        if(ui.cancelRequested||ui.workspaceEpoch!==epoch)return;
+        state.artboardResult=await call('artboard','api/artboard/projects/'+id);
+        if(!exportedArtifacts().length)throw Error('Engine returned no export files');
+        ui.phase='export';ui.processingStage='Export';ui.downloadFormat='';state.stage='Production complete';state.progress=null;
+      });
+      if(state.lastError)ui.exportStarted=false;
+    }finally{ui.finishing=false;render()}
+  }
+
+
+  async function resumeVectorStages(){
+    const saved=project(),id=saved.project_id,mode=saved.ai_reconstruction?.processing_mode||state.lastMode||state.mode.artboard;
+    if(state.busy)return notify('A job is still running. Check status before retrying');
+    if(!id||saved.ai_reconstruction?.complete!==true)return notify('No saved complete AI artwork to resume without another paid AI call');
+    if(['queued','processing','cancelling'].includes(savedJob()?.status))return notify('Previous server job is still active; do not duplicate it');
+    const epoch=ui.workspaceEpoch;
+    ui.preferInput=false;ui.view=null;ui.phase='processing';ui.processingStage='Vectorization';ui.generationStarted=true;
+    ui.productionDone=false;ui.stageStatus='';ui.generationError='';
+    await run('Resume saved vectorization without an AI generation call',async()=>{
+      state.activePipeline='Production';state.stage='Reusing saved AI artwork — vectorization retry';state.progress=null;
+      state.artboardEvents=[];state.artboardEventKeys.clear();render();
+      const j=await call('artboard','api/artboard/production',{method:'POST',
+        json:{project_id:id,processing_mode:mode,ai_reconstruction:true,resume_from_ai:true}});
+      captureJob('Artboard',j);
+      await jobPoll('artboard','api/artboard/jobs/'+j.job_id,'Production');
+      if(ui.cancelRequested||ui.workspaceEpoch!==epoch)return;
+      state.artboardResult=await call('artboard','api/artboard/projects/'+id);
+      if(state.artboardResult.true_vector_ready!==true)throw Error('Engine did not confirm valid saved vectors');
+      ui.productionDone=true;ui.stageStatus='completed';ui.phase='artwork';ui.processingStage='Artwork Creation';
+      state.stage='Saved AI artwork vectorized and validated — select a side';state.progress=null;
+      await loadSideAssets(true);
+    });
+    if(state.lastError)ui.generationError=state.lastError;
+    render();
+  }
+  async function resumeSavedJob(){
+    const old=savedJob();if(!old?.job_id)return notify('No saved job to resume');
+    const epoch=ui.workspaceEpoch;
+    ui.preferInput=false;
+    if(old.status==='cancelling')return notify('Cancellation is in progress; check status');
+    const isPrepare=old.stage==='artboard-prepare',isExport=old.stage==='export';
+    ui.view=null;ui.phase=isPrepare?'artwork':isExport?'processing':'artwork';
+    ui.processingStage=isPrepare?'Artwork Creation':isExport?'Export':'Artwork Creation';
+    ui.analysisDone=!isPrepare&&available().length>0;
+    ui.generationStarted=!isPrepare;
+    ui.generationError='';
+    if(state.busy){render();return}
+    try{
+      const job=await call('artboard','api/artboard/jobs/'+encodeURIComponent(old.job_id));
+      state.artboardJob=job;state.pendingArtboardJob=null;
+      if(job.status==='cancelled'){reset(true);return}
+      if(['completed','failed'].includes(job.status)){
+        state.artboardResult=await call('artboard','api/artboard/projects/'+encodeURIComponent(project().project_id));
+        ui.analysisDone=available().length>0;
+        if(isPrepare){ui.phase='artwork';ui.generationStarted=false}
+        else if(isExport&&job.status==='completed')ui.phase='export';
+        else if(job.status==='completed'){ui.phase='artwork';ui.productionDone=state.artboardResult.true_vector_ready===true}
+        if(job.status==='failed'){ui.generationError=job.error?.message||'Previous job failed';ui.phase='artwork'}
+        if(ui.productionDone)await loadSideAssets(true);
+        render();return;
+      }
+      render();
+      await run('Resume Artboard job',async()=>{
+        await jobPoll('artboard','api/artboard/jobs/'+job.job_id,isPrepare?'Prepare':isExport?'Export':'Production');
+        if(ui.cancelRequested||ui.workspaceEpoch!==epoch)return;
+        state.artboardResult=await call('artboard','api/artboard/projects/'+encodeURIComponent(project().project_id));
+        ui.analysisDone=available().length>0;
+        if(isPrepare){ui.phase='artwork';ui.generationStarted=false}
+        else if(isExport){ui.phase='export';ui.exportStarted=true}
+        else{ui.phase='artwork';ui.productionDone=state.artboardResult.true_vector_ready===true;ui.generationStarted=true;await loadSideAssets(true)}
+      });
+      render();
+    }catch(e){state.pendingArtboardJob=old;ui.phase='input';ui.view=null;render();notify('Unable to resume: '+e.message)}
+  }
+  let cancellationPollInFlight=false;
+  async function refreshSavedJob(){
+    const j=savedJob();if(!j?.job_id)return;
+    try{
+      const latest=await call('artboard','api/artboard/jobs/'+encodeURIComponent(j.job_id));
+      state.artboardJob=latest;state.pendingArtboardJob=latest;
+      state.stage=latest.step||latest.status;state.progress=typeof latest.progress==='number'?latest.progress:null;
+      if(latest.status==='cancelled'&&ui.cancelRequested){reset(true);return}
+      render();
+    }catch(e){notify('Job status unavailable: '+e.message)}
+  }
+  async function stop(){
+    if(cancellationPollInFlight)return;
+    const job=savedJob();
+    if(!job?.job_id){
+      if(state.busy){ui.cancelRequested=true;state.stage='Stopping current upload before next job';render();notify('Stop requested; new AI jobs will not start');return}
+      reset();return;
+    }
+    if(['cancelled','completed','failed'].includes(job.status)){reset(true);return}
+    ui.cancelRequested=true;ui.stageStatus='cancelling';state.stage='Cancelling job…';render();
+    cancellationPollInFlight=true;
+    try{
+      const id=encodeURIComponent(job.job_id);
+      const response=await call('artboard','api/artboard/jobs/'+id+'/cancel',{method:'POST'});
+      if(!response.cancellation_requested&&!['cancelled','completed','failed'].includes(response.status))notify('Worker unavailable; checking its stored state');
+      for(let attempt=0;attempt<45;attempt++){
+        const latest=await call('artboard','api/artboard/jobs/'+id);
+        state.artboardJob=latest;state.pendingArtboardJob=latest;
+        if(['cancelled','completed','failed'].includes(latest.status)){
+          reset(true);notify('Previous job closed. New input is ready.');return;
+        }
+        state.stage='Cancelling — waiting for engine safe boundary';
+        if(attempt%4===0)render();
+        await sleep(2000);
+      }
+      ui.phase='input';ui.view=null;render();
+      notify('Still cancelling on server. Use Check Status; no new paid job started.');
+    }catch(e){ui.phase='input';ui.view=null;render();notify('Could not confirm cancellation: '+e.message)}
+    finally{cancellationPollInFlight=false}
+  }
+  function reset(force=false){
+    if(state.busy&&!force)return notify('Cancel the active job before starting a new input');
+    ++ui.workspaceEpoch;ui.preferInput=false;ui.phase='input';ui.view=null;ui.analysisDone=false;ui.generationStarted=false;ui.processingStage='';ui.downloadFormat='';ui.prepared=[];
+    ui.selected.clear();ui.visitedStages.clear();ui.stageStatus='';ui.lastPreviewPath='';ui.continued=false;
+    ui.productionDone=false;ui.finishing=false;ui.exportStarted=false;ui.cancelRequested=false;
+    ui.generationError='';ui.assetBusy.clear();ui.assetRetry={};
+    for(const url of Object.values({...ui.generatedUrls,...ui.vectorUrls}))URL.revokeObjectURL(url);
+    ui.generatedUrls={};ui.vectorUrls={};state.artboardPreviewPath='';state.files.artboard=null;
+    state.artboardProject=null;state.artboardResult=null;state.artboardJob=null;state.pendingArtboardJob=null;
+    for(const key of ['artboard','artboard_live']){if(state.objectURLs[key])URL.revokeObjectURL(state.objectURLs[key]);delete state.objectURLs[key]}
+    state.activePipeline='';state.busy=false;state.stage='';state.progress=null;state.lastError='';state.logs=[];
+    state.artboardEvents=[];state.artboardEventKeys.clear();
+    try{sessionStorage.removeItem('mj_artboard_job')}catch{}
+    render();
+  }
+  // Protect all ecosystem buttons: intercept only Artboard V2-specific actions in capture phase.
+  document.addEventListener('click',async e=>{
+    const b=e.target.closest('button[data-abv2]');if(!b)return;
+    e.preventDefault();e.stopPropagation();const a=b.dataset.abv2;
+    if(a==='resume-vector')return resumeVectorStages();if(a==='start')return start();if(a==='resume-job')return resumeSavedJob();if(a==='refresh-job')return refreshSavedJob();if(a==='continue-vectorization')return continueToVectorization();if(a==='produce')return produce();if(a==='stop')return stop();
+    if(a==='clear'){if(state.busy)return;state.files.artboard=null;const u=state.objectURLs.artboard;if(u)URL.revokeObjectURL(u);delete state.objectURLs.artboard;render();return}
+    if(a==='home'||a==='new')return reset();
+    if(a==='illustrator')return continueSelectedIllustrator();if(a==='download-master-zip')return downloadMasterZip();if(a.startsWith('select-format:')){ui.downloadFormat=a.split(':')[1];render();return;}
+    if(a==='previous'){if(state.busy)return notify('Active job: cancel processing before changing stages');if(ui.phase==='export'){ui.view='processing';ui.processingStage='Validation';}else if(ui.phase==='artwork')ui.view='input';else {ui.view='artwork';}render();return}
+    if(a.startsWith('mode:')){if(state.busy)return;state.mode.artboard=a.split(':')[1];render();return}
+    if(a.startsWith('recreate:'))return notify('AI missing-side recreation is not exposed through this frontend’s existing Artboard gateway allowlist. No request was submitted.');
+  },true);
+  document.addEventListener('change',e=>{const visible=e.target.closest('[data-abv2-visible]');if(visible){const side=visible.dataset.abv2Visible;if(visible.checked)ui.visibleChoice.add(side);else ui.visibleChoice.delete(side);render();return;}const b=e.target.closest('[data-abv2-select]');if(!b)return;const side=b.dataset.abv2Select;if(b.checked)ui.selected.add(side);else ui.selected.delete(side);render();},true);
+  document.addEventListener('change',e=>{if(e.target?.dataset?.file!=='artboard')return;ui.dimensions='';const f=e.target.files?.[0];if(!f||!f.type.startsWith('image/')||f.type.includes('svg'))return;const image=new Image();const url=URL.createObjectURL(f);image.onload=()=>{ui.dimensions=`${image.naturalWidth} × ${image.naturalHeight} px`;URL.revokeObjectURL(url);if(state.files.artboard===f)render()};image.onerror=()=>URL.revokeObjectURL(url);image.src=url;});
+  // Preserve the ecosystem menu behavior, but collapse the sidebar when Artboard opens.
+  document.addEventListener('click',e=>{const t=e.target.closest('[data-tool]');if(t?.dataset.tool==='artboard'){ui.view=null;ui.phase='input';ui.preferInput=Boolean(savedJob()?.job_id);document.body.classList.add('sidebar-collapsed');if(typeof closeMenu==='function')closeMenu()}},true);
+  // Keep the existing start action available for code paths that call it directly.
+  startArtboard=start;
+  if(state.tool==='artboard'){document.body.classList.add('artboard-workspace');document.body.classList.add('sidebar-collapsed');render();}
+})();
 </script>
 </body></html>
