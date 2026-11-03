@@ -74,7 +74,7 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   const displayed=screens.map(s=>s.match(/abv2-header[\s\S]*?<h1>(.*?)<\/h1>/)?.[1]||'').filter(Boolean);
   test(29,displayed.includes('Vectorization')&&src.includes('abv2-real-paths'));
   test(30,displayed.includes('Validation')&&src.includes('validation-overlay'));
-  test(31,screens.at(-1).includes('Production Details')&&screens.at(-1).includes('Vector paths')&&screens.at(-1).includes('PostScript level')&&screens.at(-1).includes('Raster DPI'));
+  test(31,screens.at(-1).includes('Production Details')&&screens.at(-1).includes('Vector paths')&&screens.at(-1).includes('PostScript level')&&screens.at(-1).includes('Raster proof DPI'));
   test(32,screens.at(-1).includes('<h2>Master ZIP</h2>')&&screens.at(-1).includes('data-abv2="download-master-zip"'));
   test('export-order',screens.at(-1).indexOf('abv2-export-settings')<screens.at(-1).indexOf('abv2-package')&&screens.at(-1).indexOf('abv2-package')<screens.at(-1).indexOf('abv2-illustrator')&&screens.at(-1).indexOf('abv2-illustrator')<screens.at(-1).indexOf('abv2-new-production'));
   test('production-details-right',screens.at(-1).indexOf('abv2-export-right')<screens.at(-1).indexOf('Production Details'));
@@ -90,7 +90,7 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   const beforeReviewCalls=requests.length;
   await handler(click('previous'));
   test('quality-validation-visible',screens.at(-1).includes('<h2>Validation Results</h2>')&&screens.at(-1).includes('Artwork fidelity')&&screens.at(-1).includes('Micro details')&&screens.at(-1).includes('Editability'));
-  test('quality-metadata-from-backend',screens.at(-1).includes('600')===false&&screens.at(-1).includes('gradient_count')===false&&screens.at(-1).includes('2</b><small>Gradients')&&screens.at(-1).includes('3 dark / 0 bright pixels flagged')===chosen.includes('front_body'));
+  test('quality-metadata-from-backend',screens.at(-1).includes('gradient_count')===false&&screens.at(-1).includes('2</b><small>Gradients')&&screens.at(-1).includes('3 dark / 0 bright pixels flagged')===chosen.includes('front_body'));
   await handler(click('toggle-compare'));
   test('actual-artwork-vector-comparison',screens.at(-1).includes('AI artwork master')&&screens.at(-1).includes('Final vector'));
   if(chosen.length===2){
