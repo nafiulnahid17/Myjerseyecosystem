@@ -334,8 +334,9 @@
     finally{ui.zipBusy=false;if(button)button.disabled=false;}
   }
   async function continueSelectedIllustrator(){
-    const p=project(),items=exportedArtifacts(),item=items.find(x=>x.format==='svg'&&x.label!=='Project')||items.find(x=>x.format==='svg');
-    if(!p.project_id||!item)return notify('No selected-side editable SVG export is available');
+    const p=project(),items=exportedArtifacts(),item=items.find(x=>x.format==='premium_svg'&&x.label!=='Project')||
+      items.find(x=>x.format==='svg'&&x.label!=='Project')||items.find(x=>x.format==='svg');
+    if(!p.project_id||!item)return notify('No selected-side editable SVG is available');
     try{
       const blob=await call('artboard',artifactEndpoint(p.project_id,item.path),{response:'blob'});
       if(!blob?.size)throw Error('The selected SVG artifact is empty');
@@ -348,32 +349,44 @@
       const href=URL.createObjectURL(blob),a=document.createElement('a');
       a.href=href;a.download=cleanName;document.body.appendChild(a);a.click();a.remove();
       setTimeout(()=>URL.revokeObjectURL(href),60000);
-      window.open('https://www.adobe.com/products/illustrator.html','_blank','noopener,noreferrer');
-      log('Downloaded selected '+item.label+' SVG and opened Adobe Illustrator website');
+      notify('Editable SVG downloaded. Open it in Adobe Illustrator on your desktop.');
+      log('Downloaded selected '+item.label+' editable SVG for desktop Illustrator');
     }catch(e){if(e?.name==='AbortError'){notify('Illustrator handoff cancelled');return;}
       notify('Illustrator handoff failed: '+e.message);log('Illustrator handoff failed: '+e.message);}
   }
   function exportPage(){
     const p=project(),parts=available().filter(x=>!ui.selected.size||ui.selected.has(x.side)),confirmed=p.true_vector_ready===true;
     const items=exportedArtifacts(),formats=[...new Set(items.map(x=>x.format))];
+    const printFormats=['eps','svg','pdf','png'];
+    const designerKinds={premium_svg:'Premium Master SVG',editability_report:'Editability Report',color_groups_report:'Color Groups Report'};
+    const designerFiles=items.filter(x=>Object.hasOwn(designerKinds,x.format));
     const format=ui.downloadFormat||'';
-    const links=items.filter(x=>x.format===format);
+    const links=items.filter(x=>x.format===format&&printFormats.includes(x.format));
     const dl=item=>`<button type="button" class="abv2-btn" data-download="artboard|${esc(artifactEndpoint(p.project_id,item.path))}">↓ Download ${esc(item.label)}</button>`;
     const hasZip=items.some(x=>x.format==='zip'),canZip=items.length>0;
     return `${top('Export Production','Validated output files — select a format or download the complete available package')}${workflowRail()}<div class="abv2-export-grid">
       <section class="abv2-export-left"><div class="abv2-card abv2-export-preview"><header><h2>Validated Artwork Preview</h2><span>${confirmed?'Validated vector':'Review engine validation'}</span></header>
       <div class="abv2-export-arts">${parts.map(part=>`<div><strong>${surfaceLabel(part.side)}</strong>${previewUrl(part)?`<img src="${previewUrl(part)}" alt="Real ${surfaceLabel(part.side)} completed artwork">`:'<p>Preview not available from the engine</p>'}</div>`).join('')||'<p>No final artwork detected.</p>'}</div></div></section>
       <div class="abv2-export-center">
-        <section class="abv2-card abv2-export-settings"><header><h2>Available Downloads</h2><small>${formats.filter(f=>f!=='zip').length} real formats</small></header>
+        <section class="abv2-card abv2-export-settings"><header><h2>Available Downloads</h2><small>${printFormats.filter(f=>formats.includes(f)).length} print formats</small></header>
           <div class="abv2-format-grid">${['eps','svg','pdf','png'].map(f=>`<button type="button" class="abv2-format ${format===f?'selected':''}" data-abv2="select-format:${f}" aria-pressed="${format===f}" ${!formats.includes(f)?'disabled':''}>${f.toUpperCase()}</button>`).join('')}</div>
           <p class="abv2-info">${format?'Available '+format.toUpperCase()+' files':'No format preselected. Choose a ready format to download.'}</p>
           <div class="abv2-format-downloads">${links.map(dl).join('')}</div>
         </section>
+        <section class="abv2-card abv2-designer-files"><header><h2>Illustrator Editing Files</h2><small>${designerFiles.length} saved artifacts</small></header>
+          <p class="abv2-info">Premium SVG preserves editable vector groups. Reports are metadata, not artwork images.</p>
+          <div class="abv2-designer-list">${designerFiles.length?designerFiles.map(item=>`<button type="button" class="abv2-btn abv2-designer-download" data-download="artboard|${esc(artifactEndpoint(p.project_id,item.path))}"><b>↓ ${esc(designerKinds[item.format])}</b><small>${esc(item.label)} · ${esc(item.path.split('/').pop())}</small></button>`).join(''):'<p class="abv2-info">Editable-master companions are not available for the selected artwork.</p>'}</div>
+          <p class="abv2-info">Native Illustrator layers require a desktop Illustrator check.</p>
+        </section>
         <section class="abv2-card abv2-package"><header><h2>Master ZIP</h2></header><p>${hasZip?'Download the verified master ZIP returned by the engine.':'Download a ZIP containing all existing, available export files — assembled in your browser without regenerating artwork.'}</p>
           ${button('↓ Download Master ZIP','download-master-zip','primary',!canZip)}<p class="abv2-info" role="status" aria-live="polite" data-abv2-zip-status>${hasZip?'Engine ZIP ready':canZip?'Ready to package '+items.length+' existing exported files':'No downloadable files returned by engine'}</p>
         </section>
-        <section class="abv2-card abv2-illustrator"><header><h2>Adobe Illustrator</h2></header><p>Open an editable SVG via a supported desktop handoff, or download it for Illustrator.</p>
-          ${button('Continue to Illustrator','illustrator','amber',!formats.includes('svg'))}</section>
+        <section class="abv2-card abv2-illustrator"><header><h2>Adobe Illustrator</h2></header>
+          <p>Continue with the premium editable SVG when available; otherwise use validated SVG.</p>
+          ${button('Continue to Illustrator','illustrator','amber',!formats.includes('svg')&&!formats.includes('premium_svg'))}
+          <div class="abv2-illustrator-guide"><strong>Native .AI requires desktop Illustrator</strong><span>Import the validated EPS, run the optional Illustrator script and compare before/after proofs. A browser cannot generate native AI layers.</span>
+            <a href="https://github.com/nafiulnahid17/Artboard-AI---Resolution-Independent-/blob/main/desktop/illustrator-native-layers.jsx" target="_blank" rel="noopener noreferrer">View desktop handoff script</a>
+          </div></section>
         <section class="abv2-card abv2-new-production"><header><h2>New Production</h2></header><p>Start again with a new design.</p>${button('＋ New Production','new','primary')}</section>
       </div>
       <aside class="abv2-export-right">${productionDetails()}</aside>
