@@ -119,7 +119,7 @@
       <div class="abv2-proof-parts">${records.map(part=>{
         const audit=all[part.part_id]||p.ai_reconstruction?.by_part?.[part.part_id]?.analysis_generation_audit||{};
         const analysis=audit.analysis||{},handoff=audit.handoff||{},follow=audit.follow_through||{};
-        const n=Number(analysis.duration_ms),duration=Number.isFinite(n)&&n>=0?Math.round(n)/1000+' seconds':'Not reported';
+        const n=Number(analysis.duration_ms),duration=analysis.duration_ms!==null&&analysis.duration_ms!==undefined&&Number.isFinite(n)&&n>=0?Math.round(n)/1000+' seconds':'Not reported';
         const counts=analysis.summary?.fields||{},count=Object.values(counts).filter(x=>Number.isFinite(x)).reduce((a,b)=>a+b,0);
         return `<div class="abv2-proof-part"><div class="abv2-proof-part-title"><strong>${surfaceLabel(part.side)}</strong><small>${esc(audit.version||'Audit not returned by deployed engine')}</small></div>
           <div class="abv2-proof-cells">
