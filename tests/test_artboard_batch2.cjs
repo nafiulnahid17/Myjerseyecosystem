@@ -38,13 +38,13 @@ const context={state,Date,setTimeout:(fn)=>setTimeout(fn,1),URL:{revokeObjectURL
           version:'analysis-generation-provenance/1',
           analysis:{
             status:item.type==='front_body'?'COMPLETED':'UNAVAILABLE',
-            model:item.type==='front_body'?'google/gemini-4-argon':null,
+            model:item.type==='front_body'?'alibaba/qwen3-vl-instruct':null,
             duration_ms:item.type==='front_body'?1902:null,
             summary:{fields:{base_colors:2,patterns:3,graphics:2,uncertain_details:1,layout_guidance:1}},
           },
           handoff:{
             status:item.type==='front_body'?'VERIFIED_IN_GENERATION_REQUEST':'SELF_ANALYSIS_ONLY',
-            generation_model:'google/gemini-3-pro-image',
+            generation_model:'bytedance/seedream-5.0-pro',
             included_analysis_characters:item.type==='front_body'?342:0,
             provider_prompt_confirmed:item.type==='front_body',
             prompt_sha256:item.type==='front_body'?'f'.repeat(64):null,
@@ -53,7 +53,7 @@ const context={state,Date,setTimeout:(fn)=>setTimeout(fn,1),URL:{revokeObjectURL
         }
       ]));
     }
-    serverProject.validation={production_fidelity:{status:'REVIEW_REQUIRED'}};
+    serverProject.validation={status:'PASS',production_fidelity:{status:'REVIEW_REQUIRED'},ai_vector_review:{status:'PASS',rounds:1,fixes:0,accepted_artwork_source:true}};
     for(const item of serverProject.surfaces){
       item.validation={...item.validation,valid_svg:true,true_vector:true,embedded_rasters:0,
         gradient_count:2,segment_count:200,total_anchor_count:230,
@@ -104,7 +104,7 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   if(process.env.ARTBOARD_PROOF_MISSING==='1'){
     test('legacy-proof-is-not-faked',screens.at(-1).includes('Audit not returned by deployed engine')&&!screens.at(-1).includes('Brief included in generator request'));
   }else{
-    test('analyzer-completed-from-backend',screens.at(-1).includes('google/gemini-4-argon')&&screens.at(-1).includes('1.902 seconds'));
+    test('analyzer-completed-from-backend',screens.at(-1).includes('alibaba/qwen3-vl-instruct')&&screens.at(-1).includes('1.902 seconds'));
     test('verified-prompt-transfer',screens.at(-1).includes('Brief included in generator request')&&screens.at(-1).includes('342 chars verified'));
     test('visual-followthrough-stays-review',screens.at(-1).includes('Generated artwork follows brief')&&screens.at(-1).includes('Review required'));
     test('fallback-shown-honestly',screens.at(-1).includes('Unavailable — image-model self-analysis'));
@@ -155,6 +155,15 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   test('review-does-not-call-paid-engine',requests.length===beforeReviewCalls);
   test('proof-visible-in-validation',screens.at(-1).includes('Analysis → Generation Proof'));
   test('no-visual-accuracy-fake-pass',!screens.at(-1).includes('Generated artwork follows brief</small><b class="verified">'));
+  test('quality-gate-reads-backend',screens.at(-1).includes('AI Vector Review &amp; Targeted Fix')&&screens.at(-1).includes('AI review passed')&&screens.at(-1).includes('1</b><small>AI reviews'));
+  test('new-stages-source-backed',src.includes('Mapping shapes, gradients and protected details')&&src.includes('AI comparing accepted artwork with vectors')&&src.includes('AI re-reviewing corrected vectors'));
+  test('seedream-output-not-faked',src.includes('Actual generated megapixels')&&src.includes('4.6 MP (request only)'));
+  const savedReview=serverProject.validation;
+  serverProject.validation={...savedReview,status:'REVIEW_REQUIRED',ai_vector_review:{status:'REVIEW_REQUIRED',rounds:2,fixes:1,accepted_artwork_source:true}};
+  context.render();
+  test('unresolved-review-visible',screens.at(-1).includes('Review required — export blocked')&&!screens.at(-1).includes('✓ Validated Vector'));
+  serverProject.validation=savedReview;
+  context.render();
 
   if(process.env.EXPORT_SNAPSHOT==='1')fs.writeFileSync('/mnt/data/artboard_final_work/export-qa.html','<!doctype html><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><style>'+fs.readFileSync('/mnt/data/artboard_v2_draft/artboard-v2.css','utf8')+'\\n'+css+'</style><body style=\"margin:0;background:#010b1b;color:white\">'+screens.at(-1)+'</body>');
   console.log('PASS Batch 02 frontend mocked integration & static checks');

@@ -35,6 +35,10 @@ assert(ui.includes('const next=stageOf(state.stage,state.progress)'),'Live stage
 assert(!ui.includes('const candidates=[...(state.artboardEvents'),'Historic events must not skip stages');
 assert(ui.includes('resume_from_ai:true'),'Resume must reuse saved artwork without paid AI regeneration');
 assert(ui.includes("if(a==='resume-vector')"),'Recovery button must have an active handler');
+assert(ui.includes('productionApproved('),'Quality export requires backend review and technical validation');
+assert(ui.includes('vectorReviewPanel()'),'Quality AI review appears in UI without extra calls');
+assert(ui.includes('FINAL_FIX_TECHNICAL_PENDING'),'Second fix is distinguished from an AI-review PASS');
+assert(ui.includes('AI vector review')&&ui.includes('Semantic guidance'),'New AI workflow progress must be classified');
 
 assert(ui.includes("'_Master_'+(p.processing_mode==='quality'?'quality':'normal')+'.zip'"),
   'Client-assembled ZIP must expose quality/normal mode in its filename');
