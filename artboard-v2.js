@@ -29,6 +29,12 @@
     const designerNote=semanticRecords.length
       ? 'Vector engine measured '+sumSemantic('matched_shapes')+' semantic shapes, '+sumSemantic('adjacent_groups')+' adjacent editable groups and '+sumSemantic('selectable_color_families')+' shared color-family tags across selected surfaces. SVG class tags support same-family identification without changing path geometry; native Illustrator layers are not independently certified.'
       : 'Semantic SVG color-family grouping has not yet been measured by the vector engine.';
+    const semanticStatus=p.semantic_guidance?.status||'PENDING';
+    const guidanceNote=semanticStatus==='LOCAL_RASTER_FALLBACK'
+      ? 'AI semantic response was invalid. The engine continued from the accepted artwork using local color analysis; this is NOT a passed AI semantic review.'
+      :semanticStatus==='AI_GUIDED'
+        ?'AI semantic guidance was validated and passed to the vector engine.'
+        :'Semantic guidance has not been reported by the engine.';
     const label={
       PASS:'AI review passed',FINAL_FIX_TECHNICAL_PENDING:'Second targeted fix completed',
       REVIEW_REQUIRED:'Review required — export blocked',NOT_REPORTED:'AI review not yet reported'
@@ -43,6 +49,7 @@
     return '<section class="abv2-card abv2-quality-review" aria-label="Quality mode AI review and correction">'
       +'<header><h2>AI Vector Review &amp; Targeted Fix</h2><b class="'+(status==='PASS'?'pass':status==='REVIEW_REQUIRED'?'fail':'')+'">'+esc(label)+'</b></header>'
       +'<p class="abv2-source-note">'+esc(description)+'</p>'
+      +'<p class="abv2-source-note">'+esc(guidanceNote)+'</p>'
       +'<p class="abv2-source-note">'+esc(designerNote)+'</p>'
       +'<div class="abv2-validation-stats"><span><b>'+(gate&&Number.isInteger(gate.rounds)?gate.rounds:'—')+'</b><small>AI reviews</small></span>'
       +'<span><b>'+(gate&&Number.isInteger(gate.fixes)?gate.fixes:'—')+'</b><small>Engine fix passes</small></span>'
