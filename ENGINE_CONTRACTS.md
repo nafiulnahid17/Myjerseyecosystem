@@ -16,6 +16,7 @@
 - **Export gate:** Quality Mode requires `true_vector_ready === true`, `validation.status === PASS` and review status `PASS` or `FINAL_FIX_TECHNICAL_PENDING`. No review metadata means **not verified**, not PASS.
 - `artwork_resolution[part_id].requested_dimensions` and `requested_tier` represent requested Seedream pixels (up to ~4.6MP); `received_dimensions` and `received_megapixels` represent actual image output. No 4K/600 DPI native claim may be inferred.
 - `resume_from_ai=true` reuses saved generated artwork and avoids **image generation**, but may perform billed semantic/review calls. Fixes modify selected vector regions only.
+- Each surface now exposes `semantic_editing` measured vector counts (`matched_shapes`, `adjacent_groups`, `selectable_color_families`, `protected_regions`) or `PENDING`. Shared SVG class tags support same-family path identification; native Illustrator layers/editability must be independently verified.
 - Normal Mode remains on its existing route; the Quality review metadata is not a prerequisite there.
 
 ## Frame Forge template IDs — exact from source
