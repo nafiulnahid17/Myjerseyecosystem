@@ -214,6 +214,14 @@ body.artboard-workspace #menuButton{display:grid!important;flex:0 0 40px;cursor:
 .abv2-input-shell .abv2-modes>b{display:flex;align-items:center;gap:10px;padding-left:8px;color:#f2fbff}
 .abv2-input-shell .abv2-modes>b>span{display:grid;place-items:center;width:31px;height:31px;border:1px solid #18d9ff;border-radius:9px;color:#55eaff;box-shadow:0 0 13px #00aaff38}
 .abv2-input-shell .abv2-modes>div{gap:11px}
+.abv2-visible-choice{position:relative;z-index:1;margin:0;padding:10px 13px 12px;border:1px solid #167fbd;border-radius:18px;background:linear-gradient(155deg,#06213def,#020e20ef);color:#eafaff}
+.abv2-visible-choice legend{padding:0 8px;font-size:12px;font-weight:800;color:#dffaff}
+.abv2-visible-choice>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.abv2-visible-choice label{display:flex;align-items:center;gap:9px;padding:9px 11px;border:1px solid #145f91;border-radius:13px;background:#041a31;cursor:pointer}
+.abv2-visible-choice label:has(input:checked){border-color:#20e0f2;background:#07334a;box-shadow:inset 0 0 14px #00bfff24}
+.abv2-visible-choice input{width:17px;height:17px;accent-color:#18dff1}
+.abv2-visible-choice label>span{display:grid;gap:2px}.abv2-visible-choice b{font-size:12px}.abv2-visible-choice small{font-size:9px;color:#8fbcd0}
+.abv2-visible-choice>p{margin:8px 3px 0;font-size:9px;color:#72b8d4}
 .abv2 .abv2-mode-card{position:relative;display:grid;grid-template-columns:32px minmax(0,1fr) 22px;align-items:center;gap:8px;text-align:left;padding:9px 12px!important;min-height:56px!important;border-radius:15px!important}
 .abv2 .abv2-mode-card>em{font-size:23px;font-style:normal;color:#5beaff;text-align:center;text-shadow:0 0 12px #03bdfd}
 .abv2 .abv2-mode-card>span{display:flex;flex-direction:column;gap:3px;min-width:0}
@@ -253,7 +261,7 @@ body.artboard-workspace #menuButton{display:grid!important;flex:0 0 40px;cursor:
 .abv2-validation-checks>ul{list-style:none;padding:0;margin:0;display:grid;gap:7px}.abv2-validation-checks li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px;border:1px solid #15547a;border-radius:10px;background:#04172d}.abv2-validation-checks li>span{display:flex;align-items:center;gap:8px;min-width:0}.abv2-validation-checks li>span>i{display:grid;place-items:center;flex:0 0 25px;width:25px;height:25px;border:1px solid #1c799a;border-radius:50%;color:#28dff2;font-style:normal}.abv2-validation-checks li>span>span{display:grid;gap:3px;min-width:0}.abv2-validation-checks li strong{font-size:10px;color:#effcff}.abv2-validation-checks li small{font-size:9px;color:#85aebf;overflow-wrap:anywhere}.abv2-validation-checks li>b{font-size:9px;color:#54dff5}.abv2-validation-checks li>b.pass{color:#31ef9e}.abv2-validation-checks li>b.fail{color:#ff7e8e}
 @media(max-width:1160px){.abv2-validation-layout{grid-template-columns:minmax(210px,.7fr) minmax(0,1.5fr)}.abv2-validation-checks{grid-column:1/-1;min-height:0}.abv2-validation-checks>ul{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:850px){.abv2-health>span>span{display:grid;gap:3px}.abv2-input-shell .abv2-modes{grid-template-columns:1fr!important}.abv2-input-shell .abv2-modes>b{justify-content:center}.abv2-validation-layout{grid-template-columns:1fr}.abv2-validation-meter,.abv2-validation-preview,.abv2-validation-checks{min-height:0}.abv2-validation-checks{grid-column:auto}.abv2-validation-arts .abv2-art-canvas{height:280px;min-height:280px}}
-@media(max-width:560px){.abv2-health>span>.abv2-health-icon{display:none}.abv2-health>span strong{font-size:10px}.abv2-health>span b{font-size:9px;padding:3px 6px}.abv2-input-shell{padding-inline:0!important}.abv2 .abv2-mode-card{grid-template-columns:28px minmax(0,1fr) 20px}.abv2-validation-arts,.abv2-validation-checks>ul{grid-template-columns:1fr}.abv2-validation-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.abv2-health>span>.abv2-health-icon{display:none}.abv2-health>span strong{font-size:10px}.abv2-health>span b{font-size:9px;padding:3px 6px}.abv2-input-shell{padding-inline:0!important}.abv2 .abv2-mode-card{grid-template-columns:28px minmax(0,1fr) 20px}.abv2-visible-choice>div,.abv2-validation-arts,.abv2-validation-checks>ul{grid-template-columns:1fr}.abv2-validation-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(prefers-reduced-motion:reduce){.abv2-gauge::after{animation:none!important}}
 
 /* Live Analyzing stage: decorative scanner follows genuine preparation/Fable job events. */
