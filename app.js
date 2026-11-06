@@ -423,15 +423,15 @@ async function resumeFailedArtboardProduction(){
  const id=state.artboardProject.project_id;
  const mode=state.artboardResult.ai_reconstruction.processing_mode||state.lastMode||state.mode.artboard;
  const requested=[...state.formats.artboard];
- await run('Resume deterministic Artboard stages',async()=>{
-  log('Resuming from saved generated image. No new AI provider requests.');
+ await run('Resume Artboard from saved artwork',async()=>{
+  log('Reusing saved artwork. No new image generation; semantic guidance and vector review may use paid AI calls.');
   let j=await call('artboard','api/artboard/production',{
    method:'POST',json:{project_id:id,processing_mode:mode,
     ai_reconstruction:true,resume_from_ai:true}
   });
   captureJob('Artboard safe resume',j);
   j=await jobPoll('artboard','api/artboard/jobs/'+j.job_id,'Production');
-  log('Validated deterministic stages completed without AI generation.');
+  log('Production resumed from saved artwork. Verify review and technical validation before export.');
   j=await call('artboard','api/artboard/export',{
    method:'POST',json:{project_id:id,formats:requested,
     bundle:requested.includes('zip')?'production_pack':'selected_files'}
