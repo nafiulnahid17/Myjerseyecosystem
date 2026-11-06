@@ -187,6 +187,12 @@
   function savedJob(){return state.pendingArtboardJob || (state.artboardJob?.job_id&&project().project_id?state.artboardJob:null);}
   function jobNotice(){
     const job=savedJob();if(!job?.job_id)return '';
+    if(job.status==='checkpoint_missing'){
+      return '<section class="abv2-card abv2-recovery" role="alert">'+
+        '<header><h2>Server job checkpoint unavailable</h2><small>'+esc(job.job_id.slice(0,12))+'</small></header>'+
+        '<p>Job status disappeared from the backend storage. The previous artwork may still exist. Check the persistent volume and server restart logs before any new paid production.</p>'+
+        '<div class="abv2-commands">'+button('Check Server Status','refresh-job','secondary')+'</div></section>';
+    }
     const active=['queued','processing','cancelling'].includes(job.status);
     const lastAt=Date.parse(job.updated_at||job.events?.at(-1)?.at||job.started_at||'');
     const stale=active&&Number.isFinite(lastAt)&&Date.now()-lastAt>180000;
