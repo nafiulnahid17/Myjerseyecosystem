@@ -299,6 +299,41 @@ async function jobPoll(engine,path,terminal,limitMs=600000){
    if(disconnectedAt!==null)log(terminal+': existing job reconnected; no new generation submitted');
    consecutivePollErrors=0;disconnectedAt=null;
   }catch(e){
+   // 404/410 for a lost saved checkpoint is not a transient network 503.
+   // Preserve project, job ID and last confirmed artwork; never submit new AI.
+   const checkpointLost=engine==='artboard' &&
+     (Number(e?.httpStatus)===410 ||
+      (Number(e?.httpStatus)===404 &&
+       /requested artifact does not exist|job_checkpoint_missing|project_checkpoint_missing/i.test(String(e.message||''))));
+   if(checkpointLost){
+    state.stage='Saved job/project checkpoint unavailable';
+    const old=state.artboardJob||state.pendingArtboardJob;
+    if(old?.job_id){
+     const unavailable={...old,status:'checkpoint_missing'};
+     state.artboardJob=unavailable;
+     state.pendingArtboardJob=unavailable;
+    }
+    log(terminal+': server checkpoint missing; verify persistent storage and restarts');
+    updateMonitor();
+    let savedArtwork='unverified';
+    const projectId=state.artboardProject?.project_id||state.artboardResult?.project_id;
+    if(projectId){
+     try{
+      const project=await call('artboard','api/artboard/projects/'+encodeURIComponent(projectId),{timeoutMs:15000});
+      if(project.project_id===projectId){
+       state.artboardResult=project;
+       savedArtwork=project.ai_reconstruction?.complete===true?'present':'not_confirmed';
+      }
+     }catch(checkError){
+      log(terminal+': project cannot be verified: '+checkError.message);
+     }
+    }
+    const detail=savedArtwork==='present'
+     ?'Saved AI artwork is readable, but the job record is missing.'
+     :'Saved AI artwork could not be verified on this server.';
+    throw Error('Artboard storage checkpoint missing (HTTP '+e.httpStatus+'). '+detail+
+     ' Verify the persistent volume, instance routing and restart logs before any paid retry.');
+   }
    if(!transientJobStatusError(e))throw e;
    consecutivePollErrors++;
    if(disconnectedAt===null)disconnectedAt=Date.now();
