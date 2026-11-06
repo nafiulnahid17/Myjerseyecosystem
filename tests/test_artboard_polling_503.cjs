@@ -10,7 +10,7 @@ const end = source.indexOf('function captureJob(', start);
 assert(start >= 0 && end > start, 'Actual polling functions must remain inspectable');
 const functions = source.slice(start, end);
 
-async function scenario({ failedGets, failureCode = 503, alwaysFail = false }) {
+async function scenario({ failedGets, failureCode = 503, alwaysFail = false, terminal = "Production" }) {
   let virtualNow = 0, attempts = 0, duplicatePosts = 0;
   const events = [], logs = [];
   const state = {
@@ -51,7 +51,7 @@ async function scenario({ failedGets, failureCode = 503, alwaysFail = false }) {
   const api = vm.runInNewContext(functions + '\n({jobPoll, transientJobStatusError})', sandbox);
   let response = null, error = null;
   try {
-    response = await api.jobPoll('artboard', 'api/artboard/jobs/persistent-id', 'Production');
+    response = await api.jobPoll('artboard', 'api/artboard/jobs/persistent-id', terminal);
   } catch (failure) {
     error = failure;
   }
@@ -91,6 +91,10 @@ async function scenario({ failedGets, failureCode = 503, alwaysFail = false }) {
     assert(missing.error?.message.includes('persistent volume'));
     assert(missing.error?.message.includes('paid retry'));
   }
+  const lostAnalysis = await scenario({ failedGets: 1, failureCode: 410, terminal: 'Prepare' });
+  assert(lostAnalysis.error?.message.includes('before artwork generation was confirmed'));
+  assert.equal(lostAnalysis.state.progress, 46);
+  assert.equal(lostAnalysis.duplicatePosts, 0);
   const ui = fs.readFileSync(path.join(__dirname, '..', 'artboard-v2.js'), 'utf8');
   assert(ui.includes("job.status==='checkpoint_missing'"));
   assert(ui.includes('Check the persistent volume'));
