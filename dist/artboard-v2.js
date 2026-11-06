@@ -24,6 +24,11 @@
   function vectorReviewPanel(){
     const p=project();if(!qualityMode(p))return '';
     const gate=vectorReview(p),status=gate?.status||'NOT_REPORTED';
+    const semanticRecords=(p.surfaces||[]).map(s=>s.semantic_editing).filter(s=>s?.status==='MEASURED');
+    const sumSemantic=field=>semanticRecords.reduce((n,s)=>n+Math.max(0,Math.min(100000,Number(s[field])||0)),0);
+    const designerNote=semanticRecords.length
+      ? 'Vector engine measured '+sumSemantic('matched_shapes')+' semantic shapes, '+sumSemantic('adjacent_groups')+' adjacent editable groups and '+sumSemantic('selectable_color_families')+' shared color-family tags across selected surfaces. SVG class tags support same-family identification without changing path geometry; native Illustrator layers are not independently certified.'
+      : 'Semantic SVG color-family grouping has not yet been measured by the vector engine.';
     const label={
       PASS:'AI review passed',FINAL_FIX_TECHNICAL_PENDING:'Second targeted fix completed',
       REVIEW_REQUIRED:'Review required — export blocked',NOT_REPORTED:'AI review not yet reported'
@@ -38,6 +43,7 @@
     return '<section class="abv2-card abv2-quality-review" aria-label="Quality mode AI review and correction">'
       +'<header><h2>AI Vector Review &amp; Targeted Fix</h2><b class="'+(status==='PASS'?'pass':status==='REVIEW_REQUIRED'?'fail':'')+'">'+esc(label)+'</b></header>'
       +'<p class="abv2-source-note">'+esc(description)+'</p>'
+      +'<p class="abv2-source-note">'+esc(designerNote)+'</p>'
       +'<div class="abv2-validation-stats"><span><b>'+(gate&&Number.isInteger(gate.rounds)?gate.rounds:'—')+'</b><small>AI reviews</small></span>'
       +'<span><b>'+(gate&&Number.isInteger(gate.fixes)?gate.fixes:'—')+'</b><small>Engine fix passes</small></span>'
       +'<span><b>'+(gate?.accepted_artwork_source===true?'Confirmed':'Not reported')+'</b><small>Accepted AI artwork reference</small></span>'
