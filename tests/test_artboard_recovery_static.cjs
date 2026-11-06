@@ -47,4 +47,25 @@ assert(ui.includes("item.path.split('/').pop()"),
 assert(ui.includes("p.processing_mode==='quality'?'quality':'normal'"),
   'Artboard download filenames must distinguish quality from normal mode');
 
+// Production status must not approve an unreviewed final AI correction.
+const approvalStart=ui.indexOf('const qualityMode = p =>');
+const approvalEnd=ui.indexOf('  function vectorReviewPanel(){',approvalStart);
+assert(approvalStart>=0&&approvalEnd>approvalStart,'Inspect actual approval logic');
+const approval=vm.runInNewContext(
+  ui.slice(approvalStart,approvalEnd)+'\nproductionApproved',
+  {state:{lastMode:'quality',mode:{artboard:'quality'}},project:()=>({})},
+);
+const baseValidation={true_vector_ready:true,processing_mode:'quality',
+  validation:{status:'PASS',ai_vector_review:{status:'PASS'}}};
+assert.equal(approval(baseValidation),true,'Reviewed technical vector is exportable for desktop inspection');
+assert.equal(approval({...baseValidation,validation:{
+  status:'PASS',ai_vector_review:{status:'FINAL_FIX_TECHNICAL_PENDING'},
+}}),false,'Never approve an unreviewed final AI correction');
+assert.equal(approval({...baseValidation,validation:{
+  status:'REVIEW_REQUIRED',ai_vector_review:{status:'PASS'},
+}}),false,'Technical gate must still pass');
+assert(ui.includes('delivery_readiness'),'Display backend delivery readiness separately');
+assert(ui.includes('Native Illustrator sign-off is not certified'),'Never claim native AI approval');
+assert(!ui.includes('Production-ready saved result'),'Never claim production delivery from SVG alone');
+
 console.log('Artboard refresh/cancel/re-entry and export naming regression contract passed');
