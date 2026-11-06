@@ -26,10 +26,18 @@
     const gate=vectorReview(p),status=gate?.status||'NOT_REPORTED';
     const semanticRecords=(p.surfaces||[]).map(s=>s.semantic_editing).filter(s=>s?.status==='MEASURED');
     const sumSemantic=field=>semanticRecords.reduce((n,s)=>n+Math.max(0,Math.min(100000,Number(s[field])||0)),0);
-    const designerNote=semanticRecords.length
-      ? 'Vector engine measured '+sumSemantic('matched_shapes')+' semantic shapes, '+sumSemantic('adjacent_groups')+' adjacent editable groups and '+sumSemantic('selectable_color_families')+' shared color-family tags across selected surfaces. SVG class tags support same-family identification without changing path geometry; native Illustrator layers are not independently certified.'
-      : 'Semantic SVG color-family grouping has not yet been measured by the vector engine.';
     const semanticStatus=p.semantic_guidance?.status||'PENDING';
+    const exactShades=sumSemantic('exact_color_shades');
+    const selectedFamilies=sumSemantic('selectable_color_families');
+    const paletteNote=semanticStatus==='LOCAL_RASTER_FALLBACK' && exactShades>0
+      ? ' '+exactShades+' exact traced color shades are represented by '+selectedFamilies+
+        ' logical selection families, without repainting or merging original SVG geometry.'
+      : ' '+selectedFamilies+' measured designer selection-family labels are available.';
+    const designerNote=semanticRecords.length
+      ? 'Vector engine measured '+sumSemantic('matched_shapes')+' annotated shapes and '+
+        sumSemantic('adjacent_groups')+' adjacent editable groups.'+paletteNote+
+        ' SVG metadata enables selecting similar shades; native Illustrator layers and real editability are not independently certified.'
+      : 'Semantic SVG color-family grouping has not yet been measured by the vector engine.';
     const guidanceNote=semanticStatus==='LOCAL_RASTER_FALLBACK'
       ? 'AI semantic response was invalid. The engine continued from the accepted artwork using local color analysis; this is NOT a passed AI semantic review.'
       :semanticStatus==='AI_GUIDED'
