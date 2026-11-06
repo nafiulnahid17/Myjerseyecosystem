@@ -328,9 +328,11 @@ async function jobPoll(engine,path,terminal,limitMs=600000){
       log(terminal+': project cannot be verified: '+checkError.message);
      }
     }
-    const detail=savedArtwork==='present'
-     ?'Saved AI artwork is readable, but the job record is missing.'
-     :'Saved AI artwork could not be verified on this server.';
+    const detail=terminal==='Prepare'
+     ?'Analysis job checkpoint disappeared before artwork generation was confirmed.'
+     :savedArtwork==='present'
+      ?'Saved AI artwork metadata is readable, but the job record is missing. Verify source files before resuming.'
+      :'Saved AI artwork could not be verified on this server.';
     throw Error('Artboard storage checkpoint missing (HTTP '+e.httpStatus+'). '+detail+
      ' Verify the persistent volume, instance routing and restart logs before any paid retry.');
    }
