@@ -18,12 +18,21 @@
     if(p.true_vector_ready!==true)return false;
     if(!qualityMode(p))return !['REVIEW_REQUIRED','FAIL'].includes(p.validation?.status);
     const status=vectorReview(p)?.status;
-    return p.validation?.status==='PASS' &&
-      (status==='PASS'||status==='FINAL_FIX_TECHNICAL_PENDING');
+    // An unreviewed second correction is not a certified AI review.
+    // Backend may supply a separate REVIEW_REQUIRED designer-readiness
+    // advisory even when a technically valid SVG is exportable for review.
+    return p.validation?.status==='PASS' && status==='PASS';
   }
   function vectorReviewPanel(){
     const p=project();if(!qualityMode(p))return '';
     const gate=vectorReview(p),status=gate?.status||'NOT_REPORTED';
+    const readiness=p.validation?.delivery_readiness;
+    const readinessNote=readiness
+      ?'Delivery status: '+readiness.status+
+       (Array.isArray(readiness.reasons)&&readiness.reasons.length
+         ?' — '+readiness.reasons.join(', ') : '')+
+       '. Native Illustrator sign-off is not certified.'
+      :'Delivery readiness has not been reported; Illustrator sign-off is not certified.';
     const semanticRecords=(p.surfaces||[]).map(s=>s.semantic_editing).filter(s=>s?.status==='MEASURED');
     const sumSemantic=field=>semanticRecords.reduce((n,s)=>n+Math.max(0,Math.min(100000,Number(s[field])||0)),0);
     const designerNote=semanticRecords.length
@@ -42,7 +51,7 @@
     const description=status==='PASS'
       ?'AI review passed. Technical geometry and print validation are separate checks.'
       :status==='FINAL_FIX_TECHNICAL_PENDING'
-        ?'Second targeted fix completed; technical validation passed, but the final fix was not re-reviewed by a third AI call.'
+        ?'Second correction has not received AI re-review. Delivery approval remains blocked.'
         :status==='REVIEW_REQUIRED'
           ?'Unresolved vector quality defects remain. Export must stay blocked.'
           :'No AI vector review result has been returned by the engine. Do not infer a PASS.';
@@ -50,6 +59,7 @@
       +'<header><h2>AI Vector Review &amp; Targeted Fix</h2><b class="'+(status==='PASS'?'pass':status==='REVIEW_REQUIRED'?'fail':'')+'">'+esc(label)+'</b></header>'
       +'<p class="abv2-source-note">'+esc(description)+'</p>'
       +'<p class="abv2-source-note">'+esc(guidanceNote)+'</p>'
+      +'<p class="abv2-source-note">'+esc(readinessNote)+'</p>'
       +'<p class="abv2-source-note">'+esc(designerNote)+'</p>'
       +'<div class="abv2-validation-stats"><span><b>'+(gate&&Number.isInteger(gate.rounds)?gate.rounds:'—')+'</b><small>AI reviews</small></span>'
       +'<span><b>'+(gate&&Number.isInteger(gate.fixes)?gate.fixes:'—')+'</b><small>Engine fix passes</small></span>'
@@ -307,7 +317,7 @@
       ${active?'<span class="abv2-beam" aria-hidden="true"></span>':''}
       ${isVector?'<div class="abv2-path-status">AI guidance informs tracing and optimization. Actual saved SVG geometry appears when available; corrections occur before validation.</div>':''}</div>
       ${isValid?`<div class="abv2-validation-results">${[['Valid SVG',part?.validation?.valid_svg],['True vector',part?.validation?.true_vector],['Raster count',part?.validation?.embedded_rasters],['Editability',part?.validation?.editability_status],['Print readiness',part?.validation?.physical_artboard?.status]].map(([name,value])=>`<span><small>${esc(name)}</small><b class="${value===true?'pass':value===false?'fail':''}">${esc(value===true?'PASS':value===false?'FAILED':value??'Not reported')}</b></span>`).join('')}</div>`:''}
-      <div class="abv2-side-note">${esc(ui.stageStatus==='completed'?(verified?'Production-ready saved result':'Stage completed'):friendlyActivity(state.stage||'Preparing stage data'))}</div></section>`;
+      <div class="abv2-side-note">${esc(ui.stageStatus==='completed'?(verified?'Validated vector saved — Illustrator sign-off pending':'Stage completed'):friendlyActivity(state.stage||'Preparing stage data'))}</div></section>`;
       }).join('')}${liveLog()}</div>${isVector?vectorFinishing(onlyValid):''}${navigation(title)}${state.lastError&&project().ai_reconstruction?.complete===true?`<div class="abv2-commands">${button('↻ Retry saved AI artwork (no image regeneration)','resume-vector','secondary',state.busy)}</div>`:''}`;
   }
   function v2Downloads(){
