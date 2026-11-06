@@ -29,6 +29,7 @@ jobs:
           node --check src/worker.mjs
           node --check artboard-v2.js
           node tests/test_artboard_recovery_static.cjs
+          node tests/test_artboard_polling_503.cjs
           node tests/test_artboard_batch2.cjs
           ARTBOARD_TEST_PARTS=back node tests/test_artboard_batch2.cjs
           ARTBOARD_TEST_PARTS=both node tests/test_artboard_batch2.cjs
