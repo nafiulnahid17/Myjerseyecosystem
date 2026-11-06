@@ -137,3 +137,12 @@ def test_artboard_layout_uses_natural_panel_proportions():
     assert '.artboard-console .terminal-dock' in css
     assert '.artboard-export-page' in css
     assert 'grid-template-columns:minmax(245px,285px) minmax(450px,1fr) minmax(300px,360px)' in css
+
+
+def test_artboard_semantic_grouping_is_server_measured_not_fake_progress():
+    source = (Path(__file__).parents[1] / 'artboard-v2.js').read_text()
+    assert "semantic_editing" in source
+    assert "status==='MEASURED'" in source
+    assert "selectable_color_families" in source
+    assert "native Illustrator layers are not independently certified" in source
+    assert "Semantic SVG color-family grouping has not yet been measured" in source
