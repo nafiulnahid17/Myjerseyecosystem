@@ -17,7 +17,9 @@ async function scenario({ failedGets, failureCode = 503, alwaysFail = false }) {
     progress: 46, stage: 'Semantic guidance delivered to vector engine',
     lastJobId: 'persistent-id', busy: true, artboardEvents: events,
     artboardEventKeys: new Set(), failedStage: '', failedFormats: [],
-    activePipeline: '', artboardJob: null,
+    activePipeline: '', artboardJob: {
+      job_id: 'persistent-id', status: 'processing', project_id: 'project-id',
+    },
   };
   const sandbox = {
     state,
@@ -33,7 +35,9 @@ async function scenario({ failedGets, failureCode = 503, alwaysFail = false }) {
         assert.equal(state.progress, 46, 'Preserve last verified percentage on 503');
       }
       if (alwaysFail || attempts <= failedGets) {
-        const error = new Error('artboard: upstream failed (HTTP ' + failureCode + ')');
+        const error = new Error('artboard: ' +
+          (failureCode === 404 ? 'Requested artifact does not exist' : 'upstream failed') +
+          ' (HTTP ' + failureCode + ')');
         error.httpStatus = failureCode;
         throw error;
       }
@@ -75,5 +79,20 @@ async function scenario({ failedGets, failureCode = 503, alwaysFail = false }) {
   const auth = await scenario({ failedGets: 1, failureCode: 401 });
   assert.equal(auth.attempts, 1, 'Authentication failures are not transient');
   assert(auth.error?.message.includes('HTTP 401'));
+  for (const code of [404, 410]) {
+    const missing = await scenario({ failedGets: 1, failureCode: code });
+    assert.equal(missing.attempts, 1, 'Missing checkpoint is not a network retry');
+    assert.equal(missing.duplicatePosts, 0);
+    assert.equal(missing.state.lastJobId, 'persistent-id');
+    assert.equal(missing.state.progress, 46);
+    assert.equal(missing.state.stage, 'Saved job/project checkpoint unavailable');
+    assert.equal(missing.state.artboardJob.status, 'checkpoint_missing');
+    assert.equal(missing.state.pendingArtboardJob.status, 'checkpoint_missing');
+    assert(missing.error?.message.includes('persistent volume'));
+    assert(missing.error?.message.includes('paid retry'));
+  }
+  const ui = fs.readFileSync(path.join(__dirname, '..', 'artboard-v2.js'), 'utf8');
+  assert(ui.includes("job.status==='checkpoint_missing'"));
+  assert(ui.includes('Check the persistent volume'));
   console.log('Artboard transient 503 polling recovery and no-paid-retry checks passed');
 })().catch(error => { console.error(error); process.exitCode = 1; });
