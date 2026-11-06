@@ -34,7 +34,12 @@ async function call(engine,path,{method='GET',json=null,body=null,response='json
  const timer=controller&&requestTimeout>0?setTimeout(()=>controller.abort(),requestTimeout):null;
  try{
   const r=await fetch('/api/engine/'+engine+'/'+path,{method,headers,body:content,cache:'no-store',credentials:'same-origin',signal:controller?.signal});
-  if(!r.ok){const payload=await r.json().catch(()=>({}));throw Error(engine+': '+apiError(payload)+' (HTTP '+r.status+')')}
+  if(!r.ok){
+   const payload=await r.json().catch(()=>({}));
+   const error=new Error(engine+': '+apiError(payload)+' (HTTP '+r.status+')');
+   error.httpStatus=r.status;
+   throw error;
+  }
   return response==='blob'?r.blob():r.json();
  }catch(e){
   if(e?.name==='AbortError')throw Error(engine+': request timed out while waiting for the server');
@@ -275,19 +280,43 @@ async function loadArtboardPreview(projectId, path) {
   updateArtboardPreview();
  } catch(e){log('Intermediate preview unavailable: '+e.message)}
 }
+function transientJobStatusError(error){
+ const code=Number(error?.httpStatus);
+ return [408,429,500,502,503,504,520,521,522,523,524].includes(code)
+   || (!code && /network|failed to fetch|load failed|timed out|connection|fetch failed/i.test(String(error?.message||'')));
+}
 async function jobPoll(engine,path,terminal,limitMs=600000){
- let started=Date.now(),lastEvent='',consecutivePollErrors=0;
+ const started=Date.now(),production=(engine==='artboard'&&terminal==='Production');
+ // Poll the existing two-sided Quality job for the server's full time budget.
+ // Polling must never issue another paid production request.
+ const maximumMs=production&&limitMs===600000?35*60*1000:limitMs;
+ let lastEvent='',consecutivePollErrors=0,disconnectedAt=null;
  state.activePipeline=terminal;
- while(Date.now()-started<limitMs){
+ while(Date.now()-started<maximumMs){
   let j;
   try{
-   j=await call(engine,path,{timeoutMs:30000});consecutivePollErrors=0;
+   j=await call(engine,path,{timeoutMs:30000});
+   if(disconnectedAt!==null)log(terminal+': existing job reconnected; no new generation submitted');
+   consecutivePollErrors=0;disconnectedAt=null;
   }catch(e){
+   if(!transientJobStatusError(e))throw e;
    consecutivePollErrors++;
-   if(consecutivePollErrors>3)throw e;
-   state.stage='Reconnecting to live job status';state.progress=null;
-   log(terminal+': status connection interrupted; retry '+consecutivePollErrors+'/3');
-   updateMonitor();await new Promise(resolve=>setTimeout(resolve,1600));continue;
+   if(disconnectedAt===null)disconnectedAt=Date.now();
+   // 503 means polling failed, NOT that the remote job failed. Keep the
+   // last verified progress, project, session and job identifier.
+   state.stage='Reconnecting to live job status';
+   if(consecutivePollErrors===1||consecutivePollErrors%5===0){
+    log(terminal+': temporary status outage '+(e.httpStatus?'HTTP '+e.httpStatus:'network')+
+      '; reconnect attempt '+consecutivePollErrors+' (job retained)');
+   }
+   updateMonitor();
+   if(Date.now()-disconnectedAt>=180000){
+    throw Error(terminal+' status unavailable for 3 minutes; job may still be running. '+
+      'Use Check Status / Resume Production for the saved job. Do not start a duplicate production.');
+   }
+   const waitMs=Math.min(12000,1500*Math.pow(2,Math.min(consecutivePollErrors-1,3)));
+   await new Promise(resolve=>setTimeout(resolve,waitMs));
+   continue;
   }
   state.lastJobId=j.job_id||'';
   state.stage=j.step||j.stage||j.status||'processing';
@@ -327,7 +356,7 @@ async function jobPoll(engine,path,terminal,limitMs=600000){
   }
   await new Promise(resolve=>setTimeout(resolve,2200));
  }
- throw Error(terminal+' still processing; inspect the job before resubmitting. No automatic paid retry was started.');
+ throw Error(terminal+' monitoring reached its time limit. The saved job may still be running; Check Status / Resume Production before any new paid request.');
 }
 function captureJob(engine,obj){
  if(!obj?.job_id)return;
