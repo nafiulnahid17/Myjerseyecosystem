@@ -30,7 +30,7 @@ const context={state,Date,setTimeout:(fn)=>setTimeout(fn,1),URL:{revokeObjectURL
  call:async(engine,path,opts={})=>{assert.equal(engine,'artboard');requests.push({path,opts});
   if(path==='api/artboard/projects'&&opts.method==='POST'){serverProject={project_id:'p1',surfaces:[],true_vector_ready:false,exports:{}};return serverProject;}
   if(path==='api/artboard/upload')return serverProject;
-  if(path==='api/artboard/prepare'){serverProject.surfaces=opts.json.surfaces.map(x=>({type:x,name:x,part_id:x,exports:{},validation:{path_count:x==='front_body'?123:287,color_mode:'CMYK',postscript_level:2,dpi:300}}));return currentJob={job_id:'j'+(++jobN),project_id:'p1',status:'queued'};}
+  if(path==='api/artboard/prepare'){serverProject.surfaces=opts.json.surfaces.filter(x=>!(process.env.ARTBOARD_MISSING_BACK==='1'&&x==='back_body')).map(x=>({type:x,name:x,part_id:x,exports:{},validation:{path_count:x==='front_body'?123:287,color_mode:'CMYK',postscript_level:2,dpi:300}}));return currentJob={job_id:'j'+(++jobN),project_id:'p1',status:'queued'};}
   if(path==='api/artboard/production'){serverProject.true_vector_ready=true;
     if(process.env.ARTBOARD_PROOF_MISSING!=='1'){
       serverProject.analysis_generation_audit=Object.fromEntries(serverProject.surfaces.map(item=>[
@@ -38,7 +38,7 @@ const context={state,Date,setTimeout:(fn)=>setTimeout(fn,1),URL:{revokeObjectURL
           version:'analysis-generation-provenance/1',
           analysis:{
             status:item.type==='front_body'?'COMPLETED':'UNAVAILABLE',
-            model:item.type==='front_body'?'alibaba/qwen3-vl-instruct':null,
+            model:item.type==='front_body'?'google/gemini-2.5-flash':null,
             duration_ms:item.type==='front_body'?1902:null,
             summary:{fields:{base_colors:2,patterns:3,graphics:2,uncertain_details:1,layout_guidance:1}},
           },
@@ -91,6 +91,15 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   test(34,css.includes('artboard-workspace.sidebar-collapsed .shell')&&bodyClasses.has('sidebar-collapsed'));
   test(35,css.includes('artboard-workspace #menuButton{display:grid!important'));
   await handler(click('start'));
+  if(process.env.ARTBOARD_MISSING_BACK==='1'){
+    const prepare=requests.filter(r=>r.path==='api/artboard/prepare');
+    test('strict-both-request',prepare.length===1&&prepare[0].opts.json.surfaces.join(',')==='front_body,back_body');
+    test('no-silent-front-fallback',!requests.some(r=>r.path==='api/artboard/prepare'&&r.opts.json.surfaces.length===1));
+    test('missing-back-blocks-paid-production',!requests.some(r=>r.path==='api/artboard/production')&&state.lastError.includes('Back was not detected'));
+    test('missing-back-ui-is-honest',src.includes('const generating=Boolean(item)')&&src.includes("!item?'No independently visible '+label+' detected'"));
+    console.log('PASS strict Front+Back preparation guard');
+    return;
+  }
   test(27,src.includes('originalPreview()')&&css.includes('.abv2 .abv2-visual>img'));
   test('live-workflow-rail',screens.at(-1).includes('Artboard production workflow')&&screens.at(-1).includes('Artwork Creation'));
   test('dedicated-analyzing',screens.some(screen=>screen.includes('<h1>Analyzing</h1>')&&screen.includes('Live Design Analysis')));
@@ -104,7 +113,7 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   if(process.env.ARTBOARD_PROOF_MISSING==='1'){
     test('legacy-proof-is-not-faked',screens.at(-1).includes('Audit not returned by deployed engine')&&!screens.at(-1).includes('Brief included in generator request'));
   }else{
-    test('analyzer-completed-from-backend',screens.at(-1).includes('alibaba/qwen3-vl-instruct')&&screens.at(-1).includes('1.902 seconds'));
+    test('analyzer-completed-from-backend',screens.at(-1).includes('google/gemini-2.5-flash')&&screens.at(-1).includes('1.902 seconds'));
     test('verified-prompt-transfer',screens.at(-1).includes('Brief included in generator request')&&screens.at(-1).includes('342 chars verified'));
     test('visual-followthrough-stays-review',screens.at(-1).includes('Generated artwork follows brief')&&screens.at(-1).includes('Review required'));
     test('fallback-shown-honestly',screens.at(-1).includes('Unavailable — image-model self-analysis'));
