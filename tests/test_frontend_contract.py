@@ -146,3 +146,11 @@ def test_artboard_semantic_grouping_is_server_measured_not_fake_progress():
     assert "selectable_color_families" in source
     assert "native Illustrator layers are not independently certified" in source
     assert "Semantic SVG color-family grouping has not yet been measured" in source
+
+
+def test_artboard_semantic_ai_failure_is_not_misreported_as_approved():
+    source = (Path(__file__).parents[1] / 'artboard-v2.js').read_text()
+    assert "semantic_guidance?.status" in source
+    assert "LOCAL_RASTER_FALLBACK" in source
+    assert "this is NOT a passed AI semantic review" in source
+    assert "AI_GUIDED" in source
