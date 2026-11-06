@@ -4,7 +4,7 @@
   const ui = {
     vectorOverlaySource:null, analysisDone:false, generationStarted:false, processingStage:'', downloadFormat:'',
     phase: 'input', preferInput:false, workspaceEpoch:0, selected: new Set(), prepared: [], inspected: false,
-    view: null, visitedStages: new Set(), stageStatus: '', lastPreviewPath:'', dimensions: '', awaitingSurfaces: false, visibleChoice: new Set(['front_body']), processingStarted: false, cancelRequested: false, productionDone:false, continued:false, finishing:false, exportStarted:false, zipBusy:false, handoffBusy:false, generatedUrls:{}, vectorUrls:{}, assetBusy:new Set(), assetRetry:{}, generationError:"", compareSource:false, validationSide:null
+    view: null, visitedStages: new Set(), stageStatus: '', lastPreviewPath:'', dimensions: '', awaitingSurfaces: false, visibleChoice: new Set(['front_body','back_body']), processingStarted: false, cancelRequested: false, productionDone:false, continued:false, finishing:false, exportStarted:false, zipBusy:false, handoffBusy:false, generatedUrls:{}, vectorUrls:{}, assetBusy:new Set(), assetRetry:{}, generationError:"", compareSource:false, validationSide:null
   };
   const steps = ['Input','Analyzing','Artwork Creation','Vectorization','Validation','Export'];
   const surfName = x => /back/i.test(String(x?.type || x?.name || x || '')) ? 'back_body' : 'front_body';
@@ -130,11 +130,11 @@
   function artworkCard(side){
     const item=available().find(x=>x.side===side),label=surfaceLabel(side),chosen=ui.selected.has(side);
     const url=ui.generatedUrls[side] || (ui.productionDone?(ui.vectorUrls[side]||previewUrl(item)):'') || interimPreview(side);
-    const generating=ui.generationStarted&&!ui.productionDone&&state.busy;
+    const generating=Boolean(item)&&ui.generationStarted&&!ui.productionDone&&state.busy;
     const generated=Boolean(ui.generatedUrls[side]),vectorOnly=Boolean(!generated&&(ui.vectorUrls[side]||previewUrl(item)));
     return `<article class="abv2-card abv2-artwork ${chosen?'selected':''}"><header><h2>${label} Artwork</h2><span>${!item?'Not detected':generated?'AI artwork master':vectorOnly?'Saved vector preview':url?'Engine preview':generating?'Creating artwork':'Awaiting artwork'}</span></header>
       <div class="abv2-art-canvas ${generating?'abv2-creating':''}">${url?`<img class="abv2-genuine-image" src="${url}" alt="Real ${label} engine-produced artwork preview">`:
-      `<div class="abv2-generation-placeholder"><span class="abv2-creation-orb" aria-hidden="true"></span><p>${generating?'AI creating '+label+' artwork — awaiting real preview':item?'Artwork preview awaiting engine output':'No independently visible '+label+' detected'}</p></div>`}
+      `<div class="abv2-generation-placeholder"><span class="abv2-creation-orb" aria-hidden="true"></span><p>${!item?'No independently visible '+label+' detected':generating?'AI creating '+label+' artwork — awaiting real preview':'Artwork preview awaiting engine output'}</p></div>`}
       <span class="abv2-art-grid" aria-hidden="true"></span>${generating?'<span class="abv2-beam" aria-hidden="true"></span>':''}</div>
       ${item?`<label class="abv2-select"><input type="checkbox" data-abv2-select="${side}" ${chosen?'checked':''} ${url?'':'disabled'}> Include ${label} in vector review &amp; export</label>`:
       button('✦ Recreate '+label+' with AI (Unavailable)','recreate:'+side,'secondary',true)}
@@ -188,6 +188,10 @@
         <button type="button" class="abv2-btn abv2-mode-card ${state.mode.artboard==='quality'?'active':''}" data-abv2="mode:quality"><em>♔</em><span><strong>Quality Mode</strong><small>Best Output • High Detail</small></span><i>✓</i></button>
         <button type="button" class="abv2-btn abv2-mode-card ${state.mode.artboard==='cost_effective'?'active':''}" data-abv2="mode:cost_effective"><em>ϟ</em><span><strong>Normal Mode</strong><small>Cost-Effective • Fast Processing</small></span><i>✓</i></button>
       </div></div>
+      <fieldset class="abv2-visible-choice" ${state.busy?'disabled':''}><legend>Artwork sides visible in the input</legend><div>
+        <label><input type="checkbox" data-abv2-visible="front_body" ${ui.visibleChoice.has('front_body')?'checked':''}><span><b>Front</b><small>Prepare and generate front artwork</small></span></label>
+        <label><input type="checkbox" data-abv2-visible="back_body" ${ui.visibleChoice.has('back_body')?'checked':''}><span><b>Back</b><small>Prepare and generate back artwork</small></span></label>
+      </div><p>Select every independently visible side. The engine will not silently drop a selected side.</p></fieldset>
       <div class="abv2-upload-panel">
         <div class="abv2-drop" data-droptool="artboard">${url?`<img class="abv2-upload-preview" src="${url}" alt="Uploaded artwork preview">`:file?`<span class="abv2-pdf-preview">${esc(file.name)}</span>`:""}<div class="abv2-upload-icon">${file?"✓":"⇧"}</div><strong>${file?"Replace Uploaded Design":"Drag &amp; Drop Your Design Here"}</strong><small>${file?"Click to replace this file":"or Click to Upload"}</small><div class="abv2-file-types"><span>PNG</span><span>JPG</span><span>WEBP</span><span>PDF</span><span>SVG</span></div><input type="file" data-file="artboard" aria-label="Upload artwork" accept=".png,.jpg,.jpeg,.webp,.pdf,.svg"></div>
         ${file?`<div class="abv2-file">${url?`<img src="${url}" alt="Input thumbnail">`:''}<div><strong>${esc(file.name)}</strong><small>${fmtSize(file.size)}${ui.dimensions?' · '+esc(ui.dimensions):''} · ${esc(file.type||'Artwork file')}</small></div><span>Input Ready</span><button type="button" data-abv2="clear" aria-label="Remove uploaded file">×</button></div>`:''}
@@ -621,6 +625,7 @@
     }
   }
   async function start(){const f=state.files.artboard;if(!f)return notify('Upload a supported file first');if(!connected('artboard'))return notify('Artboard engine is unavailable');
+    if(!ui.visibleChoice.size)return notify('Select Front, Back, or both before starting production');
     if(['queued','processing','cancelling'].includes(savedJob()?.status))return notify('Resume or cancel existing job before starting a paid production');
     const epoch=++ui.workspaceEpoch;
     state.pendingArtboardJob=null;state.artboardJob=null;try{sessionStorage.removeItem('mj_artboard_job')}catch{}
@@ -632,12 +637,13 @@
     if(ui.cancelRequested){reset(true);return;}
     if(!state.lastError)await analyzeSurfaces();
   }
-  async function waitForPreparedProject(id,attempts=7){
+  async function waitForPreparedProject(id,required=[],attempts=7){
     let latest=null;
     for(let attempt=0;attempt<attempts;attempt++){
       latest=await call('artboard','api/artboard/projects/'+id,{timeoutMs:30000});
       state.artboardResult=latest;
-      if(available().length)return latest;
+      const returned=new Set(available().map(part=>part.side));
+      if(required.length?required.every(side=>returned.has(side)):returned.size>0)return latest;
       state.stage='Source references ready — syncing artwork inputs';state.progress=100;render();
       if(attempt<attempts-1)await sleep(450+attempt*250);
     }
@@ -645,23 +651,27 @@
   }
   async function analyzeSurfaces(){const id=project().project_id,epoch=ui.workspaceEpoch;if(!id||ui.cancelRequested)return;await run('Analyze uploaded artwork',async()=>{
     ui.phase='analyze';state.activePipeline='Prepare';state.stage='Preparing artwork reference';state.progress=null;render();
-    // The v0.3.1 engine needs surface names in its prepare request. Try both, then
-    // automatically fall back to a verified single surface only if detection fails.
-    let prepared=false,lastFailure=null;const attempts=[['front_body','back_body'],['front_body'],['back_body']];
-    for(const surfaces of attempts){try{
-      state.artboardEvents=[];state.artboardEventKeys.clear();state.stage='Scanning '+surfaces.map(surfaceLabel).join(' + ');state.progress=null;render();
-      const job=await call('artboard','api/artboard/prepare',{method:'POST',json:{project_id:id,surfaces,auto:true,self_analysis:true,width_in:22,height_in:31}});
+    // Selected surfaces are production requirements. Never retry a failed
+    // Front+Back request as Front-only: that hides a missing Back and starts a
+    // paid one-sided production.
+    const requested=['front_body','back_body'].filter(side=>ui.visibleChoice.has(side));
+    let prepared=false,lastFailure=null;
+    try{
+      state.artboardEvents=[];state.artboardEventKeys.clear();state.stage='Scanning '+requested.map(surfaceLabel).join(' + ');state.progress=null;render();
+      const job=await call('artboard','api/artboard/prepare',{method:'POST',json:{project_id:id,surfaces:requested,auto:true,self_analysis:true,width_in:22,height_in:31}});
       captureJob('Artboard',job);if(ui.cancelRequested){void stop();return;}await jobPoll('artboard','api/artboard/jobs/'+job.job_id,'Prepare');
       if(ui.cancelRequested||epoch!==ui.workspaceEpoch)return;
       state.stage='Source references ready — syncing artwork inputs';state.progress=100;render();
-      await waitForPreparedProject(id);
-      if(available().length){prepared=true;break;}throw Error('Engine returned no prepared surfaces');
+      await waitForPreparedProject(id,requested);
+      const returned=new Set(available().map(part=>part.side));
+      const missing=requested.filter(side=>!returned.has(side));
+      if(!missing.length)prepared=true;
+      else throw Error(missing.map(surfaceLabel).join(' + ')+' was not detected as an independent artwork surface');
     }catch(e){lastFailure=e;
-      if(!/surface|not visible|not found|locat|detect|independently|component|geometry|missing/i.test(e.message))throw e;
-      log('Auto-detection attempt reported: '+e.message);
-    }}
+      log('Required-surface preparation reported: '+e.message);
+    }
     if(ui.cancelRequested||epoch!==ui.workspaceEpoch)return;
-    if(!prepared)throw Error('Unable to verify a visible surface automatically: '+(lastFailure?.message||'No result'));
+    if(!prepared)throw Error('Required artwork sides were not prepared; production was not started: '+(lastFailure?.message||'No result'));
     ui.analysisDone=true;ui.prepared=available();ui.selected.clear();ui.phase='analyze';ui.processingStage='Analyzing';state.stage='Reference prepared — starting detailed analysis';state.progress=null;render();
   });
     if(ui.analysisDone&&!state.lastError&&!ui.cancelRequested&&ui.workspaceEpoch===epoch)await produce();
@@ -669,6 +679,9 @@
   async function produce(){
     if(ui.cancelRequested)return;
     const epoch=ui.workspaceEpoch,id=project().project_id;if(!id||!available().length)return notify('Prepare a visible artwork surface first');
+    const returned=new Set(available().map(part=>part.side));
+    const missing=['front_body','back_body'].filter(side=>ui.visibleChoice.has(side)&&!returned.has(side));
+    if(missing.length)return notify('Production blocked: '+missing.map(surfaceLabel).join(' + ')+' was selected but not prepared');
     ui.generationStarted=true;ui.productionDone=false;ui.phase='analyze';ui.processingStage='Analyzing';ui.visitedStages.clear();ui.stageStatus='';
     await run('Artboard AI artwork creation',async()=>{
       state.activePipeline='Production';state.stage='Starting artwork analysis';state.progress=null;state.artboardEvents=[];state.artboardEventKeys.clear();render();
@@ -837,7 +850,7 @@
   }
   function reset(force=false){
     if(state.busy&&!force)return notify('Cancel the active job before starting a new input');
-    ++ui.workspaceEpoch;ui.preferInput=false;ui.phase='input';ui.view=null;ui.analysisDone=false;ui.generationStarted=false;ui.processingStage='';ui.downloadFormat='';ui.prepared=[];
+    ++ui.workspaceEpoch;ui.preferInput=false;ui.phase='input';ui.view=null;ui.analysisDone=false;ui.generationStarted=false;ui.processingStage='';ui.downloadFormat='';ui.prepared=[];ui.visibleChoice=new Set(['front_body','back_body']);
     ui.selected.clear();ui.visitedStages.clear();ui.stageStatus='';ui.lastPreviewPath='';ui.continued=false;
     ui.productionDone=false;ui.finishing=false;ui.exportStarted=false;ui.cancelRequested=false;ui.handoffBusy=false;
     ui.generationError='';ui.compareSource=false;ui.validationSide=null;ui.assetBusy.clear();ui.assetRetry={};
@@ -878,7 +891,7 @@
     if(a.startsWith('mode:')){if(state.busy)return;state.mode.artboard=a.split(':')[1];render();return}
     if(a.startsWith('recreate:'))return notify('AI missing-side recreation is not exposed through this frontend’s existing Artboard gateway allowlist. No request was submitted.');
   },true);
-  document.addEventListener('change',e=>{const visible=e.target.closest('[data-abv2-visible]');if(visible){const side=visible.dataset.abv2Visible;if(visible.checked)ui.visibleChoice.add(side);else ui.visibleChoice.delete(side);render();return;}const b=e.target.closest('[data-abv2-select]');if(!b)return;const side=b.dataset.abv2Select;if(b.checked)ui.selected.add(side);else ui.selected.delete(side);render();},true);
+  document.addEventListener('change',e=>{const visible=e.target.closest('[data-abv2-visible]');if(visible){if(state.busy)return;const side=visible.dataset.abv2Visible;if(visible.checked)ui.visibleChoice.add(side);else ui.visibleChoice.delete(side);render();return;}const b=e.target.closest('[data-abv2-select]');if(!b)return;const side=b.dataset.abv2Select;if(b.checked)ui.selected.add(side);else ui.selected.delete(side);render();},true);
   document.addEventListener('change',e=>{if(e.target?.dataset?.file!=='artboard')return;ui.dimensions='';const f=e.target.files?.[0];if(!f||!f.type.startsWith('image/')||f.type.includes('svg'))return;const image=new Image();const url=URL.createObjectURL(f);image.onload=()=>{ui.dimensions=`${image.naturalWidth} × ${image.naturalHeight} px`;URL.revokeObjectURL(url);if(state.files.artboard===f)render()};image.onerror=()=>URL.revokeObjectURL(url);image.src=url;});
   // Preserve the ecosystem menu behavior, but collapse the sidebar when Artboard opens.
   document.addEventListener('click',e=>{const t=e.target.closest('[data-tool]');if(t?.dataset.tool==='artboard'){ui.view=null;ui.phase='input';ui.preferInput=Boolean(savedJob()?.job_id);document.body.classList.add('sidebar-collapsed');if(typeof closeMenu==='function')closeMenu()}},true);
