@@ -154,3 +154,9 @@ def test_artboard_semantic_ai_failure_is_not_misreported_as_approved():
     assert "LOCAL_RASTER_FALLBACK" in source
     assert "this is NOT a passed AI semantic review" in source
     assert "AI_GUIDED" in source
+
+
+def test_artboard_resume_does_not_hide_paid_semantic_ai_calls():
+    source = (Path(__file__).parents[1] / 'app.js').read_text()
+    assert "No new image generation; semantic guidance and vector review may use paid AI calls." in source
+    assert "No new AI provider requests." not in source
