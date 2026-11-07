@@ -553,10 +553,10 @@
         <section class="abv2-card abv2-illustrator"><header><h2>Adobe Illustrator</h2></header>
           <p>Continue with the premium editable SVG when available; otherwise use validated SVG.</p>
           ${button('Continue to Illustrator','illustrator','amber',!confirmed||(!formats.includes('svg')&&!formats.includes('premium_svg')))}
-          <details class="abv2-handoff-optional"><summary>More Illustrator handoff ZIP options</summary><div class="abv2-handoff-actions">
+          <div class="abv2-handoff-actions">
             ${button('↓ Illustrator Handoff ZIP','illustrator-handoff','secondary',!confirmed||state.busy||ui.handoffBusy)}
             ${button('↓ ZIP + Reference PNG','illustrator-handoff-reference','secondary',!confirmed||state.busy||ui.handoffBusy)}
-          </div></details>
+          </div>
           <p class="abv2-source-note">Handoff ZIP runs export/packaging only, never new AI artwork generation. Reference image is opt-in, separate from true-vector print exports and must remain hidden/non-printing in desktop Illustrator.</p>
           <details class="abv2-illustrator-guide abv2-optional"><summary>Desktop .AI instructions</summary><strong>Native .AI requires desktop Illustrator</strong><span>Import the validated EPS, run the optional Illustrator script and compare before/after proofs. A browser cannot generate native AI layers.</span>
             <a href="https://github.com/nafiulnahid17/Artboard-AI---Resolution-Independent-/blob/main/desktop/illustrator-native-layers.jsx" target="_blank" rel="noopener noreferrer">View desktop handoff script</a>

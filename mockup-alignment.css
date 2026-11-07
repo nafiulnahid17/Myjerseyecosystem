@@ -300,3 +300,8 @@
   .ecosystem-hero::after{display:none}
   .ecosystem-hero::before{opacity:.33;width:38%}
 }
+
+/* All primary export actions remain visible and clickable without opening a disclosure. */
+.abv2 .abv2-export-actions .abv2-handoff-actions{display:grid;grid-template-columns:1fr;gap:4px;margin-top:7px}
+.abv2 .abv2-export-actions .abv2-illustrator>.abv2-source-note{display:none}
+.abv2 .abv2-export-actions .abv2-handoff-actions .abv2-btn{min-height:34px!important;padding:7px!important}
