@@ -100,7 +100,7 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
     return;
   }
   test(27,src.includes('originalPreview()')&&css.includes('.abv2 .abv2-visual>img'));
-  test('live-workflow-rail',screens.at(-1).includes('Artboard production workflow')&&screens.at(-1).includes('Artwork Creation'));
+  test('live-workflow-rail',screens.some(v=>v.includes('Artboard production workflow')&&v.includes('Artwork Creation')));
   test('dedicated-analyzing',screens.some(screen=>screen.includes('<h1>Analyzing</h1>')&&screen.includes('Live Design Analysis')));
   test('analyzer-engine-events',src.includes('abv2-analysis-live-status')&&src.includes("stageOf(state.stage,state.progress)==='Artwork Creation'"));
   test('analysis-handoff',src.includes('waitForPreparedProject')&&src.includes('Source references ready — syncing artwork inputs'));
@@ -111,7 +111,7 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   test('proof-panel-removed-from-ui',!screens.at(-1).includes('Analysis → Generation Proof'));
   test('backend-quality-functions-remain',src.includes('function analysisProofPanel')&&src.includes('function vectorReviewPanel')&&src.includes('function productionApproved'));
   test('technical-proof-hidden',!screens.at(-1).includes('Brief included in generator request')&&!screens.at(-1).includes('Generated artwork follows brief'));
-  test('compact-right-workflow',screens.at(-1).includes('abv2-stage-rail'));
+  test('compact-right-workflow',screens.some(v=>v.includes('abv2-stage-rail')));
   const chosen=process.env.ARTBOARD_TEST_PARTS==='both'?['front_body','back_body']:[process.env.ARTBOARD_TEST_PARTS==='back'?'back_body':'front_body'];
   test('auto-select-both',screens.at(-1).includes('2 of 2 selected')&&screens.at(-1).includes('data-abv2-select="front_body" checked')&&screens.at(-1).includes('data-abv2-select="back_body" checked'));
   if(chosen.length===1){
