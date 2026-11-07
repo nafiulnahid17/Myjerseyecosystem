@@ -130,7 +130,8 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   test('export-order',screens.at(-1).indexOf('abv2-export-settings')<screens.at(-1).indexOf('abv2-package')&&screens.at(-1).indexOf('abv2-package')<screens.at(-1).indexOf('abv2-illustrator')&&screens.at(-1).indexOf('abv2-illustrator')<screens.at(-1).indexOf('abv2-new-production'));
   test('production-details-right',screens.at(-1).indexOf('abv2-export-right')<screens.at(-1).indexOf('Production Details'));
   await handler(click('select-format:svg'));
-  test('export-only-selected-parts',chosen.every(side=>screens.at(-1).includes('Download '+(side==='back_body'?'Back':'Front')))&&(['front_body','back_body'].filter(side=>!chosen.includes(side)).every(side=>!screens.at(-1).includes('Download '+(side==='back_body'?'Back':'Front'))));
+  const exportedText=screens.at(-1),sideLabel=side=>side==='back_body'?'Back':'Front';
+  test('export-only-selected-parts',chosen.every(side=>exportedText.includes('Download '+sideLabel(side)))&&['front_body','back_body'].filter(side=>!chosen.includes(side)).every(side=>!exportedText.includes('Download '+sideLabel(side))));
   test('zip-fallback',src.includes('assembleMasterZip(entries)')&&src.includes('download-master-zip')&&src.includes("response:'blob'")&&src.includes('new Blob([...local,...central,end]'));
   test('premium-artifacts-real',screens.at(-1).includes('Illustrator editing files')&&screens.at(-1).includes('Premium Master SVG')&&screens.at(-1).includes('Editability Report')&&screens.at(-1).includes('Color Groups Report'));
   test('native-ai-honest',screens.at(-1).includes('Native .AI requires desktop Illustrator')&&!screens.at(-1).includes('Download Native AI'));
