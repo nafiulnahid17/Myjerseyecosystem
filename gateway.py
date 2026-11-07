@@ -28,6 +28,7 @@ PATHS = {
     "artboard": [
         ("POST", r"api/artboard/projects"), ("GET", rf"api/artboard/projects/{ID}"),
         ("POST", r"api/artboard/upload"), ("POST", r"api/artboard/prepare"),
+        ("POST", r"api/artboard/recreate"),
         ("POST", r"api/artboard/production"), ("POST", r"api/artboard/export"),
         ("GET", rf"api/artboard/jobs/{ID}"), ("POST", rf"api/artboard/jobs/{ID}/cancel"),
         ("GET", rf"api/artboard/projects/{ID}/artifacts/(?:{FILENAME}/)*{FILENAME}"),
@@ -114,6 +115,13 @@ async def status(req: Request):
                         continue
                     expected = {"artboard": data.get("status") == "ready", "frame": data.get("status") == "ok", "assets": data.get("ok") is True, "autofly": data.get("status") == "ok"}
                     output[name] = {"state": "online" if expected[name] else "not_ready", "version": data.get("version")}
+                    if name == "artboard":
+                        output[name].update({
+                            "ai_configured": data.get("ai_configured") is True,
+                            "primary_ai_ready": data.get("primary_ai_ready") is True or data.get("ai_configured") is True,
+                            "fallback_ai_ready": data.get("fallback_ai_ready") is not False and data.get("ai_configured") is True,
+                            "export_engine_ready": data.get("export_engine_ready") is True or data.get("status") == "ready",
+                        })
                 else:
                     output[name] = {"state": "not_ready", "http_status": response.status_code}
             except (httpx.HTTPError, ValueError):

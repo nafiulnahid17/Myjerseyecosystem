@@ -30,7 +30,7 @@ const context={state,Date,setTimeout:(fn)=>setTimeout(fn,1),URL:{revokeObjectURL
  call:async(engine,path,opts={})=>{assert.equal(engine,'artboard');requests.push({path,opts});
   if(path==='api/artboard/projects'&&opts.method==='POST'){serverProject={project_id:'p1',surfaces:[],true_vector_ready:false,exports:{}};return serverProject;}
   if(path==='api/artboard/upload')return serverProject;
-  if(path==='api/artboard/prepare'){serverProject.surfaces=opts.json.surfaces.filter(x=>!(process.env.ARTBOARD_MISSING_BACK==='1'&&x==='back_body')).map(x=>({type:x,name:x,part_id:x,exports:{},validation:{path_count:x==='front_body'?123:287,color_mode:'CMYK',postscript_level:2,dpi:300}}));return currentJob={job_id:'j'+(++jobN),project_id:'p1',status:'queued'};}
+  if(path==='api/artboard/prepare'){assert.equal(opts.json.detect_visible_surfaces,true);const detected=process.env.ARTBOARD_MISSING_BACK==='1'?['front_body']:['front_body','back_body'];serverProject.surfaces=detected.map(x=>({type:x,name:x,part_id:x,exports:{},validation:{path_count:x==='front_body'?123:287,color_mode:'CMYK',postscript_level:2,dpi:300}}));return currentJob={job_id:'j'+(++jobN),project_id:'p1',status:'queued'};}
   if(path==='api/artboard/production'){serverProject.true_vector_ready=true;
     if(process.env.ARTBOARD_PROOF_MISSING!=='1'){
       serverProject.analysis_generation_audit=Object.fromEntries(serverProject.surfaces.map(item=>[
@@ -93,11 +93,10 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   await handler(click('start'));
   if(process.env.ARTBOARD_MISSING_BACK==='1'){
     const prepare=requests.filter(r=>r.path==='api/artboard/prepare');
-    test('strict-both-request',prepare.length===1&&prepare[0].opts.json.surfaces.join(',')==='front_body,back_body');
-    test('no-silent-front-fallback',!requests.some(r=>r.path==='api/artboard/prepare'&&r.opts.json.surfaces.length===1));
-    test('missing-back-blocks-paid-production',!requests.some(r=>r.path==='api/artboard/production')&&state.lastError.includes('Back was not detected'));
-    test('missing-back-ui-is-honest',src.includes('const generating=Boolean(item)')&&src.includes("!item?'No independently visible '+label+' detected'"));
-    console.log('PASS strict Front+Back preparation guard');
+    test('automatic-surface-detection',prepare.length===1&&prepare[0].opts.json.detect_visible_surfaces===true&&!('surfaces' in prepare[0].opts.json));
+    test('one-visible-side-still-produces',requests.some(r=>r.path==='api/artboard/production'));
+    test('missing-back-has-recreate',src.includes("'recreate:'+side")&&src.includes('async function recreateSurface'));
+    console.log('PASS automatic surface discovery and missing-side recovery');
     return;
   }
   test(27,src.includes('originalPreview()')&&css.includes('.abv2 .abv2-visual>img'));
@@ -106,7 +105,7 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   test('analyzer-engine-events',src.includes('abv2-analysis-live-status')&&src.includes("stageOf(state.stage,state.progress)==='Artwork Creation'"));
   test('analysis-handoff',src.includes('waitForPreparedProject')&&src.includes('Source references ready — syncing artwork inputs'));
   test(28,src.includes('interimPreview(side)')&&css.includes('abv2-reveal-real-image')&&screens.at(-1).includes('Artwork Creation'));
-  test('no-vectorization-before-selection',screens.at(-1).includes('Review Saved Vectors')); 
+  test('automatic-vector-selection',screens.at(-1).includes('automatically included in vector review'));
   test('artwork-no-early-vectorization',!screens.some(v=>v.includes('<h1>Vectorization</h1>')));
   test('real-previews',screens.at(-1).includes('Real Front engine-produced artwork preview')&&screens.at(-1).includes('Real Back engine-produced artwork preview'));
   test('proof-panel-visible',screens.at(-1).includes('Analysis → Generation Proof'));
@@ -118,10 +117,8 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
     test('visual-followthrough-stays-review',screens.at(-1).includes('Generated artwork follows brief')&&screens.at(-1).includes('Review required'));
     test('fallback-shown-honestly',screens.at(-1).includes('Unavailable — image-model self-analysis'));
   }
-  const selection=listeners.change.find(f=>f.toString().includes("const b=e.target.closest('[data-abv2-select]')"));
   const chosen=process.env.ARTBOARD_TEST_PARTS==='both'?['front_body','back_body']:[process.env.ARTBOARD_TEST_PARTS==='back'?'back_body':'front_body'];
-  for(const side of chosen)selection({target:{closest:(sel)=>sel==='[data-abv2-select]'?{dataset:{abv2Select:side},checked:true}:null}});
-  test('select-'+chosen.join('+'),screens.at(-1).includes('Review Saved Vectors')&&screens.at(-1).includes(chosen.length+' selected'));
+  test('auto-select-both',screens.at(-1).includes('Review Saved Vectors')&&screens.at(-1).includes('2 selected'));
   await handler(click('continue-vectorization'));
   const displayed=screens.map(s=>s.match(/abv2-header[\s\S]*?<h1>(.*?)<\/h1>/)?.[1]||'').filter(Boolean);
   test(29,displayed.includes('Vectorization')&&src.includes('abv2-real-paths'));
@@ -131,7 +128,7 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   test('export-order',screens.at(-1).indexOf('abv2-export-settings')<screens.at(-1).indexOf('abv2-package')&&screens.at(-1).indexOf('abv2-package')<screens.at(-1).indexOf('abv2-illustrator')&&screens.at(-1).indexOf('abv2-illustrator')<screens.at(-1).indexOf('abv2-new-production'));
   test('production-details-right',screens.at(-1).indexOf('abv2-export-right')<screens.at(-1).indexOf('Production Details'));
   await handler(click('select-format:svg'));
-  test('selected-export-only',screens.at(-1).includes('Download Front')===chosen.includes('front_body')&&screens.at(-1).includes('Download Back')===chosen.includes('back_body'));
+  test('auto-export-all-detected',screens.at(-1).includes('Download Front')&&screens.at(-1).includes('Download Back'));
   test('zip-fallback',src.includes('assembleMasterZip(entries)')&&src.includes('download-master-zip')&&src.includes("response:'blob'")&&src.includes('new Blob([...local,...central,end]'));
   test('premium-artifacts-real',screens.at(-1).includes('<h2>Illustrator Editing Files</h2>')&&screens.at(-1).includes('Premium Master SVG')&&screens.at(-1).includes('Editability Report')&&screens.at(-1).includes('Color Groups Report'));
   test('native-ai-honest',screens.at(-1).includes('Native .AI requires desktop Illustrator')&&!screens.at(-1).includes('Download Native AI'));
@@ -140,11 +137,11 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   await handler(click('illustrator-handoff'));
   const zipJob=requests.filter(r=>r.path==='api/artboard/export').at(-1);
   test('handoff-default-reference-excluded',zipJob.opts.json.bundle==='illustrator_handoff'&&zipJob.opts.json.include_reference_raster===false);
-  test('handoff-respects-selected-sides',zipJob.opts.json.part_ids.length===chosen.length);
+  test('handoff-includes-all-detected-sides',zipJob.opts.json.part_ids.length===serverProject.surfaces.length);
   test('handoff-zip-download',downloads.some(args=>String(args[1]).includes('illustrator-handoff-test_quality.zip')));
   await handler(click('illustrator-handoff-reference'));
   const zipReferenceJob=requests.filter(r=>r.path==='api/artboard/export').at(-1);
-  test('reference-explicit-opt-in',zipReferenceJob.opts.json.include_reference_raster===true&&zipReferenceJob.opts.json.part_ids.length===chosen.length);
+  test('reference-explicit-opt-in',zipReferenceJob.opts.json.include_reference_raster===true&&zipReferenceJob.opts.json.part_ids.length===serverProject.surfaces.length);
   test('handoff-no-paid-ai-retry',requests.filter(r=>r.path==='api/artboard/production').length===beforeHandoffAi);
 
   test('renderer-preserves-report-filenames',screens.at(-1).includes('editability-report.json')&&screens.at(-1).includes('color-groups.json'));

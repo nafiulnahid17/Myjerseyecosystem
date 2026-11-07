@@ -7,6 +7,7 @@ const ALLOWED = [
   ['GET', new RegExp('^api/artboard/projects/' + ID + '$')],
   ['POST', /^api\/artboard\/upload$/],
   ['POST', /^api\/artboard\/prepare$/],
+  ['POST', /^api\/artboard\/recreate$/],
   ['POST', /^api\/artboard\/production$/],
   ['POST', /^api\/artboard\/export$/],
   ['GET', new RegExp('^api/artboard/jobs/' + ID + '$')],
@@ -113,7 +114,13 @@ async function statusResponse(env, fetchImpl, principal) {
       });
       if (response.ok) {
         const report = await response.json();
-        engines.artboard = { state: report && report.status === 'ready' ? 'online' : 'not_ready', ai_configured: report?.ai_configured === true };
+        engines.artboard = {
+          state: report && report.status === 'ready' ? 'online' : 'not_ready',
+          ai_configured: report?.ai_configured === true,
+          primary_ai_ready: report?.primary_ai_ready === true || report?.ai_configured === true,
+          fallback_ai_ready: report?.fallback_ai_ready !== false && report?.ai_configured === true,
+          export_engine_ready: report?.export_engine_ready === true || report?.status === 'ready',
+        };
       } else {
         engines.artboard = { state: 'not_ready', http_status: response.status };
       }

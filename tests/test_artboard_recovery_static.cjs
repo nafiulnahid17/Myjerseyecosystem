@@ -48,7 +48,7 @@ assert(ui.includes("p.processing_mode==='quality'?'quality':'normal'"),
   'Artboard download filenames must distinguish quality from normal mode');
 
 // Production status must not approve an unreviewed final AI correction.
-const approvalStart=ui.indexOf('const qualityMode = p =>');
+const approvalStart=ui.indexOf('const qualityMode = () => true;');
 const approvalEnd=ui.indexOf('  function vectorReviewPanel(){',approvalStart);
 assert(approvalStart>=0&&approvalEnd>approvalStart,'Inspect actual approval logic');
 const approval=vm.runInNewContext(
