@@ -178,6 +178,6 @@ def test_mockup_asset_coverage_and_artboard_stage_visuals():
     artboard=(root/'artboard-v2.js').read_text()
     assert 'abv2-centered-brand' in artboard
     assert 'abv2-stage-rail' in artboard
-    assert "ui.phase==='analyze'&&state.busy&&!ui.analysisDone" in artboard
+    assert "ui.phase==='analyze'&&state.busy&&stageOf(state.stage,state.progress)==='Analyzing'" in artboard
     assert 'Illustrative visual · awaiting real artwork' in artboard
     assert '<span class="abv2-art-grid" aria-hidden="true"></span>${generating?' not in artboard
