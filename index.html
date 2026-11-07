@@ -7,10 +7,32 @@
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="artboard-v2.css">
 <link rel="stylesheet" href="artboard-v2-workflow-fixes.css">
+<link rel="stylesheet" href="mockup-alignment.css">
 </head>
 <body>
 <header class="topbar"><div class="brands"><button type="button" id="menuButton" class="menu-button" aria-controls="sidebar" aria-expanded="true" aria-label="Toggle navigation"><span></span><span></span><span></span></button><img class="brand-logo" src="assets/atherious-labs.svg" alt="Atherious Labs"><div class="lab-text"><strong>Atherious Labs</strong><small>Innovate · Build · Dominate</small></div><span class="brand-divider"></span><img class="product-logo" src="assets/my-jersey.svg" alt="My Jersey Ecosystem"><div class="product-text"><strong>My Jersey Ecosystem</strong><small>AI-Powered Design &amp; Creative Suite</small></div></div><div class="header-right"><div id="serviceIndicators" class="service-indicators" aria-label="Live engine status"><span class="service-cell"><i>◆</i><small>Engines</small><b>Not connected</b></span><span class="service-cell"><i>⬡</i><small>AI Config</small><b>Not checked</b></span></div></div></header>
-<div class="menu-backdrop" id="menuBackdrop" hidden></div><div class="shell"><aside class="sidebar" id="sidebar"><div class="sidebar-head"><span>MENU</span><button type="button" id="menuClose" aria-label="Close menu">×</button></div><nav id="mainNav" aria-label="Main navigation"><button data-tool="home" class="nav-item selected"><span>⌂</span> Home</button><button data-tool="overview" class="nav-item"><span>▦</span> Overview</button><div class="nav-separator compact"></div><button data-tool="artboard" class="nav-item"><img src="assets/artboard-ai.svg" alt=""> Artboard AI</button><button data-tool="frame" class="nav-item"><img src="assets/frame-forge-ai.svg" alt=""> Frame Forge AI</button><button data-tool="assets" class="nav-item"><img src="assets/assetsx-ai.svg" alt=""> AssetsX AI</button><button data-tool="autofly" class="nav-item"><img src="assets/autofly.svg" alt=""> Autofly <em>BONUS</em></button><button data-tool="emergency" class="nav-item emergency-link"><span>△</span> Emergency Tools</button><div class="nav-separator compact"></div><button data-tool="history" class="nav-item"><span>◷</span> Work History</button><button data-tool="credits" class="nav-item"><span>▣</span> Add Credits</button><button data-tool="users" class="nav-item"><span>♙</span> Users</button><button data-tool="support" class="nav-item"><span>?</span> Support</button><button data-tool="get-support" class="nav-item"><span>◉</span> Get Support</button><button data-tool="report" class="nav-item"><span>!</span> Report a Problem</button><button data-tool="settings" class="nav-item"><span>⚙</span> Settings</button></nav><div class="side-bottom"><span>DESIGN</span><span>CREATE</span><span>DOMINATE</span><div class="mini-brand"><img src="assets/atherious-labs.svg" alt=""> Atherious Labs</div></div></aside>
+<div class="menu-backdrop" id="menuBackdrop" hidden></div><div class="shell"><aside class="sidebar" id="sidebar"><div class="sidebar-head"><span>MENU</span><button type="button" id="menuClose" aria-label="Close menu">×</button></div><nav id="mainNav" aria-label="Main navigation">
+<button data-tool="home" class="nav-item selected"><span>▦</span> All Tools</button>
+<div class="nav-separator compact"></div>
+<button type="button" class="nav-item" disabled title="Coming soon"><span class="nav-symbol cyan">⬡</span> ReVector AI <em class="nav-lock">🔒</em></button>
+<button data-tool="artboard" class="nav-item"><img src="assets/artboard-ai.svg" alt=""> Artboard AI</button>
+<button data-tool="frame" class="nav-item"><img src="assets/frame-forge-ai.svg" alt=""> Frame Forge AI</button>
+<button data-tool="assets" class="nav-item"><img src="assets/assetsx-ai.svg" alt=""> AssetsX AI</button>
+<button class="nav-item" type="button" data-local-action="artflux"><span class="nav-symbol pink">✦</span> ArtFlux AI</button>
+<button class="nav-item" type="button" disabled title="Coming soon"><span class="nav-symbol cyan">♢</span> TraceLock AI <em class="nav-lock">🔒</em></button>
+<button class="nav-item" type="button" disabled title="Coming soon"><span class="nav-symbol gold">▱</span> BatchPilot AI <em class="nav-lock">🔒</em></button>
+<button class="nav-item" type="button" disabled title="Coming soon"><span class="nav-symbol teal">⬢</span> AI File Creator <em class="nav-lock">🔒</em></button>
+<div class="nav-separator"></div>
+<button data-tool="credits" class="nav-item"><span class="nav-symbol green">▣</span> Plan &amp; Credits</button>
+<button class="nav-item" type="button" data-local-action="analytics"><span class="nav-symbol cyan">▥</span> Analytics</button>
+<button data-tool="users" class="nav-item"><span class="nav-symbol pink">♙</span> Users</button>
+<button data-tool="overview" class="nav-item"><span class="nav-symbol gold">▱</span> Tool Uses Overview</button>
+<button class="nav-item" type="button" disabled title="Coming soon"><span class="nav-symbol cyan">⚒</span> Auto Fix <em class="nav-lock">🔒</em></button>
+<button data-tool="support" class="nav-item"><span>◉</span> Instant Support</button>
+<div class="nav-separator compact"></div>
+<button data-tool="history" class="nav-item"><span>◷</span> Work History</button>
+<button data-tool="settings" class="nav-item"><span>⚙</span> Settings</button>
+</nav><div class="side-bottom"><span>DESIGN</span><span>CREATE</span><span>DOMINATE</span><div class="mini-brand"><img src="assets/atherious-labs.svg" alt=""> Atherious Labs</div></div></aside>
 <div class="workspace"><main id="mainContent" class="content" tabindex="-1"></main><footer class="app-footer"><span>◎ &nbsp; My Jersey Ecosystem &nbsp; <b>v1.0.0</b></span><span>Smarter Tools. Better Jerseys. Bigger Dreams.</span><span><img src="assets/atherious-labs.svg" alt=""> Powered by Atherious Labs</span></footer></div></div>
 <div id="notification" class="notification" aria-live="polite" role="status" hidden></div>
 

@@ -108,15 +108,10 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   test('automatic-vector-selection',screens.at(-1).includes('automatically included in vector review'));
   test('artwork-no-early-vectorization',!screens.some(v=>v.includes('<h1>Vectorization</h1>')));
   test('real-previews',screens.at(-1).includes('Real Front engine-produced artwork preview')&&screens.at(-1).includes('Real Back engine-produced artwork preview'));
-  test('proof-panel-visible',screens.at(-1).includes('Analysis → Generation Proof'));
-  if(process.env.ARTBOARD_PROOF_MISSING==='1'){
-    test('legacy-proof-is-not-faked',screens.at(-1).includes('Audit not returned by deployed engine')&&!screens.at(-1).includes('Brief included in generator request'));
-  }else{
-    test('analyzer-completed-from-backend',screens.at(-1).includes('google/gemini-2.5-flash')&&screens.at(-1).includes('1.902 seconds'));
-    test('verified-prompt-transfer',screens.at(-1).includes('Brief included in generator request')&&screens.at(-1).includes('342 chars verified'));
-    test('visual-followthrough-stays-review',screens.at(-1).includes('Generated artwork follows brief')&&screens.at(-1).includes('Review required'));
-    test('fallback-shown-honestly',screens.at(-1).includes('Unavailable — image-model self-analysis'));
-  }
+  test('proof-panel-removed-from-ui',!screens.at(-1).includes('Analysis → Generation Proof'));
+  test('backend-quality-functions-remain',src.includes('function analysisProofPanel')&&src.includes('function vectorReviewPanel')&&src.includes('function productionApproved'));
+  test('technical-proof-hidden',!screens.at(-1).includes('Brief included in generator request')&&!screens.at(-1).includes('Generated artwork follows brief'));
+  test('compact-right-workflow',screens.at(-1).includes('abv2-stage-rail'));
   const chosen=process.env.ARTBOARD_TEST_PARTS==='both'?['front_body','back_body']:[process.env.ARTBOARD_TEST_PARTS==='back'?'back_body':'front_body'];
   test('auto-select-both',screens.at(-1).includes('Review Saved Vectors')&&screens.at(-1).includes('2 selected'));
   await handler(click('continue-vectorization'));
@@ -151,7 +146,7 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   const beforeReviewCalls=requests.length;
   await handler(click('previous'));
   test('quality-validation-visible',screens.at(-1).includes('<h2>Validation Results</h2>')&&screens.at(-1).includes('Artwork fidelity')&&screens.at(-1).includes('Micro details')&&screens.at(-1).includes('Editability'));
-  test('quality-metadata-from-backend',screens.at(-1).includes('gradient_count')===false&&screens.at(-1).includes('2</b><small>Gradients')&&screens.at(-1).includes('3 dark / 0 bright pixels flagged')===chosen.includes('front_body'));
+  test('quality-metadata-from-backend',serverProject.surfaces.every(part=>part.validation.gradient_count===2&&part.validation.physical_artboard.raster_proof_dpi===600)&&screens.at(-1).includes('Gradients')&&screens.at(-1).includes('Micro details')&&!screens.at(-1).includes('gradient_count'));
   await handler(click('toggle-compare'));
   test('actual-artwork-vector-comparison',screens.at(-1).includes('AI artwork master')&&screens.at(-1).includes('Final vector'));
   if(chosen.length===2){
@@ -159,15 +154,15 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
     test('side-specific-validation',screens.at(-1).includes('Review validation by artwork side')&&screens.at(-1).includes('No flagged dark/bright marks')&&!screens.at(-1).includes('3 dark / 0 bright pixels flagged'));
   }
   test('review-does-not-call-paid-engine',requests.length===beforeReviewCalls);
-  test('proof-visible-in-validation',screens.at(-1).includes('Analysis → Generation Proof'));
+  test('proof-hidden-in-validation',!screens.at(-1).includes('Analysis → Generation Proof'));
   test('no-visual-accuracy-fake-pass',!screens.at(-1).includes('Generated artwork follows brief</small><b class="verified">'));
-  test('quality-gate-reads-backend',screens.at(-1).includes('AI Vector Review &amp; Targeted Fix')&&screens.at(-1).includes('AI review passed')&&screens.at(-1).includes('1</b><small>AI reviews'));
+  test('quality-gate-reads-backend',src.includes("p.validation?.status==='PASS'")&&!screens.at(-1).includes('AI Vector Review &amp; Targeted Fix'));
   test('new-stages-source-backed',src.includes('Mapping shapes, gradients and protected details')&&src.includes('AI comparing accepted artwork with vectors')&&src.includes('AI re-reviewing corrected vectors'));
   test('seedream-output-not-faked',src.includes('Actual generated megapixels')&&src.includes('4.6 MP (request only)'));
   const savedReview=serverProject.validation;
   serverProject.validation={...savedReview,status:'REVIEW_REQUIRED',ai_vector_review:{status:'REVIEW_REQUIRED',rounds:2,fixes:1,accepted_artwork_source:true}};
   context.render();
-  test('unresolved-review-visible',screens.at(-1).includes('Review required — export blocked')&&!screens.at(-1).includes('✓ Validated Vector'));
+  test('unresolved-review-blocked',screens.at(-1).includes('AI review / validation pending')&&!screens.at(-1).includes('✓ Validated Vector'));
   serverProject.validation=savedReview;
   context.render();
 

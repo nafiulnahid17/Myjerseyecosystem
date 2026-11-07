@@ -25,8 +25,11 @@ def test_no_demo_job_status_and_has_fail_closed_mode():
         assert fabricated not in source
 
 def test_navigation_dashboard_and_support_surfaces_exist():
-    for route in ['home','overview','emergency','credits','users','support','get-support','report','settings']:
+    for route in ['home','overview','credits','users','support','settings']:
         assert f'data-tool="{route}"' in shell
+    # Emergency and detailed support routes remain accessible from the Support Center.
+    for route in ['emergency','get-support','report']:
+        assert f'data-tool="{route}"' in source
     assert 'function home()' in source
     assert 'function overview()' in source
     assert 'data-tool="tool-overview"' not in shell
@@ -34,8 +37,12 @@ def test_navigation_dashboard_and_support_surfaces_exist():
     assert 'Credit system is not connected yet' in source
     assert 'User directory is not connected yet' in source
     assert 'Support submission backend is not connected' in source
-    for label in ['Home','Overview','Add Credits','Support','Get Support','Report a Problem','Users']:
+    for label in ['All Tools','ReVector AI','Artboard AI','Frame Forge AI','AssetsX AI',
+                  'ArtFlux AI','TraceLock AI','BatchPilot AI','AI File Creator',
+                  'Plan &amp; Credits','Analytics','Users','Tool Uses Overview',
+                  'Auto Fix','Instant Support']:
         assert label in shell
+    assert 'Assetory' not in shell
 
 def test_all_tools_have_two_real_mode_values_and_brand_assets():
     assert "mode:{artboard:'quality',frame:'quality',assets:'quality',autofly:'quality'}" in source
@@ -56,7 +63,7 @@ def test_reference_aligned_v4_workspaces_and_honest_empty_states():
 
 def test_home_navigation_order_and_no_tool_overview_route():
     nav=shell.split('<nav id="mainNav"')[1].split('</nav>')[0]
-    assert nav.index('data-tool="home"') < nav.index('data-tool="overview"') < nav.index('data-tool="artboard"')
+    assert nav.index('data-tool="home"') < nav.index('data-tool="artboard"') < nav.index('data-tool="overview"')
     assert 'data-tool="tool-overview"' not in nav
     assert "tool:'home'" in source
 
@@ -160,3 +167,17 @@ def test_artboard_resume_does_not_hide_paid_semantic_ai_calls():
     source = (Path(__file__).parents[1] / 'app.js').read_text()
     assert "No new image generation; semantic guidance and vector review may use paid AI calls." in source
     assert "No new AI provider requests." not in source
+
+
+def test_mockup_asset_coverage_and_artboard_stage_visuals():
+    from pathlib import Path
+    for asset in ['revector','artflux','tracelock','batchpilot','filecreator']:
+        assert (root/'assets'/'media'/f'tool-{asset}.svg').is_file()
+    assert (root/'mockup-alignment.css').is_file()
+    assert 'mockup-alignment.css' in shell
+    artboard=(root/'artboard-v2.js').read_text()
+    assert 'abv2-centered-brand' in artboard
+    assert 'abv2-stage-rail' in artboard
+    assert "ui.phase==='analyze'&&state.busy&&stageOf(state.stage,state.progress)==='Analyzing'" in artboard
+    assert 'Illustrative visual · awaiting real artwork' in artboard
+    assert '<span class="abv2-art-grid" aria-hidden="true"></span>${generating?' not in artboard

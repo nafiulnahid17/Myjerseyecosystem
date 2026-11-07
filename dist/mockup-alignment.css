@@ -1,0 +1,124 @@
+/* Reference-mockup alignment · 2026-11-07. UI-only; engine API and quality gates unchanged. */
+:root { --mock-cyan:#0bdafa;--mock-electric:#067dff;--mock-ink:#020c20; }
+.sidebar .nav-item {min-height:40px;position:relative;display:flex;align-items:center;gap:12px;font-size:13px}
+.sidebar .nav-item:disabled {opacity:.78;cursor:not-allowed}
+.sidebar .nav-item .nav-lock {font-style:normal;margin-left:auto;font-size:11px;filter:drop-shadow(0 0 5px #fa2965)}
+.sidebar .nav-symbol {width:22px;display:grid;place-items:center;font-size:22px;text-shadow:0 0 10px currentColor}
+.sidebar .nav-symbol.cyan {color:#48d8ff}.sidebar .nav-symbol.pink{color:#ef59fd}.sidebar .nav-symbol.gold{color:#ffe04a}.sidebar .nav-symbol.green{color:#54ff92}.sidebar .nav-symbol.teal{color:#3dffe1}
+.sidebar .nav-separator{margin:9px 8px;border-color:#164c75}
+.ecosystem-card:disabled{opacity:1;filter:none}
+.ecosystem-card-art img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(1.25)}
+.ecosystem-card-art:has(img) > i {display:none}
+.ecosystem-board,.ecosystem-tools,.ecosystem-card-grid{min-width:0}
+.ecosystem-hero{background-image:linear-gradient(90deg,#001629a8,#02112b88),url("assets/artboard-v2/energy-waves.svg");background-size:cover;background-position:center}
+.ecosystem-card{box-shadow:inset 0 0 18px color-mix(in srgb,var(--tone) 13%,transparent),0 0 18px color-mix(in srgb,var(--tone) 32%,transparent)}
+.ecosystem-card:hover:not(:disabled){transform:translateY(-2px)}
+/* Brand header sits in the center of the actual artboard tool, not at a page corner. */
+.abv2 .abv2-centered-brand{display:flex;justify-content:center;align-items:center;gap:10px;min-height:30px;white-space:nowrap;font-size:clamp(11px,1.2vw,16px);font-weight:800;letter-spacing:.02em}
+.abv2 .abv2-centered-brand img{width:27px;height:27px;object-fit:contain;filter:drop-shadow(0 0 8px #00baff88)}
+.abv2 .abv2-centered-brand i{font-style:normal;color:#7accef;font-size:17px}
+.abv2 .abv2-centered-brand strong:first-of-type{color:#bceeff}
+.abv2 .abv2-centered-brand strong:last-of-type{color:#dcf7ff}
+.abv2 .abv2-header{padding:4px 9px 6px;min-height:0}
+.abv2 .abv2-header h1{font-size:clamp(21px,2.1vw,29px)}
+.abv2 .abv2-header img{width:39px;height:39px}
+.abv2 .abv2-health>span{padding:6px 5px}
+.abv2 .abv2-health b{font-size:10px}
+/* Live artwork is backend data. The luminous UI effects are illustrative stage visuals. */
+.abv2 .abv2-demo-visual{position:relative;z-index:2;width:94%;height:94%;object-fit:contain;filter:drop-shadow(0 0 14px #00c5ff6e)}
+.abv2 .abv2-demo-caption{position:absolute;z-index:5;right:8px;bottom:8px;max-width:85%;font-size:10px;border:1px solid #13658e;border-radius:999px;background:#01182dec;color:#9bcddd;padding:3px 7px;pointer-events:none}
+.abv2 .abv2-art-grid-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(205px,.68fr)!important;gap:10px;min-height:0;align-items:stretch}
+.abv2 .abv2-art-grid-layout.single{grid-template-columns:minmax(0,1.3fr) minmax(205px,.7fr)!important}
+.abv2 .abv2-art-grid-layout.single>.abv2-stage-rail{grid-column:auto}
+.abv2 .abv2-art-grid-layout>.abv2-log{grid-column:auto}
+.abv2 .abv2-artwork{min-height:0!important;max-height:none;display:flex;flex-direction:column;overflow:hidden;padding:10px}
+.abv2 .abv2-artwork>.abv2-btn{margin:4px 0}
+.abv2 .abv2-artwork .abv2-art-canvas{min-height:0!important;flex:1;max-height:none;border-radius:12px}
+.abv2 .abv2-artwork .abv2-select,.abv2 .abv2-side-note{padding:5px 2px;font-size:10px}
+.abv2 .abv2-artwork>header{padding-bottom:7px;margin-bottom:7px}
+.abv2 .abv2-artwork>header h2{font-size:clamp(13px,1.4vw,17px)}
+.abv2 .abv2-artwork>header span{font-size:10px}
+.abv2 .abv2-art-canvas .abv2-beam{display:none!important;animation:none!important}
+.abv2 .abv2-art-canvas .abv2-generation-placeholder{max-width:90%}
+.abv2 .abv2-stage-rail{display:grid;grid-template-rows:auto minmax(0,1fr);gap:9px;min-width:0;min-height:0}
+.abv2 .abv2-stage-rail .abv2-workflow{display:grid;grid-template-columns:1fr;gap:4px;overflow:visible;padding:7px;border:1px solid #146eb5;border-radius:14px;background:#041b36;min-width:0}
+.abv2 .abv2-stage-rail .abv2-workflow>span{min-width:0;min-height:0;display:flex;align-items:center;gap:5px;flex:auto;padding:4px 7px;scroll-snap-align:none}
+.abv2 .abv2-stage-rail .abv2-workflow>span b{width:21px;height:21px;flex:none;font-size:10px}
+.abv2 .abv2-stage-rail .abv2-workflow>span strong{font-size:10px;flex:1}
+.abv2 .abv2-stage-rail .abv2-workflow>span small{display:none}
+.abv2 .abv2-stage-rail .abv2-log{grid-column:auto!important;min-height:0!important;max-height:none;overflow:hidden;padding:8px}
+.abv2 .abv2-stage-rail .abv2-log h2{font-size:12px}
+.abv2 .abv2-stage-rail .abv2-log>header{margin-bottom:5px;padding-bottom:5px}
+.abv2 .abv2-stage-rail .abv2-log .abv2-current{padding:6px;font-size:10px}
+.abv2 .abv2-stage-rail .abv2-log ol{min-height:0;max-height:none;margin:5px 0;overflow:auto}
+.abv2 .abv2-stage-rail .abv2-log li{font-size:10px;padding:5px 2px}
+.abv2 .abv2-stage-rail .abv2-log-footer{padding:4px 0;font-size:9px}
+.abv2 .abv2-nav{gap:9px;flex:none}
+.abv2 .abv2-nav .abv2-btn,.abv2 .abv2-select-actions .abv2-btn{min-height:35px;padding:7px 12px;font-size:12px}
+.abv2 .abv2-select-actions{flex:none;gap:8px}
+.abv2 .abv2-select-actions .abv2-btn.primary{min-width:185px}
+.abv2 .abv2-select-summary{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px}
+.abv2 .abv2-source-note{font-size:9px!important;line-height:1.25!important;max-height:42px;overflow:hidden}
+.abv2 .abv2-analyzing .abv2-visual.active .abv2-beam{display:block!important}
+.abv2 .abv2-analyzing .abv2-visual:not(.active) .abv2-beam{display:none!important;animation:none!important}
+.abv2 .abv2-visual:not(.active) .abv2-hud-ring,
+.abv2 .abv2-visual:not(.active) .abv2-analysis-dot{animation:none!important}
+.abv2 .abv2-log:has(.abv2-progress:not(.indeterminate)) .abv2-beam{animation:none}
+.abv2 .abv2-validation-layout{min-height:0}
+.abv2 .abv2-validation-preview,.abv2 .abv2-validation-meter,.abv2 .abv2-validation-checks{min-height:0}
+.abv2 .abv2-validation-arts{min-height:0}
+.abv2 .abv2-validation-arts .abv2-art-canvas{min-height:0;height:clamp(145px,31vh,290px)}
+.abv2 .abv2-validation-checks ul{min-height:0;overflow:auto}
+.abv2 .abv2-validation-arts img{max-height:100%;object-fit:contain}
+.abv2 .abv2-export-grid{min-height:0;align-items:stretch}
+.abv2 .abv2-export-preview,.abv2 .abv2-export-settings,.abv2 .abv2-package{min-height:0}
+.abv2 .abv2-export-arts{min-height:0}
+.abv2 .abv2-export-arts>div{min-height:0}
+.abv2 .abv2-export-arts img{height:clamp(130px,27vh,260px);max-height:100%;object-fit:contain}
+.abv2 .abv2-export-center,.abv2 .abv2-export-right{min-height:0;overflow:auto}
+.abv2 .abv2-export-right .abv2-tech-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.abv2 .abv2-input-shell{padding-bottom:14px;gap:8px}
+.abv2 .abv2-input-shell .abv2-drop{min-height:0;height:clamp(190px,34vh,340px)}
+.abv2 .abv2-input-shell .abv2-file{padding:7px}
+.abv2 .abv2-input-shell .abv2-commands{padding:2px 5%;gap:9px}
+.abv2 .abv2-input-shell .abv2-commands .abv2-btn{min-height:38px}
+@media (min-width:1100px) and (min-height:650px){
+ body:has(.abv2){overflow:hidden}
+ .workspace:has(.abv2){min-height:0;height:calc(100dvh - 74px);overflow:hidden}
+ .content:has(.abv2){height:100%;min-height:0;max-height:none;padding:7px 11px;overflow:hidden}
+ .workspace:has(.abv2) .app-footer{display:none}
+ .abv2{height:100%;min-height:0;max-width:none;display:flex;flex-direction:column;gap:8px;padding:9px;overflow:hidden}
+ .abv2 .abv2-top{flex:none;gap:6px}
+ .abv2>.abv2-art-grid-layout,.abv2>.abv2-process-grid,.abv2>.abv2-validation-layout,.abv2>.abv2-export-grid,.abv2>.abv2-input-shell{flex:1;min-height:0;overflow:hidden}
+ .abv2 .abv2-process-grid{align-items:stretch}
+ .abv2 .abv2-preview{min-height:0;display:flex;flex-direction:column}
+ .abv2 .abv2-analyzing .abv2-visual{min-height:0;flex:1;height:auto}
+ .abv2 .abv2-primary{min-height:0;grid-template-rows:minmax(0,1fr) auto}
+ .abv2 .abv2-process-grid>.abv2-log{min-height:0;max-height:none}
+ .abv2 .abv2-process-grid>.abv2-log ol{min-height:0;max-height:none}
+ .abv2 .abv2-input-shell{align-content:center;overflow:visible}
+ .abv2 .abv2-export-grid{grid-template-columns:minmax(0,1.55fr) minmax(250px,1.05fr) minmax(220px,.75fr)}
+ .abv2 .abv2-export-center{display:grid;align-content:start;gap:7px}
+ .abv2 .abv2-export-center>.abv2-card{padding:9px}
+ .abv2 .abv2-export-center>section>p.abv2-info{font-size:10px}
+ .abv2 .abv2-export-bottom{flex:none}
+}
+@media (max-width:1099px), (max-height:649px){
+ .abv2{min-height:0;height:auto;overflow:visible}
+ .abv2 .abv2-art-grid-layout{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .abv2 .abv2-stage-rail{grid-column:1/-1;grid-template-columns:210px minmax(0,1fr);grid-template-rows:1fr}
+ .abv2 .abv2-artwork{min-height:300px!important}
+ .abv2 .abv2-artwork .abv2-art-canvas{min-height:210px!important}
+}
+@media (max-width:680px){
+ .abv2 .abv2-art-grid-layout{grid-template-columns:1fr!important}
+ .abv2 .abv2-stage-rail{grid-column:auto;grid-template-columns:1fr;grid-template-rows:auto auto}
+ .abv2 .abv2-centered-brand{white-space:normal;gap:5px;font-size:10px}
+ .abv2 .abv2-centered-brand img{width:19px;height:19px}
+ .abv2 .abv2-artwork{min-height:300px!important}
+ .abv2 .abv2-select-summary{white-space:normal}
+ .abv2 .abv2-export-grid{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+ .abv2 .abv2-beam,.abv2 .abv2-art-canvas::after,.abv2 .abv2-analysis-dot{animation:none!important}
+}

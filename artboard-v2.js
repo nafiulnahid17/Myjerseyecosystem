@@ -117,7 +117,7 @@
       <span><em class="abv2-health-icon">⇧</em><span><strong>Export Engine</strong><b><i class="${exportReady?'ok':'unknown'}"></i>${exportReady?'Online':'Checking'}</b></span></span>
     </div>`;
   }
-  function top(title,description){return `<div class="abv2-top">${health()}<div class="abv2-header"><img src="assets/artboard-ai.svg" alt=""><div><h1>${esc(title)}</h1><p>${esc(description)}</p></div><span class="abv2-step-label">${ui.phase==='input'?'INPUT':esc(state.stage||statusText())}</span></div></div>`;}
+  function top(title,description){return `<div class="abv2-top">${health()}<div class="abv2-centered-brand" aria-label="Artboard AI · My Jersey Ecosystem · Atherious Labs"><img src="assets/artboard-ai.svg" alt=""><strong>Artboard AI</strong><i>×</i><img src="assets/my-jersey.svg" alt=""><strong>My Jersey Ecosystem</strong><i>×</i><img src="assets/atherious-labs.svg" alt=""><strong>Atherious Labs</strong></div><div class="abv2-header"><img src="assets/artboard-ai.svg" alt=""><div><h1>${esc(title)}</h1><p>${esc(description)}</p></div><span class="abv2-step-label">${ui.phase==='input'?'INPUT':esc(state.stage||statusText())}</span></div></div>`;}
   function button(text,action,cls='',disabled=false){return `<button type="button" class="abv2-btn ${cls}" data-abv2="${action}" ${disabled?'disabled':''}>${text}</button>`;}
   function navigation(current){const idx=steps.indexOf(current);return `<div class="abv2-nav">${button('← Previous Step','previous','',idx<=0)}${button('■ Cancel Job','stop','danger',!state.busy&&!state.artboardJob?.job_id&&!state.pendingArtboardJob?.job_id)}</div>`;}
   function bars(){return `<div class="abv2-progress ${state.busy&&state.progress==null?'indeterminate':''}" aria-label="Current engine progress"><span style="width:${state.progress==null?26:Math.max(0,Math.min(100,state.progress))}%"></span></div>`;}
@@ -156,7 +156,7 @@
       ${state.lastError?`<p role="alert" class="abv2-error-details"><b>${esc(state.artboardJob?.error?.code||'ENGINE_ERROR')}</b> — ${esc(state.lastError)}</p>`:''}
        <div class="abv2-log-footer"><span>Production Mode</span><span>Verified production milestones</span></div></aside>`;
   }
-  function originalPreview(){const url=state.objectURLs.artboard;return `<div class="abv2-visual abv2-scan ${state.busy?'active':''}">${url?`<img src="${url}" alt="Uploaded original design">`:`<div class="abv2-empty">Source preview is unavailable for this file format.</div>`}<span class="abv2-corners" aria-hidden="true"></span><span class="abv2-beam" aria-hidden="true"></span><div class="abv2-analysis-hud" aria-hidden="true"><i class="abv2-hud-ring"></i><i class="abv2-hud-target"></i><i class="abv2-hud-corner top-left"></i><i class="abv2-hud-corner top-right"></i><i class="abv2-hud-corner bottom-left"></i><i class="abv2-hud-corner bottom-right"></i></div></div>`;}
+  function originalPreview(){const url=state.objectURLs.artboard;return `<div class="abv2-visual abv2-scan ${ui.phase==='analyze'&&state.busy&&stageOf(state.stage,state.progress)==='Analyzing'?'active':''}">${url?`<img src="${url}" alt="Uploaded original design">`:`<div class="abv2-empty">Source preview is unavailable for this file format.</div>`}<span class="abv2-corners" aria-hidden="true"></span><span class="abv2-beam" aria-hidden="true"></span><div class="abv2-analysis-hud" aria-hidden="true"><i class="abv2-hud-ring"></i><i class="abv2-hud-target"></i><i class="abv2-hud-corner top-left"></i><i class="abv2-hud-corner top-right"></i><i class="abv2-hud-corner bottom-left"></i><i class="abv2-hud-corner bottom-right"></i></div></div>`;}
   function artworkCard(side){
     const item=available().find(x=>x.side===side),label=surfaceLabel(side),chosen=ui.selected.has(side);
     const url=ui.generatedUrls[side] || (ui.productionDone?(ui.vectorUrls[side]||previewUrl(item)):'') || interimPreview(side);
@@ -164,8 +164,8 @@
     const generated=Boolean(ui.generatedUrls[side]),vectorOnly=Boolean(!generated&&(ui.vectorUrls[side]||previewUrl(item)));
     return `<article class="abv2-card abv2-artwork ${chosen?'selected':''}"><header><h2>${label} Artwork</h2><span>${!item?'Not detected':generated?'AI artwork master':vectorOnly?'Saved vector preview':url?'Engine preview':generating?'Creating artwork':'Awaiting artwork'}</span></header>
       <div class="abv2-art-canvas ${generating?'abv2-creating':''}">${url?`<img class="abv2-genuine-image" src="${url}" alt="Real ${label} engine-produced artwork preview">`:
-      `<div class="abv2-generation-placeholder"><span class="abv2-creation-orb" aria-hidden="true"></span><p>${!item?'No independently visible '+label+' detected':generating?'AI creating '+label+' artwork — awaiting real preview':'Artwork preview awaiting engine output'}</p></div>`}
-      <span class="abv2-art-grid" aria-hidden="true"></span>${generating?'<span class="abv2-beam" aria-hidden="true"></span>':''}</div>
+      `<div class="abv2-generation-placeholder"><img class="abv2-demo-visual" src="assets/artboard-v2/jersey-${side==='back_body'?'back':'front'}.svg" alt="Illustrative ${label} design preview"><span class="abv2-demo-caption">Visual preview · engine result pending</span><p>${!item?'No independently visible '+label+' detected':generating?'AI creating '+label+' artwork — awaiting real preview':'Artwork preview awaiting engine output'}</p></div>`}
+      <span class="abv2-art-grid" aria-hidden="true"></span></div>
       ${item?`<div class="abv2-select abv2-auto-selected"><span>✓</span> ${label} automatically included in vector review &amp; export</div>`:
       button(ui.recreatingSide===side?'Recreating '+label+'…':'✦ Recreate '+label+' with AI','recreate:'+side,'secondary',state.busy||Boolean(ui.recreatingSide))}
       ${!url&&item?'<small class="abv2-source-note">No invented preview: authentic artwork appears when the engine exposes it.</small>':''}
@@ -238,11 +238,10 @@
     const ready=prepared.filter(x=>Boolean(ui.generatedUrls[x.side]||ui.vectorUrls[x.side]||previewUrl(x)||interimPreview(x.side)));
     const canContinue=ui.selected.size>0&&[...ui.selected].every(side=>ready.some(x=>x.side===side));
     const status=ui.generationError?'Production failed: '+esc(ui.generationError):ui.productionDone?'Generated artwork and validated vectors ready — select Front, Back or Both to review and export':state.busy?'Engine creating flat 2D artwork; previews appear as real files arrive':'Waiting for artwork generation';
-    return `${top('Artwork Creation','Review AI-generated artwork. The engine already creates vectors during the same production job.')}${workflowRail()}<div class="abv2-select-summary" role="status">${esc(status)} • ${ui.selected.size} selected</div>
-    <div class="abv2-art-grid-layout ${prepared.length===1?'single':''}">${artworkCard('front_body')}${artworkCard('back_body')}${liveLog()}</div>
-    ${analysisProofPanel(prepared.map(part=>part.side))}
-    ${vectorReviewPanel()}
-    <p class="abv2-source-note">No extra AI call: selection controls which saved Front/Back vectors you inspect and download.</p><div class="abv2-select-actions">${navigation('Artwork Creation')}${ui.analysisDone&&!ui.generationStarted?button('▷ Generate Artwork','produce','primary'):''}${button('Review Saved Vectors →','continue-vectorization','primary',!canContinue||ui.continued)}</div>`;
+    return `${top('Artwork Creation','Review AI-generated artwork. The engine already creates vectors during the same production job.')}<div class="abv2-select-summary" role="status">${esc(status)} • ${ui.selected.size} selected</div>
+    <div class="abv2-art-grid-layout ${prepared.length===1?'single':''}">${artworkCard('front_body')}${artworkCard('back_body')}<aside class="abv2-stage-rail">${workflowRail()}${liveLog()}</aside></div>
+
+     <p class="abv2-source-note">No extra AI call: selection controls which saved Front/Back vectors you inspect and download.</p><div class="abv2-select-actions">${navigation('Artwork Creation')}${ui.analysisDone&&!ui.generationStarted?button('▷ Generate Artwork','produce','primary'):''}${button('Review Saved Vectors →','continue-vectorization','primary',!canContinue||ui.continued)}</div>`;
   }
   function processTitle(){const stage=stageOf(state.stage);return stage==='Validation'?'Validation':stage==='Vectorization'?'Vectorization':stage==='Export'?'Export':'Artwork Creation';}
   function validationView(sides,verified){
@@ -279,11 +278,10 @@
       <section class="abv2-card abv2-validation-checks"><header><h2>Validation Results</h2><b class="${productionApproved()?'pass':''}">${productionApproved()?'✓ Validated Vector':qualityMode(project())?'AI review / validation pending':'Awaiting engine'}</b></header>
         <div class="abv2-side-switch" role="group" aria-label="Review validation by artwork side">${parts.map(part=>button(surfaceLabel(part.side),'review-side:'+part.side,part.side===selectedSide?'selected':'secondary')).join('')}</div>
         <ul>${checks.map(row=>result(...row)).join('')}</ul>
-        ${vectorReviewPanel()}
         ${detail.status==='REVIEW_REQUIRED'?'<p class="abv2-advisory" role="status">Local detail check flagged differences for review. The original AI artwork remains unchanged.</p>':''}
         ${Array.isArray(project().warnings)&&project().warnings.length?`<details class="abv2-warning-details"><summary>Production advisories (${project().warnings.length})</summary><ul>${project().warnings.slice(0,12).map(w=>`<li>${esc(w)}</li>`).join('')}</ul></details>`:''}
       </section>
-    </div>${analysisProofPanel(sides)}${navigation('Validation')}`;
+    </div>${navigation('Validation')}`;
   }
   function vectorFinishing(sides){
     const parts=sides.map(side=>available().find(item=>item.side===side)).filter(Boolean);
@@ -308,21 +306,21 @@
     const onlyValid=subsets.filter(side=>available().some(x=>x.side===side));
     const verified=productionApproved();
     if(isValid)return validationView(onlyValid,verified);
-    return `${top(title,title==='Validation'?'Live production-quality and print-readiness review':isVector?'AI-guided vector tracing, optimization and grouping':'Live artwork creation' )}${workflowRail()}
+    return `${top(title,title==='Validation'?'Live production-quality and print-readiness review':isVector?'AI-guided vector tracing, optimization and grouping':'Live artwork creation' )}
     <div class="abv2-art-grid-layout ${onlyValid.length===1?'single':''}">${onlyValid.map(side=>{
       const part=available().find(x=>x.side===side),url=(isVector||isValid?ui.vectorUrls[side]:ui.generatedUrls[side]) || previewUrl(part) || ui.generatedUrls[side] || interimPreview(side);
       const active=(state.busy&&state.activePipeline==='Production'&&ui.stageStatus!=='completed')||(isValid&&ui.finishing);
       return `<section class="abv2-card abv2-artwork"><header><h2>${surfaceLabel(side)} ${title}</h2><span>${esc(ui.stageStatus==='completed'?'Completed':friendlyActivity(state.stage||'Preparing'))}</span></header>
       <div class="abv2-art-canvas ${isVector?'vector-overlay':''} ${isValid?'validation-overlay':''}">
-      ${url?`<img class="abv2-genuine-image" src="${url}" alt="${surfaceLabel(side)} verified engine preview">`:'<p>Waiting for actual engine output. No generated image is fabricated.</p>'}
+      ${url?`<img class="abv2-genuine-image" src="${url}" alt="${surfaceLabel(side)} verified engine preview">`:`<img class="abv2-demo-visual" src="assets/artboard-v2/jersey-${side==='back_body'?'back':'front'}.svg" alt="Illustrative ${surfaceLabel(side)} jersey visual"><span class="abv2-demo-caption">Illustrative visual · awaiting real artwork</span>`}
       <span class="abv2-art-grid" aria-hidden="true"></span>
       ${isVector&&active?'<span class="abv2-vector-simulation" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>':''}
       ${isVector?'<svg class="abv2-real-paths" data-abv2-paths-side="${side}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>':''}
-      ${active?'<span class="abv2-beam" aria-hidden="true"></span>':''}
+      ${isVector&&active?'<span class="abv2-beam" aria-hidden="true"></span>':''}
       ${isVector?'<div class="abv2-path-status">AI guidance informs tracing and optimization. Actual saved SVG geometry appears when available; corrections occur before validation.</div>':''}</div>
       ${isValid?`<div class="abv2-validation-results">${[['Valid SVG',part?.validation?.valid_svg],['True vector',part?.validation?.true_vector],['Raster count',part?.validation?.embedded_rasters],['Editability',part?.validation?.editability_status],['Print readiness',part?.validation?.physical_artboard?.status]].map(([name,value])=>`<span><small>${esc(name)}</small><b class="${value===true?'pass':value===false?'fail':''}">${esc(value===true?'PASS':value===false?'FAILED':value??'Not reported')}</b></span>`).join('')}</div>`:''}
       <div class="abv2-side-note">${esc(ui.stageStatus==='completed'?(verified?'Validated vector saved — Illustrator sign-off pending':'Stage completed'):friendlyActivity(state.stage||'Preparing stage data'))}</div></section>`;
-      }).join('')}${liveLog()}</div>${isVector?vectorFinishing(onlyValid):''}${navigation(title)}${state.lastError&&project().ai_reconstruction?.complete===true?`<div class="abv2-commands">${button('↻ Retry saved AI artwork (no image regeneration)','resume-vector','secondary',state.busy)}</div>`:''}`;
+      }).join('')}<aside class="abv2-stage-rail">${workflowRail()}${liveLog()}</aside></div>${navigation(title)}${state.lastError&&project().ai_reconstruction?.complete===true?`<div class="abv2-commands">${button('↻ Retry saved AI artwork (no image regeneration)','resume-vector','secondary',state.busy)}</div>`:''}`;
   }
   function v2Downloads(){
     const p=project();const found=[];
@@ -525,7 +523,6 @@
       <section class="abv2-export-left"><div class="abv2-card abv2-export-preview"><header><h2>Validated Artwork Preview</h2><span>${confirmed?'Validated vector':'Review engine validation'}</span></header>
       <div class="abv2-export-arts">${parts.map(part=>`<div><strong>${surfaceLabel(part.side)}</strong>${previewUrl(part)?`<img src="${previewUrl(part)}" alt="Real ${surfaceLabel(part.side)} completed artwork">`:'<p>Preview not available from the engine</p>'}</div>`).join('')||'<p>No final artwork detected.</p>'}</div></div></section>
       <div class="abv2-export-center">
-        ${vectorReviewPanel()}
         <section class="abv2-card abv2-export-settings"><header><h2>Available Downloads</h2><small>${printFormats.filter(f=>formats.includes(f)).length} print formats</small></header>
           <div class="abv2-format-grid">${['eps','svg','pdf','png'].map(f=>`<button type="button" class="abv2-format ${format===f?'selected':''}" data-abv2="select-format:${f}" aria-pressed="${format===f}" ${!confirmed||!formats.includes(f)?'disabled':''}>${f.toUpperCase()}</button>`).join('')}</div>
           <p class="abv2-info">${format?'Available '+format.toUpperCase()+' files':'No format preselected. Choose a ready format to download.'}</p>
