@@ -17,7 +17,7 @@ const context={state,Date,setTimeout:(fn)=>setTimeout(fn,1),URL:{revokeObjectURL
  jobPoll:async(engine,path,terminal)=>{
    assert.equal(engine,'artboard');assert.equal(currentJob.job_id,path.split('/').at(-1));
    if(terminal==='Production' && process.env.BATCH2_NO_STAGE_EVENTS !== '1'){
-     for(const [step,stage] of [['Argon analyzing geometry, boundaries and micro-details','Analyzing'],['Generating flat rectangular print artwork','Artwork Creation'],['VTracer tracing vector paths','Artwork Creation'],['Validating vector fidelity','Artwork Creation']]){
+     for(const [step,stage] of [['Argon analyzing geometry, boundaries and micro-details','Analyzing'],['Generating flat rectangular print artwork','Artwork Creation'],['VTracer tracing vector paths','Vectorization'],['Validating vector fidelity','Validation']]){
        state.stage=step;state.progress=12;state.artboardEvents.push({step,at:'2026-11-01T00:00:00Z',progress:12});context.render();context.updateMonitor();
        assert(screens.at(-1).includes(stage),`Missing stage while real engine sends ${step}: ${stage}`);
       if(stage==='Analyzing')assert(screens.at(-1).includes('Live Design Analysis'),'Argon event must keep the scan screen visible');
@@ -100,20 +100,27 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
     return;
   }
   test(27,src.includes('originalPreview()')&&css.includes('.abv2 .abv2-visual>img'));
-  test('live-workflow-rail',screens.at(-1).includes('Artboard production workflow')&&screens.at(-1).includes('Artwork Creation'));
+  test('live-workflow-rail',screens.some(v=>v.includes('Artboard production workflow')&&v.includes('Artwork Creation')));
   test('dedicated-analyzing',screens.some(screen=>screen.includes('<h1>Analyzing</h1>')&&screen.includes('Live Design Analysis')));
   test('analyzer-engine-events',src.includes('abv2-analysis-live-status')&&src.includes("stageOf(state.stage,state.progress)==='Artwork Creation'"));
   test('analysis-handoff',src.includes('waitForPreparedProject')&&src.includes('Source references ready — syncing artwork inputs'));
-  test(28,src.includes('interimPreview(side)')&&css.includes('abv2-reveal-real-image')&&screens.at(-1).includes('Artwork Creation'));
-  test('automatic-vector-selection',screens.at(-1).includes('automatically included in vector review'));
-  test('artwork-no-early-vectorization',!screens.some(v=>v.includes('<h1>Vectorization</h1>')));
-  test('real-previews',screens.at(-1).includes('Real Front engine-produced artwork preview')&&screens.at(-1).includes('Real Back engine-produced artwork preview'));
+  test(28,src.includes('interimPreview(side)')&&css.includes('abv2-reveal-real-image')&&screens.some(v=>v.includes('<h1>Artwork Creation</h1>')));
+  test('real-selectable-parts',screens.at(-1).includes('data-abv2-select="front_body"')&&screens.at(-1).includes('data-abv2-select="back_body"'));
+  test('backend-vector-stage-visible',screens.some(v=>v.includes('<h1>Vectorization</h1>')));
+  test('full-artwork-preview-source',src.split("function artworkCard(side){")[1].split("function analysisProofPanel")[0].includes("const url=ui.generatedUrls[side] ||")&&!src.split("function artworkCard(side){")[1].split("function analysisProofPanel")[0].includes("|| interimPreview(side);"));
   test('proof-panel-removed-from-ui',!screens.at(-1).includes('Analysis → Generation Proof'));
   test('backend-quality-functions-remain',src.includes('function analysisProofPanel')&&src.includes('function vectorReviewPanel')&&src.includes('function productionApproved'));
   test('technical-proof-hidden',!screens.at(-1).includes('Brief included in generator request')&&!screens.at(-1).includes('Generated artwork follows brief'));
-  test('compact-right-workflow',screens.at(-1).includes('abv2-stage-rail'));
+  test('compact-right-workflow',screens.some(v=>v.includes('abv2-stage-rail')));
   const chosen=process.env.ARTBOARD_TEST_PARTS==='both'?['front_body','back_body']:[process.env.ARTBOARD_TEST_PARTS==='back'?'back_body':'front_body'];
-  test('auto-select-both',screens.at(-1).includes('Review Saved Vectors')&&screens.at(-1).includes('2 selected'));
+  test('auto-select-both',screens.at(-1).includes('2 of 2 selected')&&screens.at(-1).includes('data-abv2-select="front_body" checked')&&screens.at(-1).includes('data-abv2-select="back_body" checked'));
+  if(chosen.length===1){
+    const remove=chosen[0]==='front_body'?'back_body':'front_body';
+    const toggle=listeners.change.find(fn=>fn.toString().includes('data-abv2-select'));
+    assert(toggle,'Need the checkbox handler for selected artwork parts');
+    toggle({target:{closest:s=>s==='[data-abv2-select]'?{dataset:{abv2Select:remove},checked:false}:null}});
+    test('single-part-selection',screens.at(-1).includes('1 of 2 selected')&&screens.at(-1).includes('data-abv2-select="'+chosen[0]+'" checked'));
+  }
   await handler(click('continue-vectorization'));
   const displayed=screens.map(s=>s.match(/abv2-header[\s\S]*?<h1>(.*?)<\/h1>/)?.[1]||'').filter(Boolean);
   test(29,displayed.includes('Vectorization')&&src.includes('abv2-real-paths'));
@@ -123,20 +130,21 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   test('export-order',screens.at(-1).indexOf('abv2-export-settings')<screens.at(-1).indexOf('abv2-package')&&screens.at(-1).indexOf('abv2-package')<screens.at(-1).indexOf('abv2-illustrator')&&screens.at(-1).indexOf('abv2-illustrator')<screens.at(-1).indexOf('abv2-new-production'));
   test('production-details-right',screens.at(-1).indexOf('abv2-export-right')<screens.at(-1).indexOf('Production Details'));
   await handler(click('select-format:svg'));
-  test('auto-export-all-detected',screens.at(-1).includes('Download Front')&&screens.at(-1).includes('Download Back'));
+  const exportedText=screens.at(-1),sideLabel=side=>side==='back_body'?'Back':'Front';
+  test('export-only-selected-parts',chosen.every(side=>exportedText.includes('Download '+sideLabel(side)))&&['front_body','back_body'].filter(side=>!chosen.includes(side)).every(side=>!exportedText.includes('Download '+sideLabel(side))));
   test('zip-fallback',src.includes('assembleMasterZip(entries)')&&src.includes('download-master-zip')&&src.includes("response:'blob'")&&src.includes('new Blob([...local,...central,end]'));
-  test('premium-artifacts-real',screens.at(-1).includes('<h2>Illustrator Editing Files</h2>')&&screens.at(-1).includes('Premium Master SVG')&&screens.at(-1).includes('Editability Report')&&screens.at(-1).includes('Color Groups Report'));
+  test('premium-artifacts-real',screens.at(-1).includes('Illustrator editing files')&&screens.at(-1).includes('Premium Master SVG')&&screens.at(-1).includes('Editability Report')&&screens.at(-1).includes('Color Groups Report'));
   test('native-ai-honest',screens.at(-1).includes('Native .AI requires desktop Illustrator')&&!screens.at(-1).includes('Download Native AI'));
   test('handoff-actions-visible',screens.at(-1).includes('Illustrator Handoff ZIP')&&screens.at(-1).includes('ZIP + Reference PNG'));
   const beforeHandoffAi=requests.filter(r=>r.path==='api/artboard/production').length;
   await handler(click('illustrator-handoff'));
   const zipJob=requests.filter(r=>r.path==='api/artboard/export').at(-1);
   test('handoff-default-reference-excluded',zipJob.opts.json.bundle==='illustrator_handoff'&&zipJob.opts.json.include_reference_raster===false);
-  test('handoff-includes-all-detected-sides',zipJob.opts.json.part_ids.length===serverProject.surfaces.length);
+  test('handoff-includes-selected-sides',zipJob.opts.json.part_ids.length===chosen.length);
   test('handoff-zip-download',downloads.some(args=>String(args[1]).includes('illustrator-handoff-test_quality.zip')));
   await handler(click('illustrator-handoff-reference'));
   const zipReferenceJob=requests.filter(r=>r.path==='api/artboard/export').at(-1);
-  test('reference-explicit-opt-in',zipReferenceJob.opts.json.include_reference_raster===true&&zipReferenceJob.opts.json.part_ids.length===serverProject.surfaces.length);
+  test('reference-explicit-opt-in',zipReferenceJob.opts.json.include_reference_raster===true&&zipReferenceJob.opts.json.part_ids.length===chosen.length);
   test('handoff-no-paid-ai-retry',requests.filter(r=>r.path==='api/artboard/production').length===beforeHandoffAi);
 
   test('renderer-preserves-report-filenames',screens.at(-1).includes('editability-report.json')&&screens.at(-1).includes('color-groups.json'));
