@@ -129,8 +129,8 @@
     if(/semantic|guidance|guided vector|protected region|vector plan|vector mapping/.test(t))return 'Vectorization';
     if(/vector|trac|path|vtracer|potrace|optimi|compos|svg/.test(t))return 'Vectorization';
     if(/running validate|validate completed|validating vector|saving validated|validation passed|print.ready|quality check|preflight|integrity|fidelity/.test(t))
-      return p!==null&&p<88?'Artwork Creation':'Validation';
-    if(/validat/.test(t))return p!==null&&p<88?'Artwork Creation':'Validation';
+      return 'Validation';
+    if(/validat/.test(t))return 'Validation';
     if(/generat|creating|reconstruct|render|artwork model|image generation|artwork ready/.test(t))return 'Artwork Creation';
     if(/analy|inspect|scann|scan|prepar|surface|locat|geometry|reference|source|fable|detail crop/.test(t))return 'Analyzing';
     if(/provider|model|image|artwork/.test(t))return 'Artwork Creation';
@@ -143,10 +143,16 @@
   function progressValue(value){if(value===null||value===undefined||value==='')return null;const n=Number(value);return Number.isFinite(n)?Math.max(0,Math.min(100,n)):null;}
   function eventProgress(event){for(const value of [event?.stage_progress,event?.progress,event?.percent]){const normalized=progressValue(value);if(normalized!==null)return normalized;}return null;}
   function stageProgress(){
-    const eventValue=eventProgress(stageEvents().at(-1)),jobValue=progressValue(state.progress);
-    if(jobValue===100)return 100;
-    if(eventValue!==null&&jobValue!==null)return Math.max(eventValue,jobValue);
-    return eventValue??jobValue;
+    // Only display real job percentages; prevent a stale activity entry from
+    // regressing the progress value inside the same backend stage.
+    const jobId=state.artboardJob?.job_id||state.lastJobId||'';
+    if(ui.stageProgressJob!==jobId){ui.stageProgressJob=jobId;ui.stageProgressHigh={};}
+    const stage=currentStage();
+    const fromEvent=eventProgress(stageEvents().at(-1)),fromJob=progressValue(state.progress);
+    let current=fromEvent!==null&&fromJob!==null?Math.max(fromEvent,fromJob):fromEvent??fromJob;
+    if(ui.productionDone&&stage==='Validation')current=100;
+    if(current!==null){ui.stageProgressHigh[stage]=Math.max(ui.stageProgressHigh[stage]||0,current);return ui.stageProgressHigh[stage];}
+    return ui.stageProgressHigh[stage]??null;
   }
   function workflowRail(){const active=currentStage(),current=Math.max(0,steps.indexOf(active));return `<nav class="abv2-workflow" aria-label="Artboard production workflow">${steps.map((step,index)=>`<span class="${index<current?'complete':index===current?'current':'pending'}"><b>${index<current?'✓':index+1}</b><strong>${esc(step)}</strong><small>${index<current?'Completed':index===current?(state.busy?'Live':'Current'):'Waiting'}</small></span>`).join('')}</nav>`;}
   function liveLog(){const events=stageEvents(),percent=stageProgress();const stage=currentStage();const current=events.at(-1);
@@ -302,7 +308,7 @@
   }
   function processing(){const title=ui.processingStage||processTitle();
     const isVector=title==='Vectorization',isValid=title==='Validation';
-    const subsets=ui.selected.size?[...ui.selected]:available().map(x=>x.side);
+    const subsets=[...ui.selected];
     const onlyValid=subsets.filter(side=>available().some(x=>x.side===side));
     const verified=productionApproved();
     if(isValid)return validationView(onlyValid,verified);
@@ -622,11 +628,16 @@
     }
   }
   function syncProductionStage(){
-    if(ui.phase!=='processing'||!ui.continued||ui.finishing||ui.view||state.activePipeline!=='Production')return;
-    // Only use the CURRENT engine event. Historical preflight events must not skip stages.
-    const order={'Artwork Creation':0,'Vectorization':1,'Validation':2};
+    if(ui.view||ui.finishing||!ui.generationStarted||ui.productionDone||state.activePipeline!=='Production')return false;
     const next=stageOf(state.stage,state.progress);
-    if(next&&next in order&&order[next]>order[ui.processingStage||'Artwork Creation']){ui.processingStage=next;ui.visitedStages.add(next);render();}
+    const order={'Artwork Creation':0,'Vectorization':1,'Validation':2};
+    if((ui.phase==='artwork'||ui.phase==='processing')&&(next==='Vectorization'||next==='Validation')){
+      const current=ui.processingStage||'Artwork Creation';
+      if(order[next]>order[current]){
+        ui.phase='processing';ui.processingStage=next;ui.stageStatus='';ui.visitedStages.add(next);render();return true;
+      }
+    }
+    return false;
   }
   function refresh(){
     const root=document.querySelector('.abv2');if(!root)return;
@@ -635,6 +646,7 @@
     if(ui.phase==='analyze'&&ui.generationStarted&&state.activePipeline==='Production'&&!ui.view&&stageOf(state.stage,state.progress)==='Artwork Creation'){
       ui.phase='artwork';ui.processingStage='Artwork Creation';ui.visitedStages.add('Artwork Creation');render();return;
     }
+    if(syncProductionStage())return;
     const monitor=root.querySelector('.abv2-current');
     if(monitor){const v=stageProgress(),events=stageEvents();monitor.querySelector('strong').textContent=ui.stageStatus==='completed'?'Stage completed':state.lastError?'Action needed':state.busy&&events.length?friendlyActivity(events.at(-1)?.step||events.at(-1)?.stage):'Preparing the next update';monitor.querySelector('b').textContent=v==null?(state.busy?'Live':'—'):Math.round(v)+'%';const bar=monitor.querySelector('.abv2-progress');bar?.classList.toggle('indeterminate',state.busy&&v==null);if(bar?.firstElementChild)bar.firstElementChild.style.width=(v??25)+'%';}
     const events=root.querySelector('.abv2-log ol');if(events)events.innerHTML=stageEvents().length?stageEvents().map(x=>{const p=eventProgress(x);return `<li><span>${esc(friendlyActivity(x.step||x.stage))}</span><small>${p!==null?Math.round(p)+'%':safeTime(x.at)||'Reported'}</small></li>`}).join(''):'<li><span>Preparing the next production update.</span></li>';
@@ -647,7 +659,6 @@
         const url=ui.vectorUrls[side]||previewUrl(item)||ui.generatedUrls[side]||interimPreview(side);if(img&&url&&img.getAttribute('src')!==url)img.src=url;
       }}
       if(ui.processingStage==='Vectorization')void paintVectorOverlay();
-      syncProductionStage();
     }
     if(ui.phase==='processing'&&ui.processingStage==='Artwork Creation'&&state.objectURLs.artboard_live){
       const previewSide=available().length===1?available()[0].side:null;
