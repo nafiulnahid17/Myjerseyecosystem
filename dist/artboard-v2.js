@@ -312,7 +312,7 @@
       const active=(state.busy&&state.activePipeline==='Production'&&ui.stageStatus!=='completed')||(isValid&&ui.finishing);
       return `<section class="abv2-card abv2-artwork"><header><h2>${surfaceLabel(side)} ${title}</h2><span>${esc(ui.stageStatus==='completed'?'Completed':friendlyActivity(state.stage||'Preparing'))}</span></header>
       <div class="abv2-art-canvas ${isVector?'vector-overlay':''} ${isValid?'validation-overlay':''}">
-      ${url?`<img class="abv2-genuine-image" src="${url}" alt="${surfaceLabel(side)} verified engine preview">`:'<img class="abv2-demo-visual" src="assets/artboard-v2/jersey-${side==='back_body'?'back':'front'}.svg" alt="Illustrative ${surfaceLabel(side)} jersey visual"><span class="abv2-demo-caption">Illustrative visual · awaiting real artwork</span>'}
+      ${url?`<img class="abv2-genuine-image" src="${url}" alt="${surfaceLabel(side)} verified engine preview">`:`<img class="abv2-demo-visual" src="assets/artboard-v2/jersey-${side==='back_body'?'back':'front'}.svg" alt="Illustrative ${surfaceLabel(side)} jersey visual"><span class="abv2-demo-caption">Illustrative visual · awaiting real artwork</span>`}
       <span class="abv2-art-grid" aria-hidden="true"></span>
       ${isVector&&active?'<span class="abv2-vector-simulation" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>':''}
       ${isVector?'<svg class="abv2-real-paths" data-abv2-paths-side="${side}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>':''}
