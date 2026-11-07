@@ -10,6 +10,7 @@ const css = read('styles.css');
 let js = read('app.js');
 const artboardCss = read('artboard-v2.css');
 const artboardWorkflowCss = read('artboard-v2-workflow-fixes.css');
+let mockupCss = read('mockup-alignment.css');
 let artboardJs = read('artboard-v2.js');
 
 const assets = [
@@ -19,13 +20,16 @@ const assets = [
   'frame-forge-ai.svg',
   'assetsx-ai.svg',
   'autofly.svg',
-  'ecosystem-hero.svg'
+  'ecosystem-hero.svg',
+  'media/tool-revector.svg','media/tool-artflux.svg','media/tool-tracelock.svg','media/tool-batchpilot.svg','media/tool-filecreator.svg',
+  'artboard-v2/jersey-front.svg','artboard-v2/jersey-back.svg','artboard-v2/energy-waves.svg'
 ];
 for (const name of assets) {
   const uri = dataUri(`assets/${name}`);
   html = html.replaceAll(`assets/${name}`, uri);
   js = js.replaceAll(`assets/${name}`, uri);
   artboardJs = artboardJs.replaceAll(`assets/${name}`, uri);
+  mockupCss = mockupCss.replaceAll(`assets/${name}`, uri);
 }
 
 const webpAssets=['tool-artboard','tool-frame','tool-assets','tool-autofly',
@@ -55,6 +59,7 @@ js = js.replace('src="templates/${encodeURIComponent(id)}.svg"', 'src="${standal
 html = html.replace('<link rel="stylesheet" href="styles.css">', `<style>${css}</style>`);
 html = html.replace('<link rel="stylesheet" href="artboard-v2.css">', `<style>${artboardCss}</style>`);
 html = html.replace('<link rel="stylesheet" href="artboard-v2-workflow-fixes.css">', `<style>${artboardWorkflowCss}</style>`);
+html = html.replace('<link rel="stylesheet" href="mockup-alignment.css">', `<style>${mockupCss}</style>`);
 html = html.replace('<script src="app.js" defer></script>', `<script>${js}</script>`);
 html = html.replace('<script src="artboard-v2.js" defer></script>', `<script>${artboardJs}</script>`);
 writeFileSync(resolve(root, 'Standalone_Interactive_Preview.html'), html);
