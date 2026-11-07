@@ -528,7 +528,7 @@
     const printFormats=['eps','svg','pdf','png'];
     const designerKinds={premium_svg:'Premium Master SVG',editability_report:'Editability Report',color_groups_report:'Color Groups Report'};
     const designerFiles=items.filter(x=>Object.hasOwn(designerKinds,x.format));
-    const format=ui.downloadFormat||'';
+    const format=ui.downloadFormat||(['svg','eps','pdf','png'].find(value=>formats.includes(value))||'');
     const links=confirmed?items.filter(x=>x.format===format&&printFormats.includes(x.format)):[];
     const dl=item=>`<button type="button" class="abv2-btn" data-download="artboard|${esc(artifactEndpoint(p.project_id,item.path))}">↓ Download ${esc(item.label)}</button>`;
     const hasZip=items.some(x=>x.format==='zip'),canZip=confirmed&&items.length>0;
@@ -553,20 +553,21 @@
         <section class="abv2-card abv2-illustrator"><header><h2>Adobe Illustrator</h2></header>
           <p>Continue with the premium editable SVG when available; otherwise use validated SVG.</p>
           ${button('Continue to Illustrator','illustrator','amber',!confirmed||(!formats.includes('svg')&&!formats.includes('premium_svg')))}
-          <div class="abv2-handoff-actions">
+          <details class="abv2-handoff-optional"><summary>More Illustrator handoff ZIP options</summary><div class="abv2-handoff-actions">
             ${button('↓ Illustrator Handoff ZIP','illustrator-handoff','secondary',!confirmed||state.busy||ui.handoffBusy)}
             ${button('↓ ZIP + Reference PNG','illustrator-handoff-reference','secondary',!confirmed||state.busy||ui.handoffBusy)}
-          </div>
+          </div></details>
           <p class="abv2-source-note">Handoff ZIP runs export/packaging only, never new AI artwork generation. Reference image is opt-in, separate from true-vector print exports and must remain hidden/non-printing in desktop Illustrator.</p>
-          <div class="abv2-illustrator-guide"><strong>Native .AI requires desktop Illustrator</strong><span>Import the validated EPS, run the optional Illustrator script and compare before/after proofs. A browser cannot generate native AI layers.</span>
+          <details class="abv2-illustrator-guide abv2-optional"><summary>Desktop .AI instructions</summary><strong>Native .AI requires desktop Illustrator</strong><span>Import the validated EPS, run the optional Illustrator script and compare before/after proofs. A browser cannot generate native AI layers.</span>
             <a href="https://github.com/nafiulnahid17/Artboard-AI---Resolution-Independent-/blob/main/desktop/illustrator-native-layers.jsx" target="_blank" rel="noopener noreferrer">View desktop handoff script</a>
-          </div></section>
+          </details></section>
         <section class="abv2-card abv2-new-production"><header><h2>New Production</h2></header><p>Start again with a new design.</p>${button('＋ New Production','new','primary')}</section>
 </div><details class="abv2-optional-report"><summary>Production Specs &amp; Quality Metrics</summary>${productionDetails()}</details></aside>
     </div><div class="abv2-export-bottom">${button('⌂ Home (Input Page)','home')}${button('← Previous Step','previous')}</div>`;
   }
 
   function display(){
+    if(!ui.selectionTouched&&!ui.selected.size&&available().length)ui.selected=new Set(available().map(part=>part.side));
     // Never reopen old processing screens automatically on refresh or tool entry.
     const phase=ui.preferInput?'input':ui.view||ui.phase;
     return `<section class="abv2" data-abv2-root>${phase==='input'?input():phase==='analyze'?analyze():phase==='artwork'||phase==='select'?select():phase==='export'?exportPage():processing()}</section>`;
