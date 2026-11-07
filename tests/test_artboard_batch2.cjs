@@ -107,7 +107,7 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   test(28,src.includes('interimPreview(side)')&&css.includes('abv2-reveal-real-image')&&screens.some(v=>v.includes('<h1>Artwork Creation</h1>')));
   test('real-selectable-parts',screens.at(-1).includes('data-abv2-select="front_body"')&&screens.at(-1).includes('data-abv2-select="back_body"'));
   test('backend-vector-stage-visible',screens.some(v=>v.includes('<h1>Vectorization</h1>')));
-  test('full-artwork-preview-source',src.includes('ui.generatedUrls[side]')&&src.includes('No independently visible '+"'"+'+label'+"'"+' detected')===false?true:screens.some(v=>v.includes('Real Front engine-produced artwork preview')));
+  test('full-artwork-preview-source',src.includes("const url=ui.generatedUrls[side] ||")&&!src.includes("|| interimPreview(side);"));
   test('proof-panel-removed-from-ui',!screens.at(-1).includes('Analysis → Generation Proof'));
   test('backend-quality-functions-remain',src.includes('function analysisProofPanel')&&src.includes('function vectorReviewPanel')&&src.includes('function productionApproved'));
   test('technical-proof-hidden',!screens.at(-1).includes('Brief included in generator request')&&!screens.at(-1).includes('Generated artwork follows brief'));
