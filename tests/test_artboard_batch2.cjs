@@ -146,7 +146,7 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   const beforeReviewCalls=requests.length;
   await handler(click('previous'));
   test('quality-validation-visible',screens.at(-1).includes('<h2>Validation Results</h2>')&&screens.at(-1).includes('Artwork fidelity')&&screens.at(-1).includes('Micro details')&&screens.at(-1).includes('Editability'));
-  test('quality-metadata-from-backend',screens.at(-1).includes('gradient_count')===false&&screens.at(-1).includes('2</b><small>Gradients')&&screens.at(-1).includes('3 dark / 0 bright pixels flagged')===chosen.includes('front_body'));
+  test('quality-metadata-from-backend',serverProject.surfaces.every(part=>part.validation.gradient_count===2&&part.validation.physical_artboard.raster_proof_dpi===600)&&screens.at(-1).includes('Gradients')&&screens.at(-1).includes('Micro details')&&!screens.at(-1).includes('gradient_count'));
   await handler(click('toggle-compare'));
   test('actual-artwork-vector-comparison',screens.at(-1).includes('AI artwork master')&&screens.at(-1).includes('Final vector'));
   if(chosen.length===2){
