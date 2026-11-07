@@ -745,7 +745,7 @@
       // Fetch it without a new AI request so the UI can explain the blocked output.
       try{state.artboardResult=await call('artboard','api/artboard/projects/'+id);}catch{}
     }
-    if(!ui.cancelRequested&&ui.productionDone&&ui.selected.size){ui.continued=true;void completeSelectedWorkflow();}
+    if(!ui.cancelRequested&&ui.productionDone&&ui.selected.size){ui.continued=true;await completeSelectedWorkflow();}
     render();
   }
   async function recreateSurface(side){
@@ -780,14 +780,13 @@
     if(!productionApproved())return notify('AI review and technical validation have not cleared this production');
     ui.finishing=true;
     try{
-      // The current engine runs artwork + vectorization + validation inside one job.
-      // When selection follows completion, show only its real, saved vector geometry
-      // and confirmed historical events. Never pretend this is a new engine job.
-      ui.phase='processing';ui.processingStage='Vectorization';ui.stageStatus='completed';state.activePipeline='Vectorization';
-      state.stage='Reviewing saved vector geometry — no new production request';render();await loadSideAssets(true);if(typeof document.querySelectorAll==='function')await paintVectorOverlay();await sleep(3500);
+      // Vectorization and validation already ran in the REAL production job.
+      // Never replay finished stages or move back to 52% to simulate activity.
+      ui.phase='processing';ui.processingStage='Validation';ui.stageStatus='completed';
+      ui.visitedStages.add('Validation');state.activePipeline='Validation';
+      state.stage='Saved vectorization and validation complete';state.progress=100;render();
+      await loadSideAssets(true);
       if(ui.cancelRequested||ui.workspaceEpoch!==epoch)return;
-      ui.processingStage='Validation';ui.visitedStages.add('Validation');state.activePipeline='Validation';
-      state.stage='Reviewing saved validation and source fidelity';render();await sleep(2500);
       if(ui.exportStarted||ui.cancelRequested||ui.workspaceEpoch!==epoch)return;
       ui.exportStarted=true;
       const id=project().project_id;
