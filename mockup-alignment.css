@@ -246,8 +246,8 @@
   background-repeat:no-repeat;background-position:center;background-size:contain;
   pointer-events:none;opacity:.76;filter:drop-shadow(0 0 18px #008bff88);
 }
-.ecosystem-hero::before{left:1%;background-image:url("assets/media/hero-athlete-blue.webp")}
-.ecosystem-hero::after{right:1%;left:auto;inset-block:0;background-image:url("assets/media/hero-athlete-green.webp")}
+.ecosystem-hero::before{left:1%;background-image:url("assets/media/hero-football-blue.webp")}
+.ecosystem-hero::after{right:1%;left:auto;inset-block:0;background-image:url("assets/media/hero-football-green.webp")}
 .ecosystem-hero>h1,.ecosystem-hero>p,.ecosystem-hero>div{position:relative;z-index:2}
 
 @media (min-width:1100px) and (min-height:680px) {
@@ -313,7 +313,7 @@
 /* Campaign portraits: strong hero highlights and a quiet full-page continuation. */
 .ecosystem-hero::before,.ecosystem-hero::after{opacity:1;background-size:auto 145%;background-position:center top;mask-image:linear-gradient(#000 86%,transparent)}
 .workspace:has(.ecosystem-hero){position:relative;isolation:isolate}
-.workspace:has(.ecosystem-hero)::before{content:"";position:absolute;inset:18px 0 0;z-index:-1;pointer-events:none;background-image:url("assets/media/hero-athlete-blue.webp"),url("assets/media/hero-athlete-green.webp");background-repeat:no-repeat;background-position:left top,right top;background-size:auto 100%,auto 100%;opacity:.12}
+.workspace:has(.ecosystem-hero)::before{content:"";position:absolute;inset:18px 0 0;z-index:-1;pointer-events:none;background-image:url("assets/media/hero-football-blue.webp"),url("assets/media/hero-football-green.webp");background-repeat:no-repeat;background-position:left top,right top;background-size:auto 100%,auto 100%;opacity:.12}
 .menu-button{display:grid;flex-shrink:0;cursor:pointer}
 .menu-button:focus-visible{outline:2px solid #4dff25;outline-offset:3px}
 @media(min-width:781px){
@@ -325,3 +325,7 @@
  .ecosystem-hero::after{display:block}
 }
 @media(min-width:781px) and (max-width:1100px){.lab-text,.brand-divider{display:none}}
+
+/* Keep the passing and receiving legs and ball visible in the hero. */
+.ecosystem-hero{min-height:280px;display:flex;flex-direction:column;justify-content:center}
+.ecosystem-hero::before,.ecosystem-hero::after{background-size:contain;background-position:center;mask-image:none}
