@@ -80,3 +80,5 @@ body.artboard-workspace{overflow:auto!important}
 .artboard-workspace #mainContent .abv2 .abv2-studio-settings b{font-size:11px}
 @media(max-width:760px){.artboard-workspace #mainContent .abv2[data-screen="input"]::before,.artboard-workspace #mainContent .abv2[data-screen="input"]::after{opacity:.16;width:45%}.artboard-workspace #mainContent .abv2 .abv2-log ol li{font-size:11px}.artboard-workspace #mainContent .abv2 .abv2-process-grid .abv2-preview .abv2-visual{height:330px!important}}
 @media(prefers-reduced-motion:reduce){body.artboard-workspace #mainContent .abv2[data-abv2-root] *,body.artboard-workspace #mainContent .abv2[data-abv2-root] *::before,body.artboard-workspace #mainContent .abv2[data-abv2-root] *::after{animation:none!important;transition:none!important}}
+/* A single selected print field uses the full preview; two fields stay paired. */
+.artboard-workspace #mainContent .abv2 .abv2-validation-arts:has(>div:only-child),.artboard-workspace #mainContent .abv2 .abv2-export-arts:has(>div:only-child){grid-template-columns:minmax(0,1fr)!important}
