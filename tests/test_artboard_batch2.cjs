@@ -222,7 +222,7 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   const savedReview=serverProject.validation;
   serverProject.validation={...savedReview,status:'REVIEW_REQUIRED',ai_vector_review:{status:'REVIEW_REQUIRED',rounds:2,fixes:1,accepted_artwork_source:true}};
   context.render();
-  test('unresolved-review-blocked',screens.at(-1).includes('AI review / validation pending')&&!screens.at(-1).includes('✓ Validated Vector'));
+  test('unresolved-review-blocked',screens.at(-1).includes('Validation pending')&&!screens.at(-1).includes('✓ Validated Vector'));
   serverProject.validation=savedReview;
   context.render();
 

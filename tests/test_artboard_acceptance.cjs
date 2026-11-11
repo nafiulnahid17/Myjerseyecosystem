@@ -1,0 +1,23 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const source=fs.readFileSync(path.join(__dirname,'../artboard-v2.js'),'utf8');
+assert(!source.includes('class="abv2-menu"'));
+const segment=source.slice(source.indexOf('  const qualityMode'),source.indexOf('  function vectorReviewPanel'));
+const api=vm.runInNewContext(segment+'\n({deliveryAcceptance})',{project:()=>({}),ui:{selected:new Set()},surfName:part=>part.type||'front_body'});
+const part={part_id:'front',validation:{production_fidelity:{status:'PASS'},local_detail_fidelity:{status:'PASS'},editability_status:'PASS'}};
+const p={true_vector_ready:true,validation:{status:'PASS',ai_vector_review:{status:'PASS'}},surfaces:[part]};
+assert(api.deliveryAcceptance(p).passed);
+part.validation.local_detail_fidelity.status='REVIEW_REQUIRED';
+assert(!api.deliveryAcceptance(p).passed);
+part.validation.local_detail_fidelity.status='PASS';delete part.validation.editability_status;
+assert(!api.deliveryAcceptance(p).passed);
+assert(source.includes('colors[family.id]=region?{hex:input.value,region}:input.value'));
+assert(source.includes('data-abv2-family-region'));
+assert(source.includes('epoch!==ui.workspaceEpoch||project().project_id!==id'));
+console.log('Strict acceptance, family shade edits, duplicate menu and stale project guards passed');
+
+const css=fs.readFileSync(path.join(__dirname,'../artboard-workflow-2026.css'),'utf8');
+assert(css.includes('@media(min-width:1024px) and (min-height:700px)'));
+assert(css.includes('.abv2-export-primary-actions{display:grid'));
+assert(source.includes('<div class="abv2-export-primary-actions">'));
+assert(!css.includes('Let every control remain reachable'));

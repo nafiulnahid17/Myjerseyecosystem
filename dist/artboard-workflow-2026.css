@@ -5,8 +5,7 @@
 .artboard-workspace #mainContent .abv2{--ab-cyan:#00eaff;--studio-line:#087fc1;position:relative;display:flex!important;flex-direction:column;gap:12px!important;padding:14px 3% 24px!important;min-height:calc(100dvh - 86px)!important;height:auto!important;max-height:none!important;max-width:none;overflow:hidden!important;border:0;border-radius:0;background:radial-gradient(ellipse at 50% 110%,#0066ff30,transparent 55%),url('assets/artboard-v2/studio-frame.svg') center/100% 100% no-repeat,#010d1b;box-shadow:inset 0 0 80px #000b;font-family:Arial,'Segoe UI',sans-serif;color:#f2f7ff}
 #mainContent .abv2 button{font-family:inherit}#mainContent .abv2 button:focus-visible{outline:2px solid #fff;outline-offset:3px}#mainContent .abv2 button:disabled{cursor:not-allowed}
 .artboard-workspace #mainContent .abv2 .abv2-top{position:relative;z-index:2;gap:14px!important;flex:none}
-.artboard-workspace #mainContent .abv2 .abv2-health{width:92%;max-width:1260px;margin:auto;grid-template-columns:62px repeat(4,minmax(0,1fr));min-height:58px;padding:4px 9px;border:1px solid #208cd1;border-radius:23px;background:linear-gradient(180deg,#05283fbb,#00101f 65%);box-shadow:inset 0 1px 9px #2fceff77,0 0 12px #008cff66;overflow:hidden}
-#mainContent .abv2 .abv2-menu{border:0;border-right:1px solid #2276a0;background:transparent;color:#95f8ff;font-size:30px;text-shadow:0 0 10px #00eaff;cursor:pointer}
+.artboard-workspace #mainContent .abv2 .abv2-health{width:92%;max-width:1260px;margin:auto;grid-template-columns:repeat(4,minmax(0,1fr));min-height:58px;padding:4px 9px;border:1px solid #208cd1;border-radius:23px;background:linear-gradient(180deg,#05283fbb,#00101f 65%);box-shadow:inset 0 1px 9px #2fceff77,0 0 12px #008cff66;overflow:hidden}
 .artboard-workspace #mainContent .abv2 .abv2-health>span{display:flex;align-items:center;justify-content:center;gap:8px;padding:5px 9px!important;border-right:1px solid #1d709255;font-size:14px}
 #mainContent .abv2 .abv2-health>span>span{display:flex;align-items:center;gap:7px;flex-wrap:wrap}#mainContent .abv2 .abv2-health strong{font-size:clamp(11px,1.1vw,18px);font-weight:600;white-space:nowrap}#mainContent .abv2 .abv2-health-icon{color:#00eaff;font-size:30px;text-shadow:0 0 12px #00dcff;font-style:normal}
 #mainContent .abv2 .abv2-health>span:first-of-type .abv2-health-icon{color:#44ff58}#mainContent .abv2 .abv2-health b{display:flex;align-items:center;gap:5px;border:1px solid #00b65b;border-radius:30px;padding:4px 10px;background:linear-gradient(#006f36,#00311c);color:#caffd8;box-shadow:inset 0 0 10px #00ff7544,0 0 10px #00ff3844;font-size:11px;white-space:nowrap}#mainContent .abv2 .abv2-health>span:nth-of-type(2) b{border-color:#007aff;background:linear-gradient(#006fee,#00376b);box-shadow:0 0 12px #007bff55;color:#dbf6ff}
@@ -50,12 +49,8 @@
 @keyframes studio-spin{to{transform:rotate(360deg)}}@keyframes studio-node{to{opacity:.35;box-shadow:0 0 20px #00ffff;transform:scale(.75)}}
 @media(min-width:1600px){.artboard-workspace #mainContent .abv2{padding:18px 3% 30px!important;gap:18px!important}.artboard-workspace #mainContent .abv2 .abv2-art-canvas,.artboard-workspace #mainContent .abv2 .abv2-visual{height:clamp(340px,46vh,540px)!important}.artboard-workspace #mainContent .abv2 .abv2-log li{font-size:13px;padding:15px 3px}#mainContent .abv2 .abv2-header p{font-size:14px!important}#mainContent .abv2 .abv2-log-facts b{font-size:14px}#mainContent .abv2 .abv2-card>header h2{font-size:22px}#mainContent .abv2 .abv2-export-arts img{height:390px!important}}
 @media(max-width:1100px){.artboard-workspace #mainContent .abv2 .abv2-art-grid-layout{grid-template-columns:repeat(2,minmax(0,1fr))!important}.artboard-workspace #mainContent .abv2 .abv2-stage-rail{grid-column:1/-1;display:grid!important;grid-template-columns:1fr;max-height:none}#mainContent .abv2 .abv2-stage-rail .abv2-log ol{grid-template-columns:repeat(2,minmax(0,1fr));min-height:0}.artboard-workspace #mainContent .abv2 .abv2-validation-layout{grid-template-columns:minmax(190px,.7fr) minmax(0,1.5fr)!important}#mainContent .abv2 .abv2-validation-checks{grid-column:1/-1}#mainContent .abv2 .abv2-validation-checks>ul{grid-template-columns:repeat(2,minmax(0,1fr))}.artboard-workspace #mainContent .abv2 .abv2-export-grid{grid-template-columns:minmax(0,1.4fr) minmax(280px,1fr)!important}#mainContent .abv2 .abv2-export-right{grid-column:1/-1}#mainContent .abv2 .abv2-export-actions{display:grid;grid-template-columns:1fr 1fr}#mainContent .abv2 .abv2-studio-summary{flex-wrap:wrap}#mainContent .abv2 .abv2-input-shell{width:85%!important}#mainContent .abv2 .abv2-health strong{font-size:11px}#mainContent .abv2 .abv2-health b{padding:3px 6px;font-size:9px}#mainContent .abv2 .abv2-health-icon{font-size:24px}}
-@media(max-width:760px){.artboard-workspace #mainContent .abv2{padding:12px 10px 22px!important;min-height:calc(100dvh - 74px)!important}.artboard-workspace #mainContent .abv2 .abv2-health{width:100%;grid-template-columns:40px repeat(2,minmax(0,1fr));border-radius:14px;gap:0}#mainContent .abv2 .abv2-menu{grid-row:1/3}#mainContent .abv2 .abv2-health>span{padding:5px!important;gap:5px!important}#mainContent .abv2 .abv2-health strong{font-size:10px}#mainContent .abv2 .abv2-health>span>span{gap:4px}#mainContent .abv2 .abv2-health-icon{display:none}#mainContent .abv2 .abv2-health b{font-size:8px}.artboard-workspace #mainContent .abv2 .abv2-header{padding:3px!important;gap:9px}.artboard-workspace #mainContent .abv2 .abv2-header>img{width:40px;height:40px}.artboard-workspace #mainContent .abv2 .abv2-header h1{font-size:24px!important}#mainContent .abv2 .abv2-header p{font-size:10px!important}#mainContent .abv2 .abv2-step-label{display:none}.artboard-workspace #mainContent .abv2 .abv2-input-shell{width:100%!important}#mainContent .abv2[data-screen="input"]::before,#mainContent .abv2[data-screen="input"]::after{opacity:.16;width:45%;top:20%;bottom:0}#mainContent .abv2 .abv2-modes{padding:8px!important;gap:9px!important;min-height:0}#mainContent .abv2 .abv2-modes>b{font-size:10px;min-width:80px!important;padding-right:7px}#mainContent .abv2 .abv2-mode-card{padding:7px!important}#mainContent .abv2 .abv2-mode-card strong{font-size:12px}#mainContent .abv2 .abv2-mode-card small{font-size:8px}#mainContent .abv2 .abv2-mode-card em{font-size:20px}#mainContent .abv2 .abv2-upload-panel{padding:12px!important}#mainContent .abv2 .abv2-drop{min-height:220px!important}#mainContent .abv2 .abv2-drop>strong{font-size:17px}#mainContent .abv2 .abv2-file{padding:8px;gap:8px}#mainContent .abv2 .abv2-file>span{display:none}#mainContent .abv2 .abv2-file strong{font-size:11px}#mainContent .abv2 .abv2-file small{font-size:8px}#mainContent .abv2 .abv2-commands{gap:9px!important;padding:0!important}#mainContent .abv2 .abv2-commands .abv2-btn{font-size:13px;min-height:44px!important}.artboard-workspace #mainContent .abv2 .abv2-process-grid,.artboard-workspace #mainContent .abv2 .abv2-art-grid-layout,.artboard-workspace #mainContent .abv2 .abv2-art-grid-layout.single,.artboard-workspace #mainContent .abv2 .abv2-validation-layout,.artboard-workspace #mainContent .abv2 .abv2-export-grid{grid-template-columns:1fr!important;min-height:0}#mainContent .abv2 .abv2-stage-rail,#mainContent .abv2 .abv2-validation-checks,#mainContent .abv2 .abv2-export-right{grid-column:auto!important}#mainContent .abv2 .abv2-log li{font-size:11px}#mainContent .abv2 .abv2-log ol{min-height:0}#mainContent .abv2 .abv2-stage-rail .abv2-log ol{grid-template-columns:1fr}#mainContent .abv2 .abv2-validation-arts .abv2-art-canvas{height:260px!important}#mainContent .abv2 .abv2-validation-checks>ul{grid-template-columns:1fr}#mainContent .abv2 .abv2-validation-meter{display:none!important}#mainContent .abv2 .abv2-export-grid>.abv2-export-preview{grid-column:auto}#mainContent .abv2 .abv2-export-actions{grid-template-columns:1fr}#mainContent .abv2 .abv2-export-arts>div{min-height:260px!important}#mainContent .abv2 .abv2-export-arts img{height:240px!important}#mainContent .abv2 .abv2-export-bottom{grid-template-columns:1fr}#mainContent .abv2 .abv2-studio-summary{gap:12px;padding:12px}#mainContent .abv2 .abv2-studio-summary>div{width:100%}#mainContent .abv2 .abv2-studio-summary>span{padding:0 5px}#mainContent .abv2 .abv2-studio-summary b{font-size:11px}#mainContent .abv2 .abv2-studio-summary small{font-size:8px}.artboard-workspace #mainContent .abv2 .abv2-nav{width:100%;gap:8px;margin-top:8px}.artboard-workspace #mainContent .abv2 .abv2-nav .abv2-btn{padding:10px 6px!important;font-size:11px;min-height:42px!important}#mainContent .abv2 .abv2-select-actions{display:block}#mainContent .abv2 .abv2-select-actions>.abv2-btn{width:100%;margin-top:10px}#mainContent .abv2 .abv2-selection-bar{flex-wrap:wrap}#mainContent .abv2 .abv2-selection-bar>small{width:100%}#mainContent .abv2 .abv2-zoom-controls .abv2-btn{font-size:10px!important}#mainContent .abv2 .abv2-export-preview>header{flex-wrap:wrap}#mainContent .abv2 .abv2-compare-actions{flex-wrap:wrap}}
+@media(max-width:760px){.artboard-workspace #mainContent .abv2{padding:12px 10px 22px!important;min-height:calc(100dvh - 74px)!important}.artboard-workspace #mainContent .abv2 .abv2-health{width:100%;grid-template-columns:repeat(2,minmax(0,1fr));border-radius:14px;gap:0}#mainContent .abv2 .abv2-health>span{padding:5px!important;gap:5px!important}#mainContent .abv2 .abv2-health strong{font-size:10px}#mainContent .abv2 .abv2-health>span>span{gap:4px}#mainContent .abv2 .abv2-health-icon{display:none}#mainContent .abv2 .abv2-health b{font-size:8px}.artboard-workspace #mainContent .abv2 .abv2-header{padding:3px!important;gap:9px}.artboard-workspace #mainContent .abv2 .abv2-header>img{width:40px;height:40px}.artboard-workspace #mainContent .abv2 .abv2-header h1{font-size:24px!important}#mainContent .abv2 .abv2-header p{font-size:10px!important}#mainContent .abv2 .abv2-step-label{display:none}.artboard-workspace #mainContent .abv2 .abv2-input-shell{width:100%!important}#mainContent .abv2[data-screen="input"]::before,#mainContent .abv2[data-screen="input"]::after{opacity:.16;width:45%;top:20%;bottom:0}#mainContent .abv2 .abv2-modes{padding:8px!important;gap:9px!important;min-height:0}#mainContent .abv2 .abv2-modes>b{font-size:10px;min-width:80px!important;padding-right:7px}#mainContent .abv2 .abv2-mode-card{padding:7px!important}#mainContent .abv2 .abv2-mode-card strong{font-size:12px}#mainContent .abv2 .abv2-mode-card small{font-size:8px}#mainContent .abv2 .abv2-mode-card em{font-size:20px}#mainContent .abv2 .abv2-upload-panel{padding:12px!important}#mainContent .abv2 .abv2-drop{min-height:220px!important}#mainContent .abv2 .abv2-drop>strong{font-size:17px}#mainContent .abv2 .abv2-file{padding:8px;gap:8px}#mainContent .abv2 .abv2-file>span{display:none}#mainContent .abv2 .abv2-file strong{font-size:11px}#mainContent .abv2 .abv2-file small{font-size:8px}#mainContent .abv2 .abv2-commands{gap:9px!important;padding:0!important}#mainContent .abv2 .abv2-commands .abv2-btn{font-size:13px;min-height:44px!important}.artboard-workspace #mainContent .abv2 .abv2-process-grid,.artboard-workspace #mainContent .abv2 .abv2-art-grid-layout,.artboard-workspace #mainContent .abv2 .abv2-art-grid-layout.single,.artboard-workspace #mainContent .abv2 .abv2-validation-layout,.artboard-workspace #mainContent .abv2 .abv2-export-grid{grid-template-columns:1fr!important;min-height:0}#mainContent .abv2 .abv2-stage-rail,#mainContent .abv2 .abv2-validation-checks,#mainContent .abv2 .abv2-export-right{grid-column:auto!important}#mainContent .abv2 .abv2-log li{font-size:11px}#mainContent .abv2 .abv2-log ol{min-height:0}#mainContent .abv2 .abv2-stage-rail .abv2-log ol{grid-template-columns:1fr}#mainContent .abv2 .abv2-validation-arts .abv2-art-canvas{height:260px!important}#mainContent .abv2 .abv2-validation-checks>ul{grid-template-columns:1fr}#mainContent .abv2 .abv2-validation-meter{display:none!important}#mainContent .abv2 .abv2-export-grid>.abv2-export-preview{grid-column:auto}#mainContent .abv2 .abv2-export-actions{grid-template-columns:1fr}#mainContent .abv2 .abv2-export-arts>div{min-height:260px!important}#mainContent .abv2 .abv2-export-arts img{height:240px!important}#mainContent .abv2 .abv2-export-bottom{grid-template-columns:1fr}#mainContent .abv2 .abv2-studio-summary{gap:12px;padding:12px}#mainContent .abv2 .abv2-studio-summary>div{width:100%}#mainContent .abv2 .abv2-studio-summary>span{padding:0 5px}#mainContent .abv2 .abv2-studio-summary b{font-size:11px}#mainContent .abv2 .abv2-studio-summary small{font-size:8px}.artboard-workspace #mainContent .abv2 .abv2-nav{width:100%;gap:8px;margin-top:8px}.artboard-workspace #mainContent .abv2 .abv2-nav .abv2-btn{padding:10px 6px!important;font-size:11px;min-height:42px!important}#mainContent .abv2 .abv2-select-actions{display:block}#mainContent .abv2 .abv2-select-actions>.abv2-btn{width:100%;margin-top:10px}#mainContent .abv2 .abv2-selection-bar{flex-wrap:wrap}#mainContent .abv2 .abv2-selection-bar>small{width:100%}#mainContent .abv2 .abv2-zoom-controls .abv2-btn{font-size:10px!important}#mainContent .abv2 .abv2-export-preview>header{flex-wrap:wrap}#mainContent .abv2 .abv2-compare-actions{flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){#mainContent .abv2 *, #mainContent .abv2 *::before,#mainContent .abv2 *::after{animation:none!important;transition:none!important}}
-/* Let every control remain reachable when reports or one-sided output need extra room. */
-body.artboard-workspace{overflow:auto!important}
-.artboard-workspace .shell{height:auto!important;overflow:visible!important}
-.artboard-workspace #mainContent .abv2>.abv2-art-grid-layout,.artboard-workspace #mainContent .abv2>.abv2-process-grid,.artboard-workspace #mainContent .abv2>.abv2-validation-layout,.artboard-workspace #mainContent .abv2>.abv2-export-grid{flex:none;max-height:none!important;overflow:visible!important}
 #mainContent .abv2[data-screen="export"] .abv2-health{display:none!important}
 #mainContent .abv2[data-screen="export"] .abv2-step-label{color:#b9ffc9;border-color:#1ee079;background:#003621;box-shadow:inset 0 0 10px #00ff5344,0 0 11px #00ff5533}
 /* Retire the older flat side illustrations and compact upload overrides. */
@@ -87,3 +82,118 @@ body.artboard-workspace{overflow:auto!important}
 .artboard-workspace #mainContent .abv2 .abv2-export-arts>div{height:100%!important;min-height:0!important;max-height:100%;display:block!important;position:relative}
 .artboard-workspace #mainContent .abv2 .abv2-export-arts img{position:absolute!important;inset:24px 3% 12px;width:94%!important;height:calc(100% - 36px)!important;min-height:0!important;max-height:none!important;flex:none!important;object-fit:contain!important;margin:0!important}
 .artboard-workspace #mainContent .abv2 .abv2-export-arts{flex:none!important}
+/* Desktop viewport contract. Secondary detail panels scroll internally. */
+@media(min-width:1024px) and (min-height:700px){
+ body.artboard-workspace{--ab-header:64px;overflow:hidden!important}
+ .artboard-workspace .topbar{height:var(--ab-header);min-height:var(--ab-header);padding-block:5px}
+ .artboard-workspace .topbar .brand-logo{height:44px;width:44px}
+ .artboard-workspace .topbar .product-logo{height:40px;width:40px}
+ .artboard-workspace .shell{height:calc(100dvh - var(--ab-header));min-height:0;overflow:hidden}
+ .artboard-workspace .workspace,.artboard-workspace .content{height:100%!important;min-height:0!important;overflow:hidden!important}
+ .artboard-workspace #mainContent .abv2,.artboard-workspace #mainContent .abv2[data-screen="input"]{height:100%!important;min-height:0!important;max-height:100%!important;gap:6px!important;padding:8px 1.5% 10px!important;overflow:hidden!important}
+ .artboard-workspace #mainContent .abv2 .abv2-top{gap:4px!important;flex:0 0 auto}
+ .artboard-workspace #mainContent .abv2 .abv2-health{min-height:38px;height:38px;width:100%;padding:2px 8px;border-radius:15px}
+ .artboard-workspace #mainContent .abv2 .abv2-health>span{padding:2px 8px!important;gap:6px}
+ #mainContent .abv2 .abv2-health strong{font-size:12px}
+ #mainContent .abv2 .abv2-health-icon{font-size:23px}
+ #mainContent .abv2 .abv2-health b{padding:2px 7px;font-size:10px}
+ .artboard-workspace #mainContent .abv2 .abv2-header,.artboard-workspace #mainContent .abv2[data-screen="input"] .abv2-header{min-height:44px!important;height:44px;padding:2px 5px!important;flex:none}
+ .artboard-workspace #mainContent .abv2 .abv2-header h1,.artboard-workspace #mainContent .abv2[data-screen="input"] .abv2-header h1{font-size:26px!important}
+ .artboard-workspace #mainContent .abv2 .abv2-header>img,.artboard-workspace #mainContent .abv2[data-screen="input"] .abv2-header>img{width:38px!important;height:38px!important}
+ .artboard-workspace #mainContent .abv2 .abv2-header p{font-size:10px!important;margin-top:3px}
+ #mainContent .abv2 .abv2-step-label{padding:5px 10px;font-size:10px}
+ #mainContent .abv2 .abv2-selection-bar,#mainContent .abv2 .abv2-select-actions{flex:none;margin:0;padding:5px 10px;min-height:0}
+ #mainContent .abv2 .abv2-source-note,#mainContent .abv2>.abv2-info{margin:0;font-size:10px;flex:none}
+ #mainContent .abv2 .abv2-advisory{margin:0;padding:6px 9px;font-size:10px;line-height:1.35;flex:none;max-height:66px;overflow:auto}
+ .artboard-workspace #mainContent .abv2 .abv2-process-grid,.artboard-workspace #mainContent .abv2 .abv2-art-grid-layout,.artboard-workspace #mainContent .abv2 .abv2-validation-layout,.artboard-workspace #mainContent .abv2 .abv2-export-grid{flex:1 1 0!important;min-height:0!important;max-height:100%;overflow:hidden!important;margin:0;grid-template-rows:minmax(0,1fr)}
+ .artboard-workspace #mainContent .abv2 .abv2-card{min-height:0;padding:8px!important;border-radius:13px!important}
+ #mainContent .abv2 .abv2-card>header{padding:0 3px 5px;margin:0 0 5px;min-height:28px}
+ #mainContent .abv2 .abv2-card>header h2{font-size:15px}
+ #mainContent .abv2 .abv2-card>header small{font-size:9px}
+ .artboard-workspace #mainContent .abv2 .abv2-art-panel,.artboard-workspace #mainContent .abv2 .abv2-analysis-preview,.artboard-workspace #mainContent .abv2 .abv2-validation-preview,.artboard-workspace #mainContent .abv2 .abv2-export-preview{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+ .artboard-workspace #mainContent .abv2 .abv2-art-canvas,.artboard-workspace #mainContent .abv2 .abv2-visual,.artboard-workspace #mainContent .abv2 .abv2-validation-arts .abv2-art-canvas{flex:1 1 0!important;min-height:0!important;height:100%!important;max-height:100%!important}
+ #mainContent .abv2 .abv2-visual>img,#mainContent .abv2 .abv2-art-canvas>img{height:100%!important;max-height:100%!important;object-fit:contain!important}
+ .artboard-workspace #mainContent .abv2 .abv2-stage-rail{min-height:0;display:flex!important;flex-direction:column;gap:6px;overflow:hidden}
+ #mainContent .abv2 .abv2-stage-rail .abv2-stage-rail{flex:none}
+ #mainContent .abv2 .abv2-log{display:flex;flex-direction:column;min-height:0;flex:1}
+ #mainContent .abv2 .abv2-log ol{flex:1;min-height:0;max-height:none;overflow:auto;padding:0;margin:4px 0}
+ #mainContent .abv2 .abv2-log li{padding:6px 4px;font-size:11px}
+ #mainContent .abv2 .abv2-current{padding:5px 7px}
+ #mainContent .abv2 .abv2-log-facts,#mainContent .abv2 .abv2-log-footer{flex:none;padding:5px;font-size:10px}
+ #mainContent .abv2 .abv2-validation-meter{display:flex;flex-direction:column;min-height:0}
+ #mainContent .abv2 .abv2-gauge{width:min(16vh,160px);height:min(16vh,160px);min-height:0;margin:3px auto 6px;flex-shrink:0}
+ #mainContent .abv2 .abv2-gauge strong{font-size:28px}
+ #mainContent .abv2 .abv2-gauge small{font-size:9px}
+ #mainContent .abv2 .abv2-validation-meter>ol{flex:1;min-height:0;overflow:auto;margin:0}
+ #mainContent .abv2 .abv2-validation-meter li{padding:6px!important;font-size:10px}
+ #mainContent .abv2 .abv2-validation-arts{flex:1;min-height:0!important;max-height:100%;height:100%!important;grid-template-rows:minmax(0,1fr)}
+ #mainContent .abv2 .abv2-validation-arts>div{display:flex;flex-direction:column;min-height:0}
+ #mainContent .abv2 .abv2-validation-arts>div>strong{padding:5px}
+ #mainContent .abv2 .abv2-validation-checks{display:flex;flex-direction:column;min-height:0;overflow:auto}
+ #mainContent .abv2 .abv2-validation-checks>ul{gap:4px;min-height:0;max-height:none!important;overflow:auto!important;flex:1;margin:4px 0}
+ #mainContent .abv2 .abv2-validation-checks li{padding:5px!important;gap:5px}
+ #mainContent .abv2 .abv2-validation-checks strong{font-size:11px}
+ #mainContent .abv2 .abv2-validation-checks small{font-size:9px}
+ #mainContent .abv2 .abv2-validation-stats{padding:5px;margin-top:5px}
+ #mainContent .abv2 .abv2-validation-stats b{font-size:13px}
+ #mainContent .abv2 .abv2-source-comparison{flex:0 0 28%;min-height:0;margin-top:5px;overflow:auto}
+ #mainContent .abv2 .abv2-source-comparison img{max-height:90px;object-fit:contain}
+ #mainContent .abv2 .abv2-export-left,#mainContent .abv2 .abv2-export-preview{height:100%;min-height:0}
+ #mainContent .abv2 .abv2-export-arts{flex:1;min-height:0;height:100%;grid-template-rows:minmax(0,1fr);overflow:hidden}
+ #mainContent .abv2 .abv2-export-arts>div{height:100%;min-height:0!important;display:flex;flex-direction:column;overflow:hidden}
+ #mainContent .abv2 .abv2-export-arts img{flex:1;min-height:0!important;height:100%!important;max-height:100%!important;object-fit:contain!important}
+ #mainContent .abv2 .abv2-export-center,#mainContent .abv2 .abv2-export-right{min-height:0;max-height:100%;overflow:auto}
+ #mainContent .abv2 .abv2-export-right{display:flex;flex-direction:column;gap:6px}
+ #mainContent .abv2 .abv2-export-primary-actions{display:grid;gap:5px;flex:none}
+ #mainContent .abv2 .abv2-export-actions{gap:6px;min-height:0;overflow:auto;flex:1}
+ #mainContent .abv2 .abv2-optional-report{flex:none}
+ #mainContent .abv2 .abv2-export-actions>.abv2-card{flex:0 0 auto;min-height:0!important}
+ #mainContent .abv2 .abv2-package p,#mainContent .abv2 .abv2-illustrator p{font-size:10px;line-height:1.35;margin:5px 0}
+ #mainContent .abv2 .abv2-package-checks{margin:5px 0;padding:0}
+ #mainContent .abv2 .abv2-package-checks li{padding:3px 0}
+ #mainContent .abv2 .abv2-handoff-actions{gap:4px}
+ #mainContent .abv2 .abv2-studio-settings>div{min-height:0!important;padding:5px!important;margin:5px 0}
+ #mainContent .abv2 .abv2-export-settings .abv2-format-grid{gap:5px}
+ #mainContent .abv2 .abv2-format{padding:6px 3px;min-height:0}
+ #mainContent .abv2 .abv2-format i{width:27px;height:30px;font-size:10px}
+ #mainContent .abv2 .abv2-format strong{font-size:11px}
+ #mainContent .abv2 .abv2-studio-settings>div{padding:5px;font-size:10px}
+ #mainContent .abv2 .abv2-studio-summary{flex:none;padding:6px 10px;min-height:0;gap:9px;margin-top:0}
+ #mainContent .abv2 .abv2-studio-summary b{font-size:12px}
+ #mainContent .abv2 .abv2-studio-summary small{font-size:9px}
+ #mainContent .abv2 .abv2-export-bottom{flex:none;gap:12px;min-height:0}
+ #mainContent .abv2 .abv2-stage-rail,#mainContent .abv2>.abv2-stage-rail{flex:none;padding:5px 7px;min-height:42px}
+ .artboard-workspace #mainContent .abv2 .abv2-nav{flex:none;height:42px;min-height:42px;width:100%;margin:0;gap:16px}
+ .artboard-workspace #mainContent .abv2 .abv2-btn{min-height:36px!important;padding:7px 12px!important;font-size:12px!important}
+ .artboard-workspace #mainContent .abv2 .abv2-nav .abv2-btn{height:42px!important;min-height:42px!important;font-size:14px!important}
+ .artboard-workspace #mainContent .abv2 .abv2-input-shell{flex:1;min-height:0!important;max-height:100%;gap:8px!important;overflow:hidden!important}
+ #mainContent .abv2 .abv2-modes{min-height:48px;padding:6px 12px!important;gap:12px!important;flex:none}
+ #mainContent .abv2 .abv2-mode-card strong{font-size:13px}
+ #mainContent .abv2 .abv2-mode-card small{font-size:9px}
+ #mainContent .abv2 .abv2-upload-panel{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;padding:10px!important;overflow:hidden!important}
+ #mainContent .abv2 .abv2-drop{flex:1!important;min-height:100px!important;max-height:100%;height:auto;padding:10px!important}
+ #mainContent .abv2 .abv2-file{flex:none;min-height:46px;margin:0;padding:6px 10px}
+ #mainContent .abv2 .abv2-upload-preview{max-height:85px!important}
+ #mainContent .abv2 .abv2-commands{flex:none;gap:14px!important;padding:0!important}
+ .artboard-workspace #mainContent .abv2[data-screen="input"] .abv2-input-shell .abv2-commands .abv2-btn{min-height:42px!important;height:42px;font-size:14px!important;padding:8px!important}
+ #mainContent .abv2 .abv2-resume-dialog{flex:none;max-height:140px;overflow:auto;padding:8px;font-size:11px}
+}
+/* Small windows retain document scrolling so essential controls stay reachable. */
+@media(max-width:1023px),(max-height:699px){
+ html:has(>body.artboard-workspace){overflow-x:clip}
+ body.artboard-workspace{overflow-y:auto!important;overflow-x:clip!important}
+ #mainContent .abv2 .abv2-file{flex-wrap:wrap;min-width:0;max-width:100%}
+ #mainContent .abv2 .abv2-file>div{min-width:0;flex:1 1 120px}
+ #mainContent .abv2 .abv2-file strong{overflow-wrap:anywhere}
+ #mainContent .abv2 .abv2-modes{flex-wrap:wrap}
+ #mainContent .abv2 .abv2-modes>b{min-width:0!important;max-width:100%;flex:1 1 100%;border-right:0}
+ #mainContent .abv2 .abv2-mode-card{min-width:0;max-width:100%;padding:7px!important}
+ #mainContent .abv2 .abv2-mode-card strong,#mainContent .abv2 .abv2-select-summary{white-space:normal;overflow-wrap:anywhere}
+ #mainContent .abv2 .abv2-art-grid-layout>*{min-width:0;max-width:100%}
+ #mainContent .abv2 .abv2-select-actions{min-width:0;max-width:100%}
+ #mainContent .abv2 .abv2-select-actions .abv2-nav{width:100%!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important}
+ #mainContent .abv2 .abv2-select-actions .abv2-nav .abv2-btn{min-width:0!important;width:100%!important;white-space:normal;font-size:12px!important;padding:8px!important}
+ .artboard-workspace .shell,.artboard-workspace .workspace,.artboard-workspace .content{height:auto!important;min-height:0!important;overflow:visible!important}
+ .artboard-workspace #mainContent .abv2{height:auto!important;min-height:0!important;overflow:visible!important}
+ .artboard-workspace #mainContent .abv2 .abv2-process-grid,.artboard-workspace #mainContent .abv2 .abv2-art-grid-layout,.artboard-workspace #mainContent .abv2 .abv2-validation-layout,.artboard-workspace #mainContent .abv2 .abv2-export-grid{flex:none!important;height:auto!important;overflow:visible!important}
+}

@@ -22,6 +22,16 @@
     // advisory even when a technically valid SVG is exportable for review.
     return p.validation?.status==='PASS' && ['PASS','AI_UNAVAILABLE_ADVISORY'].includes(status);
   }
+  function deliveryAcceptance(p=project()){
+    const items=(p.surfaces?.length?p.surfaces:p.surface?[p.surface]:[]).filter(part=>!ui.selected.size||ui.selected.has(surfName(part)));
+    const status=v=>v==='PASS';
+    const visual=items.length>0&&items.every(part=>status((part.validation?.production_fidelity||p.validation?.production_fidelity?.by_part?.[part.part_id]||p.validation?.production_fidelity||{}).status));
+    const detail=items.length>0&&items.every(part=>status(part.validation?.local_detail_fidelity?.status));
+    const editing=items.length>0&&items.every(part=>status(part.validation?.editability_status));
+    const technical=productionApproved(p);
+    return {technical,visual,detail,editing,passed:technical&&visual&&detail&&editing,
+      illustrator:p.validation?.delivery_readiness?.native_illustrator_verified===true};
+  }
   function vectorReviewPanel(){
     const p=project();if(!qualityMode(p))return '';
     const gate=vectorReview(p),status=gate?.status||'NOT_REPORTED';
@@ -110,14 +120,14 @@
       primaryReady=a.primary_ai_ready===true||a.ai_configured===true,
       fallbackReady=a.fallback_ai_ready===true,
       exportReady=a.export_engine_ready===true||ok;
-    return `<div class="abv2-health" aria-label="Artboard engine status"><button class="abv2-menu" type="button" data-abv2="toggle-navigation" aria-label="Toggle navigation">☰</button>
+    return `<div class="abv2-health" aria-label="Artboard engine status">
       <span><em class="abv2-health-icon">▣</em><span><strong>Primary AI</strong><b><i class="${active||primaryReady?'ok':'unknown'}"></i>${active?'Running':primaryReady?'Ready':'Checking'}</b></span></span>
       <span><em class="abv2-health-icon">◇</em><span><strong>Fallback AI</strong><b><i class="${fallbackReady?'ok':'unknown'}"></i>${fallbackReady?'Standby':'Not reported'}</b></span></span>
       <span><em class="abv2-health-icon">⚙</em><span><strong>Engine</strong><b><i class="${ok?'ok':'bad'}"></i>${ok?'Online':'Unavailable'}</b></span></span>
       <span><em class="abv2-health-icon">⇧</em><span><strong>Export Engine</strong><b><i class="${exportReady?'ok':'unknown'}"></i>${exportReady?'Online':'Checking'}</b></span></span>
     </div>`;
   }
-  function top(title,description){return `<div class="abv2-top">${health()}<div class="abv2-centered-brand" aria-label="Artboard AI · My Jersey Ecosystem · Atherious Labs"><img src="assets/artboard-ai.svg" alt=""><strong>Artboard AI</strong><i>×</i><img src="assets/my-jersey.svg" alt=""><strong>My Jersey Ecosystem</strong><i>×</i><img src="assets/atherious-labs.svg" alt=""><strong>Atherious Labs</strong></div><div class="abv2-header"><img src="assets/artboard-ai.svg" alt=""><div><h1>${esc(title)}</h1><p>${esc(description)}</p></div><span class="abv2-step-label">${title==='Export Production'&&productionApproved()?'✓ Export Ready':ui.phase==='input'?'INPUT':esc(state.stage||statusText())}</span></div></div>`;}
+  function top(title,description){return `<div class="abv2-top">${health()}<div class="abv2-centered-brand" aria-label="Artboard AI · My Jersey Ecosystem · Atherious Labs"><img src="assets/artboard-ai.svg" alt=""><strong>Artboard AI</strong><i>×</i><img src="assets/my-jersey.svg" alt=""><strong>My Jersey Ecosystem</strong><i>×</i><img src="assets/atherious-labs.svg" alt=""><strong>Atherious Labs</strong></div><div class="abv2-header"><img src="assets/artboard-ai.svg" alt=""><div><h1>${esc(title)}</h1><p>${esc(description)}</p></div><span class="abv2-step-label">${title==='Export Production'&&productionApproved()?(deliveryAcceptance().passed?'Desktop sign-off pending':'Review required'):ui.phase==='input'?'INPUT':esc(state.stage||statusText())}</span></div></div>`;}
   function button(text,action,cls='',disabled=false){return `<button type="button" class="abv2-btn ${cls}" data-abv2="${action}" ${disabled?'disabled':''}>${text}</button>`;}
   function navigation(current){
     const idx=steps.indexOf(current==='Analyze'?'Analyzing':current);
@@ -298,6 +308,7 @@
     const detail=validation.local_detail_fidelity||{};
     const valueStatus=value=>value==='PASS'?true:value==='REVIEW_REQUIRED'||value==='FAIL'?false:null;
     const percent=stageProgress()??(verified&&ui.stageStatus==='completed'?100:null);
+    const acceptance=deliveryAcceptance();
     const result=(label,value,detailText)=>`<li><span><i>${value===true?'✓':value===false?'!':'•'}</i><span><strong>${esc(label)}</strong><small>${esc(detailText)}</small></span></span><b class="${value===true?'pass':value===false?'fail':''}">${esc(value===true?'PASS':value===false?'REVIEW':'Not reported')}</b></li>`;
     const checks=[
       ['SVG structure',validation.valid_svg===true?true:validation.valid_svg===false?false:null,'Actual SVG syntax and integrity'],
@@ -306,21 +317,22 @@
       ['Artwork fidelity',valueStatus(fidelity.status),fidelity.status==='REVIEW_REQUIRED'?'Review vector against accepted AI artwork':'Source-to-vector comparison'],
       ['Micro details',valueStatus(detail.status),detail.status==='REVIEW_REQUIRED'?String(detail.total_lost_dark_pixels??'—')+' dark / '+String(detail.total_lost_bright_pixels??'—')+' bright pixels flagged':detail.status==='PASS'?'No flagged dark/bright marks in diagnostic proof':'Diagnostic not yet reported'],
       ['Editability',valueStatus(validation.editability_status),validation.editability_status==='REVIEW_REQUIRED'?'Detail preserved; manual editing may be complex':'Designer editing targets'],
+      ['Illustrator verification',deliveryAcceptance().illustrator?true:null,deliveryAcceptance().illustrator?'Verified in desktop Illustrator':'Pending actual desktop import and editing test'],
       ['Production canvas',valueStatus(physical.status),physical.width_in&&physical.height_in?String(physical.width_in)+' × '+String(physical.height_in)+' inches':'Physical dimensions not yet reported'],
     ];
     const hasCompare=Boolean(ui.generatedUrls[current.side]&&ui.vectorUrls[current.side]);
     const selectedSide=current.side||'front_body';
     return `${top('Validation','Verified quality results for the accepted AI artwork and final vector')}${selectedPartsBar()}<div class="abv2-validation-layout">
-      <section class="abv2-card abv2-validation-meter"><div class="abv2-gauge" style="--value:${percent??0}"><div><strong>${percent===null?'—':Math.round(percent)+'%'}</strong><small>${verified?'Vector validated':'Validating…'}</small></div></div><ol>
+      <section class="abv2-card abv2-validation-meter"><div class="abv2-gauge" style="--value:${percent??0}"><div><strong>${percent===null?'—':Math.round(percent)+'%'}</strong><small>${verified?'Processing complete':'Validation running'}</small></div></div><ol>
         <li class="complete"><i>✓</i><span>Upload &amp; Analyze</span><b>Complete</b></li><li class="complete"><i>✓</i><span>Generate AI Artwork</span><b>Complete</b></li><li class="complete"><i>✓</i><span>Vectorize Paths</span><b>Complete</b></li><li class="${verified?'complete':'active'}"><i>${verified?'✓':'◌'}</i><span>Validate Output</span><b>${verified?'Complete':percent===null?'Checking':Math.round(percent)+'%'}</b></li><li><i>○</i><span>Prepare Export</span><b>Waiting</b></li>
       </ol><p class="abv2-source-note">Vector validation does not automatically certify perfect visual fidelity or native Illustrator layers.</p></section>
-      <section class="abv2-card abv2-validation-preview"><header><div><h2>Live Preview — <span>Validation</span></h2><small>Saved artwork and true-vector output — no simulated quality scores</small></div><b>${verified?'Vector Ready':'Checking…'}</b></header>
+      <section class="abv2-card abv2-validation-preview"><header><div><h2>Live Preview — <span>Validation</span></h2><small>Saved artwork and true-vector output — no simulated quality scores</small></div><b>${verified?'Technical Vector PASS':'Checking…'}</b></header>
         <div class="abv2-validation-arts">${parts.map(part=>{const side=part.side,url=ui.vectorUrls[side]||previewUrl(part);return `<div><strong>${surfaceLabel(side)} vector</strong><div class="abv2-art-canvas validation-overlay">${url?`<img class="abv2-genuine-image" src="${esc(url)}" alt="${surfaceLabel(side)} real vector artwork preview">`:'<img class="abv2-demo-visual" src="assets/artboard-v2/studio-'+(side==='back_body'?'back':'front')+'.webp" alt="Illustrative validation visual"><span class="abv2-demo-caption">Visualization · awaiting saved vector</span>'}<span class="abv2-art-grid"></span>${!verified?'<span class="abv2-beam"></span>':''}</div></div>`;}).join('')}</div>
         <div class="abv2-compare-actions">${button(ui.compareSource?'Hide Artwork Comparison':'Compare AI Artwork vs Vector','toggle-compare','secondary',!hasCompare)}<small>${hasCompare?'Uses actual saved AI and vector artifacts':'Both saved AI and vector previews are required'}</small></div>
         ${ui.compareSource&&hasCompare?`<div class="abv2-source-comparison"><div><strong>AI artwork master</strong><img src="${esc(ui.generatedUrls[current.side])}" alt="Accepted ${surfaceLabel(current.side)} AI-generated artwork"></div><div><strong>Final vector</strong><img src="${esc(ui.vectorUrls[current.side])}" alt="${surfaceLabel(current.side)} verified SVG vector rendering"></div></div>`:''}
         <div class="abv2-validation-stats"><span><b>${esc(validation.path_count??'—')}</b><small>Total Paths</small></span><span><b>${esc(validation.segment_count??'—')}</b><small>Segments</small></span><span><b>${esc(validation.gradient_count??'—')}</b><small>Gradients</small></span><span><b>${esc(physical.width_in&&physical.height_in?String(physical.width_in)+' × '+String(physical.height_in)+' in':'Not reported')}</b><small>Canvas</small></span></div>
       </section>
-      <section class="abv2-card abv2-validation-checks"><header><h2>Validation Results</h2><b class="${productionApproved()?'pass':''}">${productionApproved()?'✓ Validated Vector':qualityMode(project())?'AI review / validation pending':'Awaiting engine'}</b></header>
+      <section class="abv2-card abv2-validation-checks"><header><h2>Validation Results</h2><b class="${acceptance.passed?'pass':'fail'}">${acceptance.passed?'Quality checks PASS':acceptance.technical?'Review required':'Validation pending'}</b></header>
         <div class="abv2-side-switch" role="group" aria-label="Review validation by artwork side">${parts.map(part=>button(surfaceLabel(part.side),'review-side:'+part.side,part.side===selectedSide?'selected':'secondary')).join('')}</div>
         <ul>${checks.map(row=>result(...row)).join('')}</ul>
         ${detail.status==='REVIEW_REQUIRED'?'<p class="abv2-advisory" role="status">Local detail check flagged differences for review. The original AI artwork remains unchanged.</p>':''}
@@ -561,7 +573,8 @@
       if(!groups.length)return '';
       const previous=new Map((report.explicit_group_recolors||[]).map(edit=>[edit.group_id,edit]));
       return `<details class="abv2-card abv2-color-editor" data-abv2-color-part="${esc(part.part_id)}"><summary>${esc(surfaceLabel(part.side))} · Edit main colors</summary>
-        <p class="abv2-info">Choose an exact source color and optional region. Download the edited SVG; gradients and original print files stay intact.</p>
+        <p class="abv2-info">Shift a color family together, or edit an exact shade below. Review the downloaded SVG for shade clipping; gradients and original print files stay intact.</p>
+        <details><summary>Main color families</summary>${(report.logical_color_families||[]).map(family=>`<label class="abv2-color-row"><span>${esc(family.representative_hex)} · ${family.shade_count} shades · ${family.path_objects} objects</span><input type="color" aria-label="${esc(surfaceLabel(part.side)+' family '+family.id)}" data-abv2-family="${esc(family.id)}" value="${esc(family.representative_hex)}"><select aria-label="Region for ${esc(family.id)}" data-abv2-family-region="${esc(family.id)}"><option value="">Whole color family</option>${(family.regions||[]).map(region=>`<option value="${esc(region)}">${esc(region)}</option>`).join('')}</select></label>`).join('')}</details>
         ${groups.slice(0,32).map(group=>{
           const edit=previous.get(group.id);
           return `<label class="abv2-color-row"><span>${esc(group.hex)} · ${Number(group.path_objects)||0} objects</span>
@@ -581,6 +594,13 @@
     if(!part||!panel)return;
     const groups=part.validation?.premium_master?.main_color_groups||[];
     const colors={};
+    const families=part.validation?.premium_master?.logical_color_families||[];
+    for(const input of panel.querySelectorAll('[data-abv2-family]')){
+      const family=families.find(item=>item.id===input.dataset.abv2Family);
+      if(!family||!/^#[0-9a-f]{6}$/i.test(input.value)||input.value.toLowerCase()===family.representative_hex.toLowerCase())continue;
+      const region=[...panel.querySelectorAll('[data-abv2-family-region]')].find(el=>el.dataset.abv2FamilyRegion===family.id)?.value||'';
+      colors[family.id]=region?{hex:input.value,region}:input.value;
+    }
     for(const input of panel.querySelectorAll('[data-abv2-color]')){
       const group=groups.find(item=>item.id===input.dataset.abv2Color);
       if(!group||!/^#[0-9a-f]{6}$/i.test(input.value))continue;
@@ -612,11 +632,11 @@
   function studioSummary(){
     const parts=available().filter(x=>!ui.selected.size||ui.selected.has(x.side));
     const total=key=>parts.length&&parts.every(x=>Number.isFinite(x.validation?.[key]))?parts.reduce((n,x)=>n+x.validation[key],0).toLocaleString():'—';
-    return `<section class="abv2-studio-summary"><div><b>◇ Production Summary</b><small>Final output details and quality report</small></div><span><b>${total('path_count')}</b><small>Total Paths</small></span><span><b>${parts.length||'—'}</b><small>Selected Parts</small></span><span><b>${total('gradient_count')}</b><small>Gradients</small></span><span><b>22 × 31 in</b><small>Canvas Size</small></span><span class="${productionApproved()?'pass':''}"><b>${productionApproved()?'✓ Vector Ready':'Review pending'}</b><small>Engine validation status</small></span></section>`;
+    return `<section class="abv2-studio-summary"><div><b>◇ Production Summary</b><small>Final output details and quality report</small></div><span><b>${total('path_count')}</b><small>Total Paths</small></span><span><b>${parts.length||'—'}</b><small>Selected Parts</small></span><span><b>${total('gradient_count')}</b><small>Gradients</small></span><span><b>22 × 31 in</b><small>Canvas Size</small></span><span class="${productionApproved()?'pass':''}"><b>${deliveryAcceptance().passed?'Quality checks PASS':productionApproved()?'Technical Vector PASS':'Review pending'}</b><small>Engine validation status</small></span></section>`;
   }
   function exportPage(){
     const p=project(),parts=available().filter(x=>!ui.selected.size||ui.selected.has(x.side)),confirmed=productionApproved(p);
-    const needsReview=parts.some(part=>['REVIEW_REQUIRED','FAIL'].includes(part.validation?.production_fidelity?.status)||part.validation?.editability_status==='REVIEW_REQUIRED')||p.validation?.delivery_readiness?.status==='REVIEW_REQUIRED';
+    const needsReview=!deliveryAcceptance(p).passed;
     const items=exportedArtifacts(),formats=[...new Set(items.map(x=>x.format))];
     const printFormats=['eps','svg','pdf','png'];
     const designerKinds={premium_svg:'Premium Master SVG',editability_report:'Editability Report',color_groups_report:'Color Groups Report'};
@@ -626,7 +646,7 @@
     const dl=item=>`<button type="button" class="abv2-btn" data-download="artboard|${esc(artifactEndpoint(p.project_id,item.path))}">↓ Download ${esc(item.label)}</button>`;
     const hasZip=items.some(x=>x.format==='zip'),canZip=confirmed&&items.length>0;
     const exportRecovery=confirmed?(state.busy?'<p class="abv2-info" role="status">Preparing saved production files. Your artwork and validation are preserved.</p>':state.lastError||!items.length?'<div class="abv2-advisory" role="status"><p>'+esc(state.lastError||'Export files are not ready yet.')+'</p><p>Artwork and validation are saved. Retry export without regenerating artwork.</p>'+button(ui.exportJob?'↻ Reconnect Export':'↻ Retry Export','retry-export','primary')+'</div>':''):'';
-    return `${top('Export Production','Validated output files — select a format or download the complete available package')}${selectedPartsBar()}${exportRecovery}${needsReview?'<p class="abv2-advisory" role="status">Technical exports are available. The engine flagged artwork fidelity or editability for review; inspect the original artwork against the final vector before client delivery.</p>':''}<div class="abv2-export-grid">
+    return `${top('Export Production','Validated output files — select a format or download the complete available package')}${selectedPartsBar()}${exportRecovery}${needsReview?'<p class="abv2-advisory" role="status">Technical exports are available. The engine flagged artwork fidelity, micro-detail or editability for review; inspect the original artwork against the final vector before client delivery.</p>':''}<div class="abv2-export-grid">
       <section class="abv2-export-left"><div class="abv2-card abv2-export-preview"><header><div><h2>● Live Preview — Final Output</h2><small>Editable Vector • Clean Paths • Saved engine output</small></div><div class="abv2-zoom-controls">${button('⊖','zoom-out','secondary')}${button('⊕','zoom-in','secondary')}${button('⛶','zoom-fit','secondary')}${button('◫ Compare','toggle-compare','secondary',!parts.some(part=>ui.generatedUrls[part.side]&&ui.vectorUrls[part.side]))}</div></header>
       <div class="abv2-export-arts" style="--preview-zoom:${ui.previewZoom}">${parts.map(part=>`<div><strong>${surfaceLabel(part.side)}</strong>${(ui.compareSource?ui.generatedUrls[part.side]:ui.vectorUrls[part.side])||previewUrl(part)?`<img src="${(ui.compareSource?ui.generatedUrls[part.side]:ui.vectorUrls[part.side])||previewUrl(part)}" alt="Real ${surfaceLabel(part.side)} completed artwork">`:'<p>Preview not available from the engine</p>'}</div>`).join('')||'<p>No final artwork detected.</p>'}</div></div></section>
       <div class="abv2-export-center">
@@ -642,12 +662,12 @@
           <p class="abv2-info">Native Illustrator layers require a desktop Illustrator check.</p>
         </details>
       </div>
-      <aside class="abv2-export-right"><div class="abv2-export-actions">        <section class="abv2-card abv2-package"><header><h2>Master ZIP</h2><small>Download Package</small></header><ul class="abv2-package-checks">${parts.map(part=>`<li><i>${Object.keys(part.exports||{}).length?'✓':'○'}</i><span>${surfaceLabel(part.side)} Artwork <small>${esc(Object.keys(part.exports||{}).filter(x=>['ai','eps','pdf','svg','png'].includes(x)).join(', ').toUpperCase()||'Awaiting files')}</small></span></li>`).join('')}<li><i>${designerFiles.length?'✓':'○'}</i><span>Editable SVG &amp; color reports</span></li></ul><p>${hasZip?'Download the verified master ZIP returned by the engine.':'Download a ZIP containing all existing, available export files — assembled in your browser without regenerating artwork.'}</p>
-          ${button('↓ Download Master ZIP','download-master-zip','primary',!canZip)}<p class="abv2-info" role="status" aria-live="polite" data-abv2-zip-status>${hasZip?'Engine ZIP ready':canZip?'Ready to package '+items.length+' existing exported files':'No downloadable files returned by engine'}</p>
+      <aside class="abv2-export-right"><div class="abv2-export-primary-actions">${button('↓ Download Master ZIP','download-master-zip','primary',!canZip)}${button('Continue to Illustrator','illustrator','amber',!confirmed||(!formats.includes('svg')&&!formats.includes('premium_svg')))}</div><div class="abv2-export-actions">        <section class="abv2-card abv2-package"><header><h2>Master ZIP</h2><small>Download Package</small></header><ul class="abv2-package-checks">${parts.map(part=>`<li><i>${Object.keys(part.exports||{}).length?'✓':'○'}</i><span>${surfaceLabel(part.side)} Artwork <small>${esc(Object.keys(part.exports||{}).filter(x=>['ai','eps','pdf','svg','png'].includes(x)).join(', ').toUpperCase()||'Awaiting files')}</small></span></li>`).join('')}<li><i>${designerFiles.length?'✓':'○'}</i><span>Editable SVG &amp; color reports</span></li></ul><details class="abv2-optional"><summary>Package details</summary><p>${hasZip?'Download the verified master ZIP returned by the engine.':'Download a ZIP containing all existing, available export files — assembled in your browser without regenerating artwork.'}</p></details>
+          <p class="abv2-info" role="status" aria-live="polite" data-abv2-zip-status>${hasZip?'Engine ZIP ready':canZip?'Ready to package '+items.length+' existing exported files':'No downloadable files returned by engine'}</p>
         </section>
         <section class="abv2-card abv2-illustrator"><header><h2>Adobe Illustrator</h2></header>
-          <p>Continue with the premium editable SVG when available; otherwise use validated SVG.</p>
-          ${button('Continue to Illustrator','illustrator','amber',!confirmed||(!formats.includes('svg')&&!formats.includes('premium_svg')))}
+          <details class="abv2-optional"><summary>Illustrator import details</summary><p>Continue with the premium editable SVG when available; otherwise use validated SVG.</p></details>
+
           <div class="abv2-handoff-actions">
             ${button('↓ Illustrator Handoff ZIP','illustrator-handoff','secondary',!confirmed||state.busy||ui.handoffBusy)}
             ${button('↓ ZIP + Reference PNG','illustrator-handoff-reference','secondary',!confirmed||state.busy||ui.handoffBusy)}
@@ -716,7 +736,7 @@
     }
   }
   async function loadSideAssets(force=false){
-    const p=project(),id=p.project_id;if(!id||!available().length)return;
+    const p=project(),id=p.project_id,epoch=ui.workspaceEpoch;if(!id||!available().length)return;
     for(const part of available())for(const [kind,suffix] of [['generated','working/'+part.part_id+'-ai-vectorization-source.png'],['vector','vectors/'+part.part_id+'.svg']]){
       const cache=kind==='generated'?ui.generatedUrls:ui.vectorUrls,key=kind+':'+part.part_id;
       if(cache[part.side]&&!force||ui.assetBusy.has(key)||!force&&Date.now()-(ui.assetRetry[key]||0)<3500)continue;
@@ -726,7 +746,7 @@
       try{
         const finalKey=kind==='vector'&&ui.productionDone?(part.exports?.premium_svg||part.previews?.svg||part.exports?.svg):null;
         const blob=await call('artboard',artifactEndpoint(id,finalKey||'projects/'+id+'/'+suffix),{response:'blob'});
-        if(!blob?.size)continue;
+        if(!blob?.size||epoch!==ui.workspaceEpoch||project().project_id!==id||!available().some(item=>item.part_id===part.part_id&&item.side===part.side))continue;
         // Only a real artifact from the engine becomes a preview, never a mockup.
         const previous=cache[part.side];cache[part.side]=URL.createObjectURL(blob);if(previous)URL.revokeObjectURL(previous);
         if(state.tool==='artboard')render();
