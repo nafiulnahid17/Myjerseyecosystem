@@ -12,7 +12,7 @@ assert(ui.includes('cancellationPollInFlight'),'Prevent duplicate cancel request
 assert(ui.includes("['cancelled','completed','failed'].includes(latest.status)"),'Only confirmed terminal state resets');
 assert(ui.includes("sessionStorage.removeItem('mj_artboard_job')"),'Forget previous job on new input');
 assert(ui.includes('if(ui.cancelRequested){void stop();return;}'),'Never dispatch followup job after cancel');
-assert(ui.includes("button('■ Cancel Job'"),'Cancel Job visible on all processing pages');
+assert(ui.includes("'□ Stop '+") && ui.includes("'stop','danger'"),'Stage-specific Stop action visible on all processing pages');
 assert(ui.includes("status==='cancelling'"),'Show backend cancelling state');
 assert(!ui.includes("if(ui.phase==='input'&&state.artboardProject?.project_id"),'Legacy auto-reentry removed');
 

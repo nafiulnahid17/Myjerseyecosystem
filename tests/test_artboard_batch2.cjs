@@ -91,7 +91,7 @@ const context={state,Date,setTimeout:(fn)=>setTimeout(fn,1),URL:{revokeObjectURL
   throw Error('Unexpected '+path);
  }};
 let chosenColorPart=null;
-vm.createContext(context);vm.runInContext(src,context);
+vm.createContext(context);vm.runInContext(process.env.ARTBOARD_UI_FIXTURES?src.replace('  startArtboard=start;', '  globalThis.__studioViews={input,analyze,select,processing,exportPage,ui}; startArtboard=start;'):src,context);
 const click=name=>({target:{closest:selector=>selector==='button[data-abv2]'?{dataset:{abv2:name}}:null},preventDefault(){},stopPropagation(){}});
 const handler=listeners.click.find(f=>f.toString().includes("const b=e.target.closest('button[data-abv2]')"));
 const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('PASS Issue #'+id)};
@@ -201,4 +201,33 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
 
   if(process.env.EXPORT_SNAPSHOT==='1')fs.writeFileSync('/mnt/data/artboard_final_work/export-qa.html','<!doctype html><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><style>'+fs.readFileSync('/mnt/data/artboard_v2_draft/artboard-v2.css','utf8')+'\\n'+css+'</style><body style=\"margin:0;background:#010b1b;color:white\">'+screens.at(-1)+'</body>');
   console.log('PASS Batch 02 frontend mocked integration & static checks');
+  const beforeStageReview=requests.length;
+  for(const index of [0,1,2,3,4,5]){
+    await handler(click('view-stage:'+index));
+    test('review-workflow-stage-'+index,screens.at(-1).includes(['<h1>Artboard AI</h1>','<h1>Analyzing</h1>','<h1>Artwork Creation</h1>','<h1>Vectorization</h1>','<h1>Validation</h1>','<h1>Export Production</h1>'][index]));
+  }
+  await handler(click('zoom-in'));test('export-zoom-in',screens.at(-1).includes('--preview-zoom:1.15'));
+  await handler(click('zoom-fit'));test('export-zoom-fit',screens.at(-1).includes('--preview-zoom:1'));
+  test('stage-review-does-not-create-jobs',requests.length===beforeStageReview);
+  test('actual-overlay-has-selected-side',screens.some(v=>v.includes('data-abv2-paths-side="'+chosen[0]+'"')));
+  test('no-unexpanded-side-placeholder',!screens.some(v=>v.includes('data-abv2-paths-side="${side}"')));
+  if(process.env.ARTBOARD_UI_FIXTURES){
+    const out=process.env.ARTBOARD_UI_FIXTURES;fs.mkdirSync(out,{recursive:true});
+    const views=context.__studioViews;
+    const images={front_body:'assets/artboard-v2/studio-front.webp',back_body:'assets/artboard-v2/studio-back.webp'};
+    views.ui.selected=new Set(['front_body','back_body']);views.ui.generatedUrls={...images};views.ui.vectorUrls={...images};
+    state.objectURLs.artboard=images.front_body;views.ui.dimensions='2048 × 2048 px';views.ui.startedAt=Date.now()-7400;
+    const stages=['input','analyze','artwork','Vectorization','Validation','export'];
+    const cssNames=['styles.css','artboard-v2.css','artboard-v2-workflow-fixes.css','mockup-alignment.css','artboard-workflow-2026.css'];
+    for(const name of stages){
+      views.ui.phase=['Vectorization','Validation'].includes(name)?'processing':name;views.ui.view=null;
+      views.ui.processingStage=name;views.ui.stageStatus='';state.progress=68;state.busy=!['input','export'].includes(name);
+      state.stage=name==='analyze'?'Analyzing design structure':name==='Vectorization'?'Vectorizing paths':name==='Validation'?'Validating vector output':'Generating artwork';
+      views.ui.productionDone=name==='export';
+      const page=name==='input'?views.input():name==='analyze'?views.analyze():name==='artwork'?views.select():name==='export'?views.exportPage():views.processing();
+      const screen='<section class="abv2" data-abv2-root data-screen="'+name+'">'+page+'</section>';
+      fs.writeFileSync(path.join(out,name.toLowerCase()+'.html'),'<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Artboard workflow UI fixture — '+name+'</title>'+cssNames.map(f=>'<link rel="stylesheet" href="'+f+'">').join('')+'<body class="artboard-workspace sidebar-collapsed" style="margin:0"><main class="content">'+screen+'</main>');
+    }
+    console.log('Six Artboard workflow renderer fixtures generated');
+  }
 })().catch(e=>{console.error(e);process.exitCode=1});
