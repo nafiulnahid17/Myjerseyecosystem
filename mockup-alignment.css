@@ -7,7 +7,8 @@
 .sidebar .nav-symbol.cyan {color:#48d8ff}.sidebar .nav-symbol.pink{color:#ef59fd}.sidebar .nav-symbol.gold{color:#ffe04a}.sidebar .nav-symbol.green{color:#54ff92}.sidebar .nav-symbol.teal{color:#3dffe1}
 .sidebar .nav-separator{margin:9px 8px;border-color:#164c75}
 .ecosystem-card:disabled{opacity:1;filter:none}
-/* A fixed landscape viewport prevents square/portrait assets enlarging one row. */
+/* Shared row heights and landscape viewports keep all eight cards compact. */
+.ecosystem-card-grid{grid-auto-rows:1fr}
 .ecosystem-card{grid-template-rows:auto auto;min-height:0;align-content:start}
 .ecosystem-card-art{position:relative;aspect-ratio:16/9;height:auto;min-height:0}
 .ecosystem-card-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;filter:saturate(1.25)}
