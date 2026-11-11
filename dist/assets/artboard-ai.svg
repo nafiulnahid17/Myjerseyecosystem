@@ -1,11 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Artboard AI">
-  <defs>
-    <linearGradient id="ab-a" x1="18" y1="82" x2="77" y2="12" gradientUnits="userSpaceOnUse"><stop stop-color="#1258ff"/><stop offset=".48" stop-color="#00d8ff"/><stop offset="1" stop-color="#75ffff"/></linearGradient>
-    <radialGradient id="ab-core"><stop stop-color="#9affff"/><stop offset="1" stop-color="#00a5ff"/></radialGradient>
-    <filter id="ab-glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-  </defs>
-  <path d="M48 8 85 82H67L58 62H34L24 82H8L45 8Z" fill="url(#ab-a)" opacity=".96" filter="url(#ab-glow)"/>
-  <path d="m48 28-9 21h18Z" fill="#02152f" stroke="#a5ffff" stroke-width="2"/>
-  <path d="M20 75c21-4 39-17 55-39-8 25-27 43-55 49Z" fill="#0834bd" opacity=".9"/>
-  <circle cx="48" cy="47" r="4.5" fill="url(#ab-core)" filter="url(#ab-glow)"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="artboard-title artboard-desc">
+  <title id="artboard-title">Artboard AI</title>
+  <desc id="artboard-desc">Image pixels becoming an editable A-shaped vector path on an artboard.</desc>
+  <defs><linearGradient id="artboard-ink" x1="20" y1="76" x2="76" y2="20" gradientUnits="userSpaceOnUse"><stop stop-color="#13b89a"/><stop offset="1" stop-color="#91f5be"/></linearGradient></defs>
+  <rect x="4" y="4" width="88" height="88" rx="23" fill="#082b29"/>
+  <path d="M25 15H17v8M71 15h8v8M17 73v8h8M79 73v8h-8" fill="none" stroke="#77c9b5" stroke-width="2" stroke-linecap="round"/>
+  <g fill="#5be1b1"><rect x="20" y="48" width="6" height="6" rx="1" opacity=".4"/><rect x="20" y="58" width="6" height="6" rx="1" opacity=".65"/><rect x="20" y="68" width="6" height="6" rx="1"/><rect x="30" y="58" width="6" height="6" rx="1" opacity=".5"/></g>
+  <path d="M31 73 51 25 73 73M40 53h24" fill="none" stroke="url(#artboard-ink)" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M42 25h18M73 64v17" stroke="#c8ffe3" stroke-width="1.5"/>
+  <g fill="#082b29" stroke="#e2ffec" stroke-width="2"><rect x="47.5" y="21.5" width="7" height="7" rx="1"/><rect x="69.5" y="69.5" width="7" height="7" rx="1"/><circle cx="42" cy="25" r="2"/><circle cx="60" cy="25" r="2"/></g>
+  <path d="m75 30 2-6 2 6 6 2-6 2-2 6-2-6-6-2Z" fill="#d1ff8e"/>
 </svg>

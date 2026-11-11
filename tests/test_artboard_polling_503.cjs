@@ -12,7 +12,7 @@ const functions = source.slice(start, end);
 
 async function scenario({ failedGets, failureCode = 503, alwaysFail = false, terminal = "Production" }) {
   let virtualNow = 0, attempts = 0, duplicatePosts = 0;
-  const events = [], logs = [];
+  const events = [], logs = [], stages = [];
   const state = {
     progress: 46, stage: 'Semantic guidance delivered to vector engine',
     lastJobId: 'persistent-id', busy: true, artboardEvents: events,
@@ -26,7 +26,7 @@ async function scenario({ failedGets, failureCode = 503, alwaysFail = false, ter
     Date: { now: () => virtualNow },
     setTimeout: (fn, ms) => { virtualNow += ms; fn(); },
     log: msg => logs.push(msg),
-    updateMonitor: () => {},
+    updateMonitor: () => { stages.push(state.stage); },
     loadArtboardPreview: async () => {},
     call: async (engine, endpoint, request = {}) => {
       if (request.method && request.method !== 'GET') duplicatePosts++;
@@ -55,7 +55,7 @@ async function scenario({ failedGets, failureCode = 503, alwaysFail = false, ter
   } catch (failure) {
     error = failure;
   }
-  return {response, error, state, attempts, duplicatePosts, virtualNow, logs};
+  return {response, error, state, attempts, duplicatePosts, virtualNow, logs, stages};
 }
 
 (async () => {
@@ -67,6 +67,7 @@ async function scenario({ failedGets, failureCode = 503, alwaysFail = false, ter
   assert.equal(reconnect.state.lastJobId, 'persistent-id');
   assert.equal(reconnect.state.progress, 100);
   assert(reconnect.logs.some(s => s.includes('reconnected')));
+  assert(reconnect.stages.some(s => s.includes('HTTP 503')), 'Show the actual status outage reason');
 
   const outage = await scenario({ failedGets: 500, alwaysFail: true });
   assert(outage.error?.message.includes('job may still be running'));
