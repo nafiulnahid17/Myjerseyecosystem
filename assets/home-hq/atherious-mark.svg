@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" role="img" aria-label="Atherious Labs">
+  <defs><linearGradient id="a" x1="8" y1="68" x2="68" y2="8"><stop stop-color="#0071ff"/><stop offset=".48" stop-color="#0fe7ff"/><stop offset="1" stop-color="#8b5cff"/></linearGradient><filter id="g"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+  <path d="M10 65 35 9c2-5 8-5 11 0l24 56-15-8-6-15H28l-6 15-12 8Zm24-37-3.8 9h16.7l-4-10.2c-1.5 3.8-5.2 5.1-8.9 1.2Z" fill="#082d50"/>
+  <path d="M4 45c19 18 53 18 72-2M9 29c18-14 45-14 62 1" fill="none" stroke="#087b9f" stroke-width="2" stroke-linecap="round" opacity=".9"/><circle cx="68" cy="29" r="3" fill="#09a8b7"/>
+</svg>
