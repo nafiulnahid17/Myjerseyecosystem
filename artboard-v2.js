@@ -522,6 +522,55 @@
     }finally{ui.handoffBusy=false;render();}
   }
 
+  function colorEditingPanel(parts){
+    return parts.map(part=>{
+      const report=part.validation?.premium_master;
+      const groups=report?.main_color_groups||[];
+      if(!groups.length)return '';
+      const previous=new Map((report.explicit_group_recolors||[]).map(edit=>[edit.group_id,edit]));
+      return `<details class="abv2-card abv2-color-editor" data-abv2-color-part="${esc(part.part_id)}"><summary>${esc(surfaceLabel(part.side))} · Edit main colors</summary>
+        <p class="abv2-info">Choose an exact source color and optional region. Download the edited SVG; gradients and original print files stay intact.</p>
+        ${groups.slice(0,32).map(group=>{
+          const edit=previous.get(group.id);
+          return `<label class="abv2-color-row"><span>${esc(group.hex)} · ${Number(group.path_objects)||0} objects</span>
+            <input type="color" aria-label="${esc(surfaceLabel(part.side)+' '+group.hex)}" data-abv2-color="${esc(group.id)}" value="${esc(edit?.new_hex||group.hex)}">
+            <select aria-label="Region for ${esc(group.hex)}" data-abv2-color-region="${esc(group.id)}"><option value="">All objects with this exact fill</option>${(group.regions||[]).map(region=>`<option value="${esc(region)}" ${edit?.region===region?'selected':''}>${esc(region)}</option>`).join('')}</select></label>`;
+        }).join('')}
+        ${button('↓ Download recolored SVG','recolor:'+part.part_id,'secondary',state.busy)}
+        <p class="abv2-info">${groups.length} exact colors retained. Showing the ${Math.min(32,groups.length)} most used colors. Additional colors remain editable in Illustrator.</p></details>`;
+    }).join('');
+  }
+
+  async function downloadRecolored(partId){
+    if(state.busy||!productionApproved())return;
+    const p=project(),epoch=ui.workspaceEpoch;
+    const part=available().find(item=>item.part_id===partId);
+    const panel=[...document.querySelectorAll('[data-abv2-color-part]')].find(el=>el.dataset.abv2ColorPart===partId);
+    if(!part||!panel)return;
+    const groups=part.validation?.premium_master?.main_color_groups||[];
+    const colors={};
+    for(const input of panel.querySelectorAll('[data-abv2-color]')){
+      const group=groups.find(item=>item.id===input.dataset.abv2Color);
+      if(!group||!/^#[0-9a-f]{6}$/i.test(input.value))continue;
+      if(input.value.toLowerCase()===group.hex.toLowerCase())continue;
+      const region=[...panel.querySelectorAll('[data-abv2-color-region]')].find(el=>el.dataset.abv2ColorRegion===group.id)?.value;
+      colors[group.id]=region?{hex:input.value,region}:input.value;
+    }
+    if(!Object.keys(colors).length)return notify('Choose a new color first');
+    await run('Export',async()=>{
+      const job=await call('artboard','api/artboard/export',{method:'POST',json:{project_id:p.project_id,part_ids:[partId],formats:['svg'],master_edits:{[partId]:{colors}}}});
+      captureJob('artboard',job);
+      await jobPoll('artboard','api/artboard/jobs/'+job.job_id,'Export');
+      if(ui.workspaceEpoch!==epoch||project().project_id!==p.project_id)return;
+      state.artboardResult=await call('artboard','api/artboard/projects/'+p.project_id);
+      const result=available().find(item=>item.part_id===partId);
+      const applied=result?.validation?.premium_master?.explicit_group_recolors||[];
+      if(!result?.exports?.premium_svg||!Object.keys(colors).every(id=>applied.some(edit=>edit.group_id===id&&edit.recolored_shapes>0)))throw Error('Engine did not confirm all requested color edits');
+      await download('artboard',artifactEndpoint(p.project_id,result.exports.premium_svg));
+      notify('Recolored editable SVG downloaded. Original print artwork is preserved.');
+    });
+  }
+
   function exportPage(){
     const p=project(),parts=available().filter(x=>!ui.selected.size||ui.selected.has(x.side)),confirmed=productionApproved(p);
     const items=exportedArtifacts(),formats=[...new Set(items.map(x=>x.format))];
@@ -541,6 +590,7 @@
           <p class="abv2-info">${format?'Available '+format.toUpperCase()+' files':'No format preselected. Choose a ready format to download.'}</p>
           <div class="abv2-format-downloads">${links.map(dl).join('')}</div>
         </section>
+        ${confirmed?colorEditingPanel(parts):''}
         <details class="abv2-card abv2-designer-files abv2-optional"><summary>Illustrator editing files · ${designerFiles.length} available</summary>
           <p class="abv2-info">Premium SVG preserves editable vector groups. Reports are metadata, not artwork images.</p>
           <div class="abv2-designer-list">${designerFiles.length?designerFiles.map(item=>`<button type="button" class="abv2-btn abv2-designer-download" data-download="artboard|${esc(artifactEndpoint(p.project_id,item.path))}"><b>↓ ${esc(designerKinds[item.format])}</b><small>${esc(item.label)} · ${esc(item.path.split('/').pop())}</small></button>`).join(''):'<p class="abv2-info">Editable-master companions are not available for the selected artwork.</p>'}</div>
@@ -941,6 +991,7 @@
       ui.validationSide=side;ui.compareSource=false;render();return;
     }
     if(a==='illustrator-handoff')return downloadIllustratorHandoff(false);
+    if(a.startsWith('recolor:'))return downloadRecolored(a.slice('recolor:'.length));
     if(a==='illustrator-handoff-reference')return downloadIllustratorHandoff(true);
     if(a==='illustrator')return continueSelectedIllustrator();if(a==='download-master-zip')return downloadMasterZip();if(a.startsWith('select-format:')){ui.downloadFormat=a.split(':')[1];render();return;}
     if(a==='previous'){if(state.busy)return notify('Active job: cancel processing before changing stages');

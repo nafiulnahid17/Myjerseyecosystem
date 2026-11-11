@@ -63,6 +63,14 @@ const context={state,Date,setTimeout:(fn)=>setTimeout(fn,1),URL:{revokeObjectURL
     }
     return currentJob={job_id:'j'+(++jobN),project_id:'p1',status:'queued'};}
   if(path==='api/artboard/export'){
+    if(opts.json?.master_edits){
+      assert.deepEqual(Array.from(opts.json.part_ids),[chosenColorPart.part_id]);
+      assert.equal(opts.json.formats.join(','),'svg');
+      const edit=opts.json.master_edits[chosenColorPart.part_id].colors.MAIN_COLOR_01;
+      assert.equal(edit.hex,'#44aa66');assert.equal(edit.region,'stripe');
+      chosenColorPart.validation.premium_master.explicit_group_recolors=[{group_id:'MAIN_COLOR_01',new_hex:edit.hex,region:edit.region,recolored_shapes:20}];
+      return currentJob={job_id:'j'+(++jobN),project_id:'p1',status:'queued'};
+    }
     if(opts.json?.bundle==='illustrator_handoff'){
       assert.equal(opts.json.formats.join(','),'eps,svg,zip');
       assert.equal(opts.json.part_ids.join(','),serverProject.surfaces
@@ -82,6 +90,7 @@ const context={state,Date,setTimeout:(fn)=>setTimeout(fn,1),URL:{revokeObjectURL
   if(path==='api/artboard/projects/p1')return serverProject;
   throw Error('Unexpected '+path);
  }};
+let chosenColorPart=null;
 vm.createContext(context);vm.runInContext(src,context);
 const click=name=>({target:{closest:selector=>selector==='button[data-abv2]'?{dataset:{abv2:name}}:null},preventDefault(){},stopPropagation(){}});
 const handler=listeners.click.find(f=>f.toString().includes("const b=e.target.closest('button[data-abv2]')"));
@@ -146,6 +155,22 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   const zipReferenceJob=requests.filter(r=>r.path==='api/artboard/export').at(-1);
   test('reference-explicit-opt-in',zipReferenceJob.opts.json.include_reference_raster===true&&zipReferenceJob.opts.json.part_ids.length===chosen.length);
   test('handoff-no-paid-ai-retry',requests.filter(r=>r.path==='api/artboard/production').length===beforeHandoffAi);
+  chosenColorPart=serverProject.surfaces.find(part=>chosen.includes(part.type));
+  chosenColorPart.validation.premium_master={main_color_groups:[{id:'MAIN_COLOR_01',hex:'#112233',path_objects:20,regions:['stripe','badge']}],explicit_group_recolors:[]};
+  context.render();
+  test('main-color-controls',screens.at(-1).includes('Edit main colors')&&screens.at(-1).includes('20 objects')&&screens.at(-1).includes('stripe'));
+  if(process.env.ARTBOARD_UI_SNAPSHOT){
+    const page=screens.at(-1).replace('abv2-color-editor"','abv2-color-editor" open');
+    fs.writeFileSync(process.env.ARTBOARD_UI_SNAPSHOT,'<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>'+fs.readFileSync(path.resolve(__dirname,'..','artboard-v2.css'),'utf8')+'\n'+css+'</style><body style="margin:0;background:#010b1b;color:white">'+page+'</body>');
+  }
+  context.document.querySelectorAll=selector=>selector==='[data-abv2-color-part]'?[{
+    dataset:{abv2ColorPart:chosenColorPart.part_id},querySelectorAll:selector=>selector==='[data-abv2-color]'?[{dataset:{abv2Color:'MAIN_COLOR_01'},value:'#44aa66'}]:[{dataset:{abv2ColorRegion:'MAIN_COLOR_01'},value:'stripe'}]
+  }]:[];
+  const colorStart=requests.length;
+  await handler(click('recolor:'+chosenColorPart.part_id));
+  test('region-color-export',requests.slice(colorStart).some(r=>r.path==='api/artboard/export'&&r.opts.json.master_edits)&&downloads.at(-1)[1].includes('.premium-master.svg'));
+  test('color-edit-no-generation',!requests.slice(colorStart).some(r=>/production|prepare|recreate/.test(r.path)));
+  test('color-edit-confirmed',chosenColorPart.validation.premium_master.explicit_group_recolors[0].recolored_shapes===20);
 
   test('renderer-preserves-report-filenames',screens.at(-1).includes('editability-report.json')&&screens.at(-1).includes('color-groups.json'));
   test(33,screens.at(-1).includes('<h2>Adobe Illustrator</h2>')&&screens.at(-1).includes('Continue to Illustrator')&&!screens.at(-1).includes('Master ZIP & Illustrator'));
