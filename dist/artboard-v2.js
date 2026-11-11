@@ -3,7 +3,7 @@
 (() => {
   const ui = {
     startedAt:0, previewZoom:1, vectorOverlaySource:null, analysisDone:false, generationStarted:false, processingStage:'', downloadFormat:'',
-    phase: 'input', preferInput:false, workspaceEpoch:0, selected: new Set(), prepared: [], inspected: false,
+    phase: 'input', preferInput:false, workspaceEpoch:0, exportJob:null, selected: new Set(), prepared: [], inspected: false,
     view: null, visitedStages: new Set(), stageStatus: '', lastPreviewPath:'', dimensions: '', awaitingSurfaces: false, processingStarted: false, cancelRequested: false, productionDone:false, continued:false, finishing:false, exportStarted:false, zipBusy:false, handoffBusy:false, generatedUrls:{}, vectorUrls:{}, assetBusy:new Set(), assetRetry:{}, generationError:"", compareSource:false, validationSide:null, recreatingSide:null, selectionTouched:false, stageProgressHigh:{}, stageProgressJob:null
   };
   const steps = ['Input','Analyzing','Artwork Creation','Vectorization','Validation','Export'];
@@ -625,7 +625,8 @@
     const links=confirmed?items.filter(x=>x.format===format&&printFormats.includes(x.format)):[];
     const dl=item=>`<button type="button" class="abv2-btn" data-download="artboard|${esc(artifactEndpoint(p.project_id,item.path))}">↓ Download ${esc(item.label)}</button>`;
     const hasZip=items.some(x=>x.format==='zip'),canZip=confirmed&&items.length>0;
-    return `${top('Export Production','Validated output files — select a format or download the complete available package')}${selectedPartsBar()}${needsReview?'<p class="abv2-advisory" role="status">Technical exports are available. The engine flagged artwork fidelity or editability for review; inspect the original artwork against the final vector before client delivery.</p>':''}<div class="abv2-export-grid">
+    const exportRecovery=confirmed?(state.busy?'<p class="abv2-info" role="status">Preparing saved production files. Your artwork and validation are preserved.</p>':state.lastError||!items.length?'<div class="abv2-advisory" role="status"><p>'+esc(state.lastError||'Export files are not ready yet.')+'</p><p>Artwork and validation are saved. Retry export without regenerating artwork.</p>'+button(ui.exportJob?'↻ Reconnect Export':'↻ Retry Export','retry-export','primary')+'</div>':''):'';
+    return `${top('Export Production','Validated output files — select a format or download the complete available package')}${selectedPartsBar()}${exportRecovery}${needsReview?'<p class="abv2-advisory" role="status">Technical exports are available. The engine flagged artwork fidelity or editability for review; inspect the original artwork against the final vector before client delivery.</p>':''}<div class="abv2-export-grid">
       <section class="abv2-export-left"><div class="abv2-card abv2-export-preview"><header><div><h2>● Live Preview — Final Output</h2><small>Editable Vector • Clean Paths • Saved engine output</small></div><div class="abv2-zoom-controls">${button('⊖','zoom-out','secondary')}${button('⊕','zoom-in','secondary')}${button('⛶','zoom-fit','secondary')}${button('◫ Compare','toggle-compare','secondary',!parts.some(part=>ui.generatedUrls[part.side]&&ui.vectorUrls[part.side]))}</div></header>
       <div class="abv2-export-arts" style="--preview-zoom:${ui.previewZoom}">${parts.map(part=>`<div><strong>${surfaceLabel(part.side)}</strong>${(ui.compareSource?ui.generatedUrls[part.side]:ui.vectorUrls[part.side])||previewUrl(part)?`<img src="${(ui.compareSource?ui.generatedUrls[part.side]:ui.vectorUrls[part.side])||previewUrl(part)}" alt="Real ${surfaceLabel(part.side)} completed artwork">`:'<p>Preview not available from the engine</p>'}</div>`).join('')||'<p>No final artwork detected.</p>'}</div></div></section>
       <div class="abv2-export-center">
@@ -777,7 +778,7 @@
     if(['queued','processing','cancelling'].includes(savedJob()?.status))return notify('Resume or cancel existing job before starting a paid production');
     const epoch=++ui.workspaceEpoch;ui.startedAt=Date.now();
     state.pendingArtboardJob=null;state.artboardJob=null;try{sessionStorage.removeItem('mj_artboard_job')}catch{}
-    ui.preferInput=false;ui.selected.clear();ui.selectionTouched=false;ui.stageProgressHigh={};ui.stageProgressJob=null;ui.prepared=[];ui.visitedStages.clear();ui.stageStatus='';ui.lastPreviewPath='';state.artboardPreviewPath='';ui.view=null;ui.phase='analyze';ui.analysisDone=false;ui.generationStarted=false;ui.processingStage='';ui.downloadFormat='';ui.cancelRequested=false;ui.productionDone=false;ui.continued=false;ui.finishing=false;ui.exportStarted=false;ui.generationError='';ui.compareSource=false;ui.validationSide=null;ui.generatedUrls={};ui.vectorUrls={};ui.assetRetry={};ui.assetBusy.clear();
+    ui.preferInput=false;ui.exportJob=null;ui.selected.clear();ui.selectionTouched=false;ui.stageProgressHigh={};ui.stageProgressJob=null;ui.prepared=[];ui.visitedStages.clear();ui.stageStatus='';ui.lastPreviewPath='';state.artboardPreviewPath='';ui.view=null;ui.phase='analyze';ui.analysisDone=false;ui.generationStarted=false;ui.processingStage='';ui.downloadFormat='';ui.cancelRequested=false;ui.productionDone=false;ui.continued=false;ui.finishing=false;ui.exportStarted=false;ui.generationError='';ui.compareSource=false;ui.validationSide=null;ui.generatedUrls={};ui.vectorUrls={};ui.assetRetry={};ui.assetBusy.clear();
     state.mode.artboard='quality';
     await run('Artboard source upload',async()=>{state.artboardEvents=[];state.artboardEventKeys.clear();state.artboardJob=null;state.lastMode='quality';state.progress=null;
       const p=await call('artboard','api/artboard/projects',{method:'POST',json:{name:f.name.slice(0,120),processing_mode:state.lastMode}});state.artboardProject=p;state.artboardResult=p;
@@ -832,7 +833,7 @@
       const j=await call('artboard','api/artboard/production',{method:'POST',json:{project_id:id,ai_reconstruction:true,processing_mode:state.lastMode||state.mode.artboard}});
       captureJob('Artboard',j);if(ui.cancelRequested){void stop();return;}await jobPoll('artboard','api/artboard/jobs/'+j.job_id,'Production');
       if(ui.cancelRequested||ui.workspaceEpoch!==epoch||project().project_id!==id)return;
-      state.artboardResult=await call('artboard','api/artboard/projects/'+id);
+      state.artboardResult=await syncedExportProject(id,epoch);
       if(!productionApproved(state.artboardResult))throw Error('The Quality AI review or technical validation is not confirmed by the engine');
       ui.productionDone=true;if(!ui.selectionTouched&&!ui.selected.size)ui.selected=new Set(available().map(part=>part.side));ui.phase='processing';ui.processingStage='Validation';ui.stageStatus='completed';ui.visitedStages.add('Validation');state.stage='Vectorization and validation completed';state.progress=100;
       await loadSideAssets(true);
@@ -867,6 +868,23 @@
     }finally{if(epoch===ui.workspaceEpoch){ui.recreatingSide=null;render();}}
   }
   function sleep(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
+  async function syncedExportProject(id,epoch=ui.workspaceEpoch){
+    // A completed job can be followed by a transient R2/proxy read failure.
+    // Retry only the saved project GET, never the paid production request.
+    for(let attempt=0;;attempt++){
+      if(ui.cancelRequested||ui.workspaceEpoch!==epoch)throw Error('Export sync cancelled');
+      try{return await call('artboard','api/artboard/projects/'+id)}
+      catch(error){
+        const code=Number(error?.httpStatus);
+        const temporary=[408,429,500,502,503,504,520,521,522,523,524].includes(code)||
+          (!code&&/network|failed to fetch|load failed|timed out|connection/i.test(error?.message||''));
+        if(!temporary||attempt>=4)throw error;
+        state.stage='Reconnecting to saved export data'+(code?' (HTTP '+code+')':'');
+        log(state.stage+'; artwork and validation retained');render();
+        await sleep(Math.min(8000,1000*2**attempt));
+      }
+    }
+  }
   async function continueToVectorization(){
     if(ui.continued)return;
     if(!ui.selected.size)return notify('Select at least one generated artwork side');
@@ -893,7 +911,7 @@
     try{
       // Vectorization and validation already ran in the REAL production job.
       // Never replay finished stages or move back to 52% to simulate activity.
-      ui.phase='processing';ui.processingStage='Validation';ui.stageStatus='completed';
+      ui.phase='export';ui.view=null;ui.processingStage='Export';ui.stageStatus='completed';
       ui.visitedStages.add('Validation');state.activePipeline='Validation';
       state.stage='Saved vectorization and validation complete';state.progress=100;render();
       await loadSideAssets(true);
@@ -902,16 +920,19 @@
       ui.exportStarted=true;
       const id=project().project_id;
       await run('Prepare Artboard export files',async()=>{
-        ui.phase='processing';ui.processingStage='Validation';ui.stageStatus='completed';state.activePipeline='Export';state.stage='Preparing EPS SVG PDF PNG ZIP';state.progress=null;render();
-        const j=await call('artboard','api/artboard/export',{method:'POST',json:{project_id:id,formats:['eps','svg','pdf','png','zip'],bundle:'production_pack'}});
-        captureJob('Artboard',j);if(ui.cancelRequested){void stop();return;}await jobPoll('artboard','api/artboard/jobs/'+j.job_id,'Export');
+        ui.phase='export';ui.processingStage='Export';ui.stageStatus='completed';state.activePipeline='Export';state.stage='Preparing EPS SVG PDF PNG ZIP';state.progress=null;render();
+        // Retain an accepted export job across polling/project-sync outages.
+        // Reconnect to that job on retry instead of submitting another export.
+        const j=ui.exportJob||await call('artboard','api/artboard/export',{method:'POST',json:{project_id:id,formats:['eps','svg','pdf','png','zip'],bundle:'production_pack'}});
+        ui.exportJob=j;captureJob('Artboard',j);if(ui.cancelRequested){void stop();return;}await jobPoll('artboard','api/artboard/jobs/'+j.job_id,'Export');
         if(ui.cancelRequested||ui.workspaceEpoch!==epoch)return;
-        state.artboardResult=await call('artboard','api/artboard/projects/'+id);
+        state.artboardResult=await syncedExportProject(id,epoch);
         if(!exportedArtifacts().length)throw Error('Engine returned no export files');
         await loadSideAssets(true);
+        ui.exportJob=null;
         ui.phase='export';ui.processingStage='Export';ui.downloadFormat='';state.stage='Production complete';state.progress=null;
       });
-      if(state.lastError)ui.exportStarted=false;
+      if(state.lastError){ui.exportStarted=false;if(state.artboardJob?.status==='failed')ui.exportJob=null;}
     }finally{ui.finishing=false;render()}
   }
 
@@ -1024,7 +1045,7 @@
   }
   function reset(force=false){
     if(state.busy&&!force)return notify('Cancel the active job before starting a new input');
-    ++ui.workspaceEpoch;ui.preferInput=false;ui.phase='input';ui.view=null;ui.analysisDone=false;ui.generationStarted=false;ui.processingStage='';ui.downloadFormat='';ui.prepared=[];ui.recreatingSide=null;
+    ++ui.workspaceEpoch;ui.exportJob=null;ui.preferInput=false;ui.phase='input';ui.view=null;ui.analysisDone=false;ui.generationStarted=false;ui.processingStage='';ui.downloadFormat='';ui.prepared=[];ui.recreatingSide=null;
     ui.selected.clear();ui.selectionTouched=false;ui.stageProgressHigh={};ui.stageProgressJob=null;ui.visitedStages.clear();ui.stageStatus='';ui.lastPreviewPath='';ui.continued=false;
     ui.productionDone=false;ui.finishing=false;ui.exportStarted=false;ui.cancelRequested=false;ui.handoffBusy=false;
     ui.generationError='';ui.compareSource=false;ui.validationSide=null;ui.assetBusy.clear();ui.assetRetry={};
@@ -1042,6 +1063,7 @@
     const b=e.target.closest('button[data-abv2]');if(!b)return;
     e.preventDefault();e.stopPropagation();const a=b.dataset.abv2;
     if(a==='toggle-navigation'){document.querySelector('#menuButton')?.click();return;}
+    if(a==='retry-export'){if(state.busy)return;ui.continued=true;await completeSelectedWorkflow();return;}
     if(a==='next-stage'||a.startsWith('view-stage:')){
       const index=a==='next-stage'?Math.min(5,steps.indexOf(currentStage())+1):Number(a.split(':')[1]);
       const live=steps.indexOf(stageOf(state.stage,state.progress));

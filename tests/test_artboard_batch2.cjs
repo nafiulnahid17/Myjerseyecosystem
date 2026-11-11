@@ -4,6 +4,11 @@ const src=fs.readFileSync(path.resolve(__dirname,'..','artboard-v2.js'),'utf8');
 const css=fs.readFileSync(path.resolve(__dirname,'..','artboard-v2-workflow-fixes.css'),'utf8');
 let listeners={},screens=[],requests=[],downloads=[],serverProject=null,jobN=0,currentJob=null,mode='normal';
 let bodyClasses=new Set();
+const recoveryCase=process.env.ARTBOARD_EXPORT_RECOVERY||'';
+let productionReadFailures=recoveryCase==='project-sync'?3:0;
+let exportReadFailures=recoveryCase==='accepted-job-sync'?5:0;
+let rejectedExport=recoveryCase==='submission';
+const outage=()=>Object.assign(new Error('artboard: Service unavailable (HTTP 503)'),{httpStatus:503});
 const classes={contains:x=>bodyClasses.has(x),add:x=>bodyClasses.add(x),remove:x=>bodyClasses.delete(x),toggle:(x,on)=>{if(on===undefined? !bodyClasses.has(x):on)bodyClasses.add(x);else bodyClasses.delete(x)}};
 const file={name:'jersey-front-back.png',type:'image/png',size:260000};
 const state={tool:'artboard',mode:{artboard:'quality'},status:{artboard:{state:'online',ai_configured:true}},files:{artboard:file},objectURLs:{artboard:'blob:real-upload',artboard_live:'blob:real-stage'},artboardPreviewPath:'',artboardProject:null,artboardResult:null,artboardJob:null,artboardEvents:[],artboardEventKeys:new Set(),logs:[],busy:false,progress:null,stage:'',lastError:'',lastJobId:'',activePipeline:'',formats:{artboard:['eps','svg','pdf']}};
@@ -65,6 +70,7 @@ assert.equal(engine,'artboard');requests.push({path,opts});
     }
     return currentJob={job_id:'j'+(++jobN),project_id:'p1',status:'queued'};}
   if(path==='api/artboard/export'){
+    if(rejectedExport){rejectedExport=false;throw outage();}
     if(opts.json?.master_edits){
       assert.deepEqual(Array.from(opts.json.part_ids),[chosenColorPart.part_id]);
       assert.equal(opts.json.formats.join(','),'svg');
@@ -89,7 +95,11 @@ assert.equal(engine,'artboard');requests.push({path,opts});
     editability_report:`projects/p1/export/${item.type}.editability-report.json`,
     color_groups_report:`projects/p1/export/${item.type}.color-groups.json`};return currentJob={job_id:'j'+(++jobN),project_id:'p1',status:'queued'};}
   if(path.startsWith('api/artboard/projects/p1/artifacts/')&&opts.response==='blob')return new Blob(['real engine bytes'],{type:path.endsWith('.svg')?'image/svg+xml':'image/png'});
-  if(path==='api/artboard/projects/p1')return serverProject;
+  if(path==='api/artboard/projects/p1'){
+    if(serverProject.true_vector_ready&&!serverProject.exports.zip&&productionReadFailures-->0)throw outage();
+    if(serverProject.exports.zip&&exportReadFailures-->0)throw outage();
+    return serverProject;
+  }
   throw Error('Unexpected '+path);
  }};
 let chosenColorPart=null;
@@ -102,6 +112,21 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   test(34,css.includes('artboard-workspace.sidebar-collapsed .shell')&&bodyClasses.has('sidebar-collapsed'));
   test(35,css.includes('artboard-workspace #menuButton{display:grid!important'));
   await handler(click('start'));
+  if(recoveryCase){
+    if(recoveryCase!=='project-sync'){
+      assert(state.lastError.includes('503'),'Exercise actual failed transition');
+      assert(screens.at(-1).includes('<h1>Export Production</h1>'),'503 must not trap validated artwork on Validation');
+      assert(screens.at(-1).includes('data-abv2="retry-export"'),'Expose a working export recovery action');
+      await handler(click('retry-export'));
+    }
+    assert.equal(state.lastError,'','Export must recover');
+    assert(screens.at(-1).includes('Download Master ZIP'));
+    assert.equal(requests.filter(r=>r.path==='api/artboard/production').length,1,'Never regenerate paid AI artwork');
+    assert.equal(requests.filter(r=>r.path==='api/artboard/export').length,recoveryCase==='submission'?2:1,'Accepted job must be reused');
+    assert.equal(context.__studioViews.ui.exportJob,null,'Clear the retained job only after successful sync');
+    console.log('PASS export HTTP 503 recovery: '+recoveryCase);
+    return;
+  }
   if(process.env.ARTBOARD_MISSING_BACK==='1'){
     const prepare=requests.filter(r=>r.path==='api/artboard/prepare');
     test('automatic-surface-detection',prepare.length===1&&prepare[0].opts.json.detect_visible_surfaces===true&&!('surfaces' in prepare[0].opts.json));
