@@ -168,7 +168,7 @@
     const active=currentStage(),current=Math.max(0,steps.indexOf(active));
     return `<nav class="abv2-workflow" aria-label="Artboard production workflow">${steps.map((step,index)=>`<button type="button" data-abv2="view-stage:${index}" class="${index<current?'complete':index===current?'current':'pending'}" ${index>current&&!ui.productionDone&&!ui.visitedStages.has(step)?'disabled':''}><b>${index<current?'✓':index===current?'◌':index+1}</b><strong>${esc(step==='Input'?'Upload':step==='Analyzing'?'Analyze':step==='Artwork Creation'?'Generate':step==='Vectorization'?'Vectorize':step==='Validation'?'Validate':step)}</strong></button>`).join('')}</nav>`;
   }
-  function elapsed(){const start=Date.parse(state.artboardJob?.started_at||'')||ui.startedAt;return start?new Date(Math.max(0,Date.now()-start)).toISOString().slice(14,19):'—';}
+  function elapsed(){const job=state.artboardJob||{},start=Date.parse(job.started_at||'')||ui.startedAt;const end=['completed','failed','cancelled'].includes(job.status)?Date.parse(job.completed_at||job.finished_at||job.updated_at||''):NaN;return start?new Date(Math.max(0,(Number.isFinite(end)?end:Date.now())-start)).toISOString().slice(14,19):'—';}
   function stageRows(stage){
     const p=project(),events=state.artboardEvents||[],reported=pattern=>events.some(e=>pattern.test(e.step||e.stage||''));
     const generated=side=>available().some(x=>x.side===side)&&Boolean(ui.generatedUrls[side]||p.ai_reconstruction?.by_part?.[available().find(x=>x.side===side)?.part_id]?.complete||ui.productionDone);
@@ -180,7 +180,7 @@
       ['Input analysis completed',ui.analysisDone],['Design structure mapped',ui.analysisDone&&available().length>0],
       ['AI artwork generation (Front)',generated('front_body')],['AI artwork generation (Back)',generated('back_body')],
       ['Artwork enhancement & cleanup',ui.productionDone||reported(/reconstruct completed|clean.*complet/i)],['Production validation',productionApproved(p)]];
-    return [['Input & artwork analysis',ui.analysisDone],['AI artwork generation (Front & Back)',available().length>0&&available().every(x=>generated(x.side))],
+    return [['Input & artwork analysis',ui.analysisDone],['AI artwork generation ('+available().map(x=>surfaceLabel(x.side)).join(' & ')+')',available().length>0&&available().every(x=>generated(x.side))],
       ['Design structure & part detection',available().length>0],['Vectorizing (path optimization)',ui.productionDone||reported(/optimize completed/i)],
       ['Path cleanup & simplification',ui.productionDone||reported(/compose completed/i)],['Vector validation & finalization',productionApproved(p)]];
   }
@@ -665,7 +665,7 @@
     const phase=ui.preferInput?'input':ui.view||ui.phase;
     return `<section class="abv2" data-abv2-root data-screen="${phase==='processing'?ui.processingStage:phase}">${phase==='input'?input():phase==='analyze'?analyze():phase==='artwork'||phase==='select'?select():phase==='export'?exportPage():processing()}</section>`;
   }
-  let lastRenderedTool=state.tool;
+  let lastRenderedTool=state.tool,lastRenderedStage=null;
   const ecosystemRender=render;
   render=function(...args){
     const entering=state.tool==='artboard'&&lastRenderedTool!=='artboard';
@@ -675,7 +675,10 @@
     lastRenderedTool=state.tool;
     const btn=document.querySelector('#menuButton');
     if(btn&&state.tool==='artboard'&&typeof innerWidth!=='undefined'&&innerWidth>780)btn.setAttribute('aria-expanded',String(!document.body.classList.contains('sidebar-collapsed')));
-    return ecosystemRender(...args);
+    const result=ecosystemRender(...args);
+    if(state.tool==='artboard'&&lastRenderedStage!==currentStage()){lastRenderedStage=currentStage();if(typeof window!=='undefined')window.scrollTo?.({top:0,behavior:'instant'});}
+    if(state.tool!=='artboard')lastRenderedStage=null;
+    return result;
   };
   const oldPreview=updateArtboardPreview, oldMonitor=updateMonitor;
   artboardPageV4=display;
@@ -1038,7 +1041,11 @@
       const index=a==='next-stage'?Math.min(5,steps.indexOf(currentStage())+1):Number(a.split(':')[1]);
       const live=steps.indexOf(stageOf(state.stage,state.progress));
       if(index>live&&!ui.productionDone&&!ui.visitedStages.has(steps[index]))return notify('This stage is still awaiting the engine');
-      if(index===5&&!exportedArtifacts().length)return notify('Export files are still being prepared');
+      if(index===5&&!exportedArtifacts().length){
+        if(!state.busy&&ui.productionDone&&productionApproved()){ui.continued=true;ui.view=null;await completeSelectedWorkflow();}
+        else notify('Export files are still being prepared');
+        return;
+      }
       ui.view=index===0?'input':index===1?'analyze':index===2?'artwork':index===5?'export':'processing';
       ui.processingStage=steps[index];ui.stageStatus=ui.productionDone?'completed':'';render();return;
     }

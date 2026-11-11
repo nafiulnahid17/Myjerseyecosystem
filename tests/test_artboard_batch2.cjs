@@ -91,7 +91,7 @@ const context={state,Date,setTimeout:(fn)=>setTimeout(fn,1),URL:{revokeObjectURL
   throw Error('Unexpected '+path);
  }};
 let chosenColorPart=null;
-vm.createContext(context);vm.runInContext(process.env.ARTBOARD_UI_FIXTURES?src.replace('  startArtboard=start;', '  globalThis.__studioViews={input,analyze,select,processing,exportPage,ui}; startArtboard=start;'):src,context);
+vm.createContext(context);vm.runInContext(src.replace('  startArtboard=start;', '  globalThis.__studioViews={input,analyze,select,processing,exportPage,ui}; startArtboard=start;'),context);
 const click=name=>({target:{closest:selector=>selector==='button[data-abv2]'?{dataset:{abv2:name}}:null},preventDefault(){},stopPropagation(){}});
 const handler=listeners.click.find(f=>f.toString().includes("const b=e.target.closest('button[data-abv2]')"));
 const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('PASS Issue #'+id)};
@@ -211,6 +211,15 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   test('stage-review-does-not-create-jobs',requests.length===beforeStageReview);
   test('actual-overlay-has-selected-side',screens.some(v=>v.includes('data-abv2-paths-side="'+chosen[0]+'"')));
   test('no-unexpanded-side-placeholder',!screens.some(v=>v.includes('data-abv2-paths-side="${side}"')));
+  // A resumed completed production may have no export job yet. Next must package it once.
+  const imageJobsBeforeResume=requests.filter(r=>r.path==='api/artboard/production').length;
+  const exportsBeforeResume=requests.filter(r=>r.path==='api/artboard/export').length;
+  serverProject.exports={};for(const part of serverProject.surfaces)part.exports={};
+  context.__studioViews.ui.exportStarted=false;context.__studioViews.ui.finishing=false;state.busy=false;
+  await handler(click('view-stage:4'));await handler(click('next-stage'));
+  test('resume-next-packages-existing-vectors',requests.filter(r=>r.path==='api/artboard/export').length===exportsBeforeResume+1);
+  test('resume-next-never-regenerates-artwork',requests.filter(r=>r.path==='api/artboard/production').length===imageJobsBeforeResume);
+
   if(process.env.ARTBOARD_UI_FIXTURES){
     const out=process.env.ARTBOARD_UI_FIXTURES;fs.mkdirSync(out,{recursive:true});
     const views=context.__studioViews;
