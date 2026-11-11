@@ -27,7 +27,9 @@ const context={state,Date,setTimeout:(fn)=>setTimeout(fn,1),URL:{revokeObjectURL
    currentJob.status='completed';state.artboardJob=currentJob;
    return currentJob;
  },
- call:async(engine,path,opts={})=>{assert.equal(engine,'artboard');requests.push({path,opts});
+ call:async(engine,path,opts={})=>{
+  if(path.startsWith('api/artboard/jobs/'))return {...currentJob,status:'completed',stage:'export'};
+assert.equal(engine,'artboard');requests.push({path,opts});
   if(path==='api/artboard/projects'&&opts.method==='POST'){serverProject={project_id:'p1',surfaces:[],true_vector_ready:false,exports:{}};return serverProject;}
   if(path==='api/artboard/upload')return serverProject;
   if(path==='api/artboard/prepare'){assert.equal(opts.json.detect_visible_surfaces,true);const detected=process.env.ARTBOARD_MISSING_BACK==='1'?['front_body']:['front_body','back_body'];serverProject.surfaces=detected.map(x=>({type:x,name:x,part_id:x,exports:{},validation:{path_count:x==='front_body'?123:287,color_mode:'CMYK',postscript_level:2,dpi:300}}));return currentJob={job_id:'j'+(++jobN),project_id:'p1',status:'queued'};}
@@ -219,6 +221,12 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   await handler(click('view-stage:4'));await handler(click('next-stage'));
   test('resume-next-packages-existing-vectors',requests.filter(r=>r.path==='api/artboard/export').length===exportsBeforeResume+1);
   test('resume-next-never-regenerates-artwork',requests.filter(r=>r.path==='api/artboard/production').length===imageJobsBeforeResume);
+  context.__studioViews.ui.generatedUrls={};context.__studioViews.ui.vectorUrls={};context.__studioViews.ui.productionDone=false;
+  state.pendingArtboardJob={...currentJob,status:'completed',stage:'export'};
+  await handler(click('resume-job'));
+  test('completed-export-restores-artwork-previews',context.__studioViews.ui.productionDone&&Object.keys(context.__studioViews.ui.generatedUrls).length>0&&Object.keys(context.__studioViews.ui.vectorUrls).length>0);
+  test('completed-export-resume-does-not-generate',requests.filter(r=>r.path==='api/artboard/production').length===imageJobsBeforeResume);
+
 
   if(process.env.ARTBOARD_UI_FIXTURES){
     const out=process.env.ARTBOARD_UI_FIXTURES;fs.mkdirSync(out,{recursive:true});

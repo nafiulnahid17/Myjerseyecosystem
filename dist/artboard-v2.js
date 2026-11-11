@@ -960,6 +960,7 @@
       if(['completed','failed'].includes(job.status)){
         state.artboardResult=await call('artboard','api/artboard/projects/'+encodeURIComponent(project().project_id));
         ui.analysisDone=available().length>0;
+        if(!isPrepare)ui.productionDone=productionApproved(state.artboardResult);
         if(isPrepare){ui.phase='artwork';ui.generationStarted=false}
         else if(isExport&&job.status==='completed')ui.phase='export';
         else if(job.status==='completed'){ui.phase='artwork';ui.productionDone=productionApproved(state.artboardResult)}
@@ -973,8 +974,9 @@
         if(ui.cancelRequested||ui.workspaceEpoch!==epoch)return;
         state.artboardResult=await call('artboard','api/artboard/projects/'+encodeURIComponent(project().project_id));
         ui.analysisDone=available().length>0;
+        if(!isPrepare)ui.productionDone=productionApproved(state.artboardResult);
         if(isPrepare){ui.phase='artwork';ui.generationStarted=false}
-        else if(isExport){ui.phase='export';ui.exportStarted=true}
+        else if(isExport){ui.phase='export';ui.exportStarted=true;await loadSideAssets(true)}
         else{ui.phase='artwork';ui.productionDone=productionApproved(state.artboardResult);ui.generationStarted=true;await loadSideAssets(true)}
       });
       render();
