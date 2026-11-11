@@ -29,7 +29,7 @@
 .reference-hero>img{width:100%;height:auto}
 .reference-tools{margin:0 1.13636%;padding:0}
 .reference-tools-heading{width:100%;height:auto}
-.reference-board{margin:1.0404% .7956% 0;display:grid;grid-template-columns:354fr 330fr 331fr 334fr 213fr;grid-template-rows:auto auto;column-gap:.87%;row-gap:12px;align-items:stretch}
+.reference-board{margin:.979192% .673195% 0 .795594%;display:grid;grid-template-columns:354fr 330fr 331fr 334fr 213fr;grid-template-rows:auto auto;column-gap:.745342%;row-gap:11px;align-items:stretch}
 .reference-card{border:0;padding:0;background:none;display:block;min-width:0;border-radius:20px;overflow:hidden;box-shadow:none;transition:filter .15s,transform .15s}
 .reference-card>img{display:block;width:100%;height:100%;object-fit:fill}
 .reference-card:disabled{opacity:1;filter:none;cursor:not-allowed}
@@ -68,7 +68,7 @@
  .reference-dashboard .home-header-action{width:3.05024vw;height:2.99043vw;padding:.7177vw}
  .reference-dashboard .home-header-action svg{width:1.67464vw;height:1.67464vw}
  .reference-dashboard .sidebar{top:4.72488vw}
- .reference-board{row-gap:.7177vw}
+ .reference-board{row-gap:.657895vw}
  .reference-workflow{margin-top:.7177vw}
  .reference-notice{margin-top:.95694vw}
 }
