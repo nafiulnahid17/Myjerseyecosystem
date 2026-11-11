@@ -246,8 +246,8 @@
   background-repeat:no-repeat;background-position:center;background-size:contain;
   pointer-events:none;opacity:.76;filter:drop-shadow(0 0 18px #008bff88);
 }
-.ecosystem-hero::before{left:1%;background-image:url("assets/media/hero-jersey-blue.webp")}
-.ecosystem-hero::after{right:1%;left:auto;inset-block:0;background-image:url("assets/media/hero-jersey-green.webp")}
+.ecosystem-hero::before{left:1%;background-image:url("assets/media/hero-athlete-blue.webp")}
+.ecosystem-hero::after{right:1%;left:auto;inset-block:0;background-image:url("assets/media/hero-athlete-green.webp")}
 .ecosystem-hero>h1,.ecosystem-hero>p,.ecosystem-hero>div{position:relative;z-index:2}
 
 @media (min-width:1100px) and (min-height:680px) {
@@ -309,3 +309,19 @@
 .abv2 .abv2-export-actions .abv2-handoff-actions{display:grid;grid-template-columns:1fr;gap:4px;margin-top:7px}
 .abv2 .abv2-export-actions .abv2-illustrator>.abv2-source-note{display:none}
 .abv2 .abv2-export-actions .abv2-handoff-actions .abv2-btn{min-height:34px!important;padding:7px!important}
+
+/* Campaign portraits: strong hero highlights and a quiet full-page continuation. */
+.ecosystem-hero::before,.ecosystem-hero::after{opacity:1;background-size:auto 145%;background-position:center top;mask-image:linear-gradient(#000 86%,transparent)}
+.workspace:has(.ecosystem-hero){position:relative;isolation:isolate}
+.workspace:has(.ecosystem-hero)::before{content:"";position:absolute;inset:18px 0 0;z-index:-1;pointer-events:none;background-image:url("assets/media/hero-athlete-blue.webp"),url("assets/media/hero-athlete-green.webp");background-repeat:no-repeat;background-position:left top,right top;background-size:auto 100%,auto 100%;opacity:.12}
+.menu-button{display:grid;flex-shrink:0;cursor:pointer}
+.menu-button:focus-visible{outline:2px solid #4dff25;outline-offset:3px}
+@media(min-width:781px){
+ body.sidebar-collapsed .shell{grid-template-columns:0 minmax(0,1fr)}
+ body.sidebar-collapsed .sidebar{width:0;min-width:0;padding:0;border:0;opacity:0;pointer-events:none;overflow:hidden}
+}
+@media(max-width:780px){
+ .ecosystem-hero::before,.ecosystem-hero::after{width:35%;opacity:.4;background-size:auto 100%}
+ .ecosystem-hero::after{display:block}
+}
+@media(min-width:781px) and (max-width:1100px){.lab-text,.brand-divider{display:none}}

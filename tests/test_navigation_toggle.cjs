@@ -1,0 +1,18 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const source=fs.readFileSync(require('node:path').join(__dirname,'../app.js'),'utf8');
+const names=new Set(),handlers={},globalHandlers={};
+const elements=Object.fromEntries(['menuButton','sidebar','menuBackdrop','menuClose'].map(id=>[id,{attrs:{},hidden:true,inert:false,addEventListener:(event,fn)=>handlers[id+':'+event]=fn,setAttribute(k,v){this.attrs[k]=v},focus(){this.focused=true}}]));
+const sandbox={innerWidth:1440,render(){},statusCheck(){},window:{addEventListener:(e,fn)=>globalHandlers[e]=fn},document:{body:{classList:{contains:n=>names.has(n),remove:n=>names.delete(n),toggle(n){if(names.has(n)){names.delete(n);return false}names.add(n);return true}}},querySelector:s=>elements[s.slice(1)],addEventListener:(e,fn)=>globalHandlers[e]=fn}};
+vm.runInNewContext(source.slice(source.indexOf('function syncNavigation(){')),sandbox);
+const button=elements.menuButton,sidebar=elements.sidebar,backdrop=elements.menuBackdrop;
+assert.equal(button.attrs['aria-expanded'],'true');
+handlers['menuButton:click']();assert(names.has('sidebar-collapsed'));assert(sidebar.inert);assert.equal(button.attrs['aria-expanded'],'false');
+handlers['menuButton:click']();assert(!sidebar.inert);assert.equal(button.attrs['aria-expanded'],'true');
+sandbox.innerWidth=390;globalHandlers.resize();assert(sidebar.inert);assert(backdrop.hidden);
+handlers['menuButton:click']();assert(!sidebar.inert);assert(!backdrop.hidden);assert.equal(button.attrs['aria-expanded'],'true');
+handlers['menuButton:click']();assert(sidebar.inert);assert(backdrop.hidden);
+handlers['menuButton:click']();globalHandlers.keydown({key:'Escape'});assert(sidebar.inert);assert(button.focused);
+handlers['menuButton:click']();handlers['menuBackdrop:click']();assert(sidebar.inert);
+sandbox.innerWidth=800;globalHandlers.resize();assert(!sidebar.inert);assert(backdrop.hidden);
+console.log('Navigation desktop, mobile, resize, backdrop and Escape behavior passed');
