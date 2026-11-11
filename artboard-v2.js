@@ -171,7 +171,7 @@
   function elapsed(){const start=Date.parse(state.artboardJob?.started_at||'')||ui.startedAt;return start?new Date(Math.max(0,Date.now()-start)).toISOString().slice(14,19):'—';}
   function stageRows(stage){
     const p=project(),events=state.artboardEvents||[],reported=pattern=>events.some(e=>pattern.test(e.step||e.stage||''));
-    const generated=side=>Boolean(ui.generatedUrls[side]||p.ai_reconstruction?.by_part?.[available().find(x=>x.side===side)?.part_id]?.complete||ui.productionDone);
+    const generated=side=>available().some(x=>x.side===side)&&Boolean(ui.generatedUrls[side]||p.ai_reconstruction?.by_part?.[available().find(x=>x.side===side)?.part_id]?.complete||ui.productionDone);
     if(stage==='Analyzing')return [
       ['Input received & validated',Boolean(p.project_id)],['Image properties analyzed',Boolean(ui.dimensions)],
       ['Design structure analysis',ui.analysisDone],['Color palette extraction',reported(/palette.*complet|colors.*extract/i)],
@@ -191,7 +191,7 @@
       <div class="abv2-current"><strong>${esc(ui.stageStatus==='completed'?'Saved stage completed':friendlyActivity(state.stage||'Waiting for engine'))}</strong><b>${percent===null?(state.busy?'Live':'—'):Math.round(percent)+'%'}</b><div class="abv2-progress ${state.busy&&percent===null?'indeterminate':''}"><span style="width:${percent??25}%"></span></div></div>
       <ol aria-label="Production activity for this stage">${rows.map(([label,done],i)=>`<li class="${done?'complete':i===active&&state.busy&&ui.stageStatus!=='completed'?'active':'pending'}"><i>${done?'✓':i===active&&state.busy&&ui.stageStatus!=='completed'?'◌':'○'}</i><span>${esc(label)}</span><small>${done?'Reported':i===active&&state.busy&&ui.stageStatus!=='completed'?'In progress':ui.stageStatus==='completed'?'Not reported':'Pending'}</small></li>`).join('')}</ol>
       ${state.lastError?`<p role="alert" class="abv2-error-details">${esc(state.lastError)}</p>`:''}
-      <div class="abv2-log-facts"><span><b>${esc(stage==='Analyzing'?ui.dimensions||'—':'Front & Back')}</b><small>${stage==='Analyzing'?'Resolution':'Output'}</small></span><span><b>${stage==='Analyzing'?'RGB':'22 × 31 in'}</b><small>${stage==='Analyzing'?'Preview color':'Canvas'}</small></span><span><b>${file?esc(fmtSize(file.size)):'—'}</b><small>Input file</small></span></div>
+      <div class="abv2-log-facts"><span><b>${esc(stage==='Analyzing'?ui.dimensions||'—':available().map(x=>surfaceLabel(x.side)).join(' & ')||'Awaiting surfaces')}</b><small>${stage==='Analyzing'?'Resolution':'Output'}</small></span><span><b>${stage==='Analyzing'?'RGB':'22 × 31 in'}</b><small>${stage==='Analyzing'?'Preview color':'Canvas'}</small></span><span><b>${file?esc(fmtSize(file.size)):'—'}</b><small>Input file</small></span></div>
       <div class="abv2-log-footer"><span>◷ Elapsed Time: <b data-abv2-elapsed>${elapsed()}</b></span><small>Engine-synced events</small></div></aside>`;
   }
   function originalPreview(){const url=state.objectURLs.artboard;return `<div class="abv2-visual abv2-scan ${ui.phase==='analyze'&&state.busy&&stageOf(state.stage,state.progress)==='Analyzing'?'active':''}">${url?`<img src="${url}" alt="Uploaded original design">`:`<img class="abv2-demo-visual" src="assets/artboard-v2/studio-front.webp" alt="Illustrative preview while the source renderer is unavailable"><span class="abv2-demo-caption">Visualization · source preview unavailable</span>`}<span class="abv2-corners" aria-hidden="true"></span><span class="abv2-beam" aria-hidden="true"></span><div class="abv2-analysis-hud" aria-hidden="true"><i class="abv2-hud-ring"></i><i class="abv2-hud-target"></i><i class="abv2-hud-corner top-left"></i><i class="abv2-hud-corner top-right"></i><i class="abv2-hud-corner bottom-left"></i><i class="abv2-hud-corner bottom-right"></i></div></div>`;}
@@ -730,12 +730,14 @@
   }
   function syncProductionStage(){
     if(ui.view||ui.finishing||!ui.generationStarted||ui.productionDone||state.activePipeline!=='Production')return false;
-    const next=stageOf(state.stage,state.progress);
+    const reportedStage=stageOf(state.stage,state.progress);
     const order={'Artwork Creation':0,'Vectorization':1,'Validation':2};
+    const currentOrder=order[ui.processingStage||'Artwork Creation']??0;
+    const next=order[reportedStage]>currentOrder+1?'Vectorization':reportedStage;
     if((ui.phase==='artwork'||ui.phase==='processing')&&(next==='Vectorization'||next==='Validation')){
       const current=ui.processingStage||'Artwork Creation';
       if(order[next]>order[current]){
-        ui.phase='processing';ui.processingStage=next;ui.stageStatus='';ui.visitedStages.add(next);render();return true;
+        ui.phase='processing';ui.processingStage=next;ui.stageStatus=reportedStage!==next?'completed':'';ui.visitedStages.add(next);render();return true;
       }
     }
     return false;

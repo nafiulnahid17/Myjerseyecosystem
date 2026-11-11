@@ -31,7 +31,15 @@ for(const [message,pct,expected] of [
   ['Running validate',92,'Validation'],
   ['Validate completed',96,'Validation'],
 ]) assert.equal(classify(message,pct),expected,message);
-assert(ui.includes('const next=stageOf(state.stage,state.progress)'),'Live stage must use current job update');
+assert(ui.includes('const reportedStage=stageOf(state.stage,state.progress)'),'Live stage must use current job update');
+// If polling misses the vector event, show its completed view before validation.
+const stageUi={view:null,finishing:false,generationStarted:true,productionDone:false,phase:'artwork',processingStage:'Artwork Creation',visitedStages:new Set()};
+const stageState={activePipeline:'Production',stage:'Validating vector output',progress:92};
+const syncSource=ui.slice(ui.indexOf('  function syncProductionStage(){'),ui.indexOf('  function refresh(){'));
+const syncStage=vm.runInNewContext(syncSource+'\nsyncProductionStage',{ui:stageUi,state:stageState,stageOf:classify,render(){}});
+assert.equal(syncStage(),true);assert.equal(stageUi.processingStage,'Vectorization');assert.equal(stageUi.stageStatus,'completed');
+assert.equal(syncStage(),true);assert.equal(stageUi.processingStage,'Validation');
+
 assert(!ui.includes('const candidates=[...(state.artboardEvents'),'Historic events must not skip stages');
 assert(ui.includes('resume_from_ai:true'),'Resume must reuse saved artwork without paid AI regeneration');
 assert(ui.includes("if(a==='resume-vector')"),'Recovery button must have an active handler');
