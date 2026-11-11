@@ -58,3 +58,9 @@ body.artboard-workspace{overflow:auto!important}
 .artboard-workspace .abv2>.abv2-art-grid-layout,.artboard-workspace .abv2>.abv2-process-grid,.artboard-workspace .abv2>.abv2-validation-layout,.artboard-workspace .abv2>.abv2-export-grid{flex:none;max-height:none!important;overflow:visible!important}
 .abv2[data-screen="export"] .abv2-health{display:none!important}
 .abv2[data-screen="export"] .abv2-step-label{color:#b9ffc9;border-color:#1ee079;background:#003621;box-shadow:inset 0 0 10px #00ff5344,0 0 11px #00ff5533}
+/* Retire the older flat side illustrations and compact upload overrides. */
+.artboard-workspace .abv2 .abv2-input-shell::before,.artboard-workspace .abv2 .abv2-input-shell::after{display:none!important;content:none!important}
+.artboard-workspace .abv2[data-screen="input"] .abv2-input-shell .abv2-commands .abv2-btn{min-height:56px!important;font-size:19px!important;padding:13px!important;border-radius:40px!important}
+.artboard-workspace .abv2 .abv2-input-shell .abv2-upload-icon{font-size:50px!important}
+.artboard-workspace .abv2 .abv2-input-shell .abv2-drop>strong{font-size:24px!important}
+@media(max-width:760px){.artboard-workspace .abv2[data-screen="input"] .abv2-input-shell .abv2-commands .abv2-btn{font-size:13px!important;min-height:44px!important;padding:10px!important}.artboard-workspace .abv2 .abv2-input-shell .abv2-drop>strong{font-size:18px!important}}
