@@ -226,7 +226,7 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
       views.ui.productionDone=name==='export';
       const page=name==='input'?views.input():name==='analyze'?views.analyze():name==='artwork'?views.select():name==='export'?views.exportPage():views.processing();
       const screen='<section class="abv2" data-abv2-root data-screen="'+name+'">'+page+'</section>';
-      fs.writeFileSync(path.join(out,name.toLowerCase()+'.html'),'<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Artboard workflow UI fixture — '+name+'</title>'+cssNames.map(f=>'<link rel="stylesheet" href="'+f+'">').join('')+'<body class="artboard-workspace sidebar-collapsed" style="margin:0"><main class="content">'+screen+'</main>');
+      fs.writeFileSync(path.join(out,name.toLowerCase()+'.html'),'<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Artboard workflow UI fixture — '+name+'</title>'+cssNames.map(f=>'<link rel="stylesheet" href="'+f+'">').join('')+'<body class="artboard-workspace sidebar-collapsed" style="margin:0"><main id="mainContent" class="content">'+screen+'</main>');
     }
     console.log('Six Artboard workflow renderer fixtures generated');
   }

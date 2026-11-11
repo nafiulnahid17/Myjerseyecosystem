@@ -284,7 +284,7 @@
     const canContinue=ui.selected.size>0&&[...ui.selected].every(side=>ready.some(x=>x.side===side));
     const status=ui.generationError?'Production failed: '+esc(ui.generationError):ui.productionDone?'Generated artwork and validated vectors ready — select Front, Back or Both to review and export':state.busy?'Engine creating flat 2D artwork; previews appear as real files arrive':'Waiting for artwork generation';
     return `${top('Artwork Creation','Review AI-generated artwork. The engine already creates vectors during the same production job.')}<div class="abv2-select-summary" role="status">${esc(status)} • ${ui.selected.size} selected</div>
-    <div class="abv2-art-grid-layout ${prepared.length===1?'single':''}">${artworkCard('front_body')}${artworkCard('back_body')}<aside class="abv2-stage-rail">${workflowRail()}${liveLog()}</aside></div>
+    <div class="abv2-art-grid-layout">${artworkCard('front_body')}${artworkCard('back_body')}<aside class="abv2-stage-rail">${workflowRail()}${liveLog()}</aside></div>
 
      <p class="abv2-source-note">No extra AI call: selection controls which saved Front/Back vectors you inspect and download.</p><div class="abv2-select-actions">${navigation('Artwork Creation')}${ui.analysisDone&&!ui.generationStarted?button('▷ Generate Artwork','produce','primary'):''}</div>`;
   }
