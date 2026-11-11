@@ -717,15 +717,16 @@
     const p=project(),id=p.project_id;if(!id||!available().length)return;
     for(const part of available())for(const [kind,suffix] of [['generated','working/'+part.part_id+'-ai-vectorization-source.png'],['vector','vectors/'+part.part_id+'.svg']]){
       const cache=kind==='generated'?ui.generatedUrls:ui.vectorUrls,key=kind+':'+part.part_id;
-      if(cache[part.side]||ui.assetBusy.has(key)||!force&&Date.now()-(ui.assetRetry[key]||0)<3500)continue;
+      if(cache[part.side]&&!force||ui.assetBusy.has(key)||!force&&Date.now()-(ui.assetRetry[key]||0)<3500)continue;
       // Do not probe before the engine has started production.
       if(!ui.generationStarted)continue;
       ui.assetBusy.add(key);ui.assetRetry[key]=Date.now();
       try{
-        const blob=await call('artboard',artifactEndpoint(id,'projects/'+id+'/'+suffix),{response:'blob'});
+        const finalKey=kind==='vector'&&ui.productionDone?(part.exports?.premium_svg||part.previews?.svg||part.exports?.svg):null;
+        const blob=await call('artboard',artifactEndpoint(id,finalKey||'projects/'+id+'/'+suffix),{response:'blob'});
         if(!blob?.size)continue;
         // Only a real artifact from the engine becomes a preview, never a mockup.
-        cache[part.side]=URL.createObjectURL(blob);
+        const previous=cache[part.side];cache[part.side]=URL.createObjectURL(blob);if(previous)URL.revokeObjectURL(previous);
         if(state.tool==='artboard')render();
       }catch(e){/* 404 until generated: normal, no invented preview. */}
       finally{ui.assetBusy.delete(key)}
@@ -906,6 +907,7 @@
         if(ui.cancelRequested||ui.workspaceEpoch!==epoch)return;
         state.artboardResult=await call('artboard','api/artboard/projects/'+id);
         if(!exportedArtifacts().length)throw Error('Engine returned no export files');
+        await loadSideAssets(true);
         ui.phase='export';ui.processingStage='Export';ui.downloadFormat='';state.stage='Production complete';state.progress=null;
       });
       if(state.lastError)ui.exportStarted=false;
