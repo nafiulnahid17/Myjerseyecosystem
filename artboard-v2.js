@@ -616,6 +616,7 @@
   }
   function exportPage(){
     const p=project(),parts=available().filter(x=>!ui.selected.size||ui.selected.has(x.side)),confirmed=productionApproved(p);
+    const needsReview=parts.some(part=>['REVIEW_REQUIRED','FAIL'].includes(part.validation?.production_fidelity?.status)||part.validation?.editability_status==='REVIEW_REQUIRED')||p.validation?.delivery_readiness?.status==='REVIEW_REQUIRED';
     const items=exportedArtifacts(),formats=[...new Set(items.map(x=>x.format))];
     const printFormats=['eps','svg','pdf','png'];
     const designerKinds={premium_svg:'Premium Master SVG',editability_report:'Editability Report',color_groups_report:'Color Groups Report'};
@@ -624,7 +625,7 @@
     const links=confirmed?items.filter(x=>x.format===format&&printFormats.includes(x.format)):[];
     const dl=item=>`<button type="button" class="abv2-btn" data-download="artboard|${esc(artifactEndpoint(p.project_id,item.path))}">↓ Download ${esc(item.label)}</button>`;
     const hasZip=items.some(x=>x.format==='zip'),canZip=confirmed&&items.length>0;
-    return `${top('Export Production','Validated output files — select a format or download the complete available package')}${selectedPartsBar()}<div class="abv2-export-grid">
+    return `${top('Export Production','Validated output files — select a format or download the complete available package')}${selectedPartsBar()}${needsReview?'<p class="abv2-advisory" role="status">Technical exports are available. The engine flagged artwork fidelity or editability for review; inspect the original artwork against the final vector before client delivery.</p>':''}<div class="abv2-export-grid">
       <section class="abv2-export-left"><div class="abv2-card abv2-export-preview"><header><div><h2>● Live Preview — Final Output</h2><small>Editable Vector • Clean Paths • Saved engine output</small></div><div class="abv2-zoom-controls">${button('⊖','zoom-out','secondary')}${button('⊕','zoom-in','secondary')}${button('⛶','zoom-fit','secondary')}${button('◫ Compare','toggle-compare','secondary',!parts.some(part=>ui.generatedUrls[part.side]&&ui.vectorUrls[part.side]))}</div></header>
       <div class="abv2-export-arts" style="--preview-zoom:${ui.previewZoom}">${parts.map(part=>`<div><strong>${surfaceLabel(part.side)}</strong>${(ui.compareSource?ui.generatedUrls[part.side]:ui.vectorUrls[part.side])||previewUrl(part)?`<img src="${(ui.compareSource?ui.generatedUrls[part.side]:ui.vectorUrls[part.side])||previewUrl(part)}" alt="Real ${surfaceLabel(part.side)} completed artwork">`:'<p>Preview not available from the engine</p>'}</div>`).join('')||'<p>No final artwork detected.</p>'}</div></div></section>
       <div class="abv2-export-center">
