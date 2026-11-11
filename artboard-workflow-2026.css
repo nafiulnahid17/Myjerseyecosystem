@@ -86,3 +86,4 @@ body.artboard-workspace{overflow:auto!important}
 .artboard-workspace #mainContent .abv2 .abv2-export-arts{height:clamp(300px,42vh,430px)!important;min-height:0!important;max-height:430px!important;align-items:stretch}
 .artboard-workspace #mainContent .abv2 .abv2-export-arts>div{height:100%!important;min-height:0!important;max-height:100%;display:block!important;position:relative}
 .artboard-workspace #mainContent .abv2 .abv2-export-arts img{position:absolute!important;inset:24px 3% 12px;width:94%!important;height:calc(100% - 36px)!important;min-height:0!important;max-height:none!important;flex:none!important;object-fit:contain!important;margin:0!important}
+.artboard-workspace #mainContent .abv2 .abv2-export-arts{flex:none!important}
