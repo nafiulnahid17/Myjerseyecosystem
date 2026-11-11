@@ -738,13 +738,14 @@
   async function loadSideAssets(force=false){
     const p=project(),id=p.project_id,epoch=ui.workspaceEpoch;if(!id||!available().length)return;
     for(const part of available())for(const [kind,suffix] of [['generated','working/'+part.part_id+'-ai-vectorization-source.png'],['vector','vectors/'+part.part_id+'.svg']]){
+      if(epoch!==ui.workspaceEpoch||project().project_id!==id)return;
       const cache=kind==='generated'?ui.generatedUrls:ui.vectorUrls,key=kind+':'+part.part_id;
       if(cache[part.side]&&!force||ui.assetBusy.has(key)||!force&&Date.now()-(ui.assetRetry[key]||0)<3500)continue;
       // Do not probe before the engine has started production.
       if(!ui.generationStarted)continue;
       ui.assetBusy.add(key);ui.assetRetry[key]=Date.now();
       try{
-        const finalKey=kind==='vector'&&ui.productionDone?(part.exports?.premium_svg||part.previews?.svg||part.exports?.svg):null;
+        const finalKey=kind==='vector'&&ui.productionDone?(part.exports?.svg||part.previews?.svg||part.exports?.premium_svg):null;
         const blob=await call('artboard',artifactEndpoint(id,finalKey||'projects/'+id+'/'+suffix),{response:'blob'});
         if(!blob?.size||epoch!==ui.workspaceEpoch||project().project_id!==id||!available().some(item=>item.part_id===part.part_id&&item.side===part.side))continue;
         // Only a real artifact from the engine becomes a preview, never a mockup.
