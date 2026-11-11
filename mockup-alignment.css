@@ -240,14 +240,14 @@
 .abv2:has(.abv2-input-shell) .abv2-header h1{font-size:clamp(23px,2.4vw,34px)!important}
 .abv2:has(.abv2-input-shell) .abv2-header p{font-size:10px!important;letter-spacing:.08em}
 
-/* Restore two distinct jersey visuals in the ecosystem hero using existing in-repo assets. */
+/* Two isolated athletic jerseys complement the ecosystem brand colors. */
 .ecosystem-hero::before,.ecosystem-hero::after{
   content:"";position:absolute;top:0;bottom:0;width:26%;
   background-repeat:no-repeat;background-position:center;background-size:contain;
   pointer-events:none;opacity:.76;filter:drop-shadow(0 0 18px #008bff88);
 }
-.ecosystem-hero::before{left:1%;background-image:url("assets/artboard-v2/jersey-front.svg")}
-.ecosystem-hero::after{right:1%;left:auto;inset-block:0;background-image:url("assets/artboard-v2/jersey-back.svg")}
+.ecosystem-hero::before{left:1%;background-image:url("assets/media/hero-jersey-blue.webp")}
+.ecosystem-hero::after{right:1%;left:auto;inset-block:0;background-image:url("assets/media/hero-jersey-green.webp")}
 .ecosystem-hero>h1,.ecosystem-hero>p,.ecosystem-hero>div{position:relative;z-index:2}
 
 @media (min-width:1100px) and (min-height:680px) {
