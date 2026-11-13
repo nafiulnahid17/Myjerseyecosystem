@@ -196,10 +196,20 @@
   }
   function liveLog(){
     const stage=currentStage(),percent=stageProgress(),rows=stageRows(stage),active=rows.findIndex(row=>!row[1]);
+    // Do not infer concurrency from row order. The authoritative backend
+    // reports when both prepared-side jobs enter the parallel worker pool.
+    const parallelReported=(state.artboardEvents||[]).some(e=>
+      /generating visible artwork sides in parallel/i.test(e.step||e.stage||''));
+    const parallelSides=stage==='Artwork Creation'&&state.activePipeline==='Production'&&
+      ui.generationStarted&&state.busy&&!state.lastError&&!ui.productionDone&&parallelReported&&
+      available().some(x=>x.side==='front_body')&&available().some(x=>x.side==='back_body');
+    const isSideRow=label=>label==='AI artwork generation (Front)'||label==='AI artwork generation (Back)';
+    const runningRow=(label,done,i)=>!done&&state.busy&&ui.stageStatus!=='completed'&&
+      (i===active||(parallelSides&&isSideRow(label)));
     const step=Math.max(1,Math.min(5,steps.indexOf(stage))),file=state.files.artboard;
     return `<aside class="abv2-card abv2-log"><header><h2>▤ Working Log</h2><div class="abv2-log-step"><b>Step ${step} of 5</b><span>${[1,2,3,4,5].map(i=>`<i class="${i<=step?'active':''}"></i>`).join('')}</span></div></header>
       <div class="abv2-current"><strong>${esc(ui.stageStatus==='completed'?'Saved stage completed':friendlyActivity(state.stage||'Waiting for engine'))}</strong><b>${percent===null?(state.busy?'Live':'—'):Math.round(percent)+'%'}</b><div class="abv2-progress ${state.busy&&percent===null?'indeterminate':''}"><span style="width:${percent??25}%"></span></div></div>
-      <ol aria-label="Production activity for this stage">${rows.map(([label,done],i)=>`<li class="${done?'complete':i===active&&state.busy&&ui.stageStatus!=='completed'?'active':'pending'}"><i>${done?'✓':i===active&&state.busy&&ui.stageStatus!=='completed'?'◌':'○'}</i><span>${esc(label)}</span><small>${done?'Reported':i===active&&state.busy&&ui.stageStatus!=='completed'?'In progress':ui.stageStatus==='completed'?'Not reported':'Pending'}</small></li>`).join('')}</ol>
+      <ol aria-label="Production activity for this stage">${rows.map(([label,done],i)=>`<li class="${done?'complete':runningRow(label,done,i)?'active':'pending'}"><i>${done?'✓':runningRow(label,done,i)?'◌':'○'}</i><span>${esc(label)}</span><small>${done?'Reported':runningRow(label,done,i)?parallelSides&&isSideRow(label)?'Processing in parallel':'In progress':ui.stageStatus==='completed'?'Not reported':'Pending'}</small></li>`).join('')}</ol>
       ${state.lastError?`<p role="alert" class="abv2-error-details">${esc(state.lastError)}</p>`:''}
       <div class="abv2-log-facts"><span><b>${esc(stage==='Analyzing'?ui.dimensions||'—':available().map(x=>surfaceLabel(x.side)).join(' & ')||'Awaiting surfaces')}</b><small>${stage==='Analyzing'?'Resolution':'Output'}</small></span><span><b>${stage==='Analyzing'?'RGB':'22 × 31 in'}</b><small>${stage==='Analyzing'?'Preview color':'Canvas'}</small></span><span><b>${file?esc(fmtSize(file.size)):'—'}</b><small>Input file</small></span></div>
       <div class="abv2-log-footer"><span>◷ Elapsed Time: <b data-abv2-elapsed>${elapsed()}</b></span><small>Engine-synced events</small></div></aside>`;
