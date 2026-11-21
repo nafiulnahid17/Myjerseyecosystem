@@ -66,6 +66,8 @@ const approval=vm.runInNewContext(
 const baseValidation={true_vector_ready:true,processing_mode:'quality',
   validation:{status:'PASS',ai_vector_review:{status:'PASS'}}};
 assert.equal(approval(baseValidation),true,'Reviewed technical vector is exportable for desktop inspection');
+assert.equal(approval({...baseValidation,validation:{status:'PASS',ai_vector_review:{status:'SKIPPED_DETERMINISTIC'}}}),true,
+  'Deterministically validated vector is exportable without a provider review');
 assert.equal(approval({...baseValidation,validation:{
   status:'PASS',ai_vector_review:{status:'FINAL_FIX_TECHNICAL_PENDING'},
 }}),false,'Never approve an unreviewed final AI correction');

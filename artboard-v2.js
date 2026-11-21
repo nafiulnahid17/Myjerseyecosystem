@@ -12,15 +12,15 @@
   const project = () => state.artboardResult || state.artboardProject || {};
   const qualityMode = () => true;
   const vectorReview = p => p.validation?.ai_vector_review || null;
-  // Never certify Quality output from SVG validity alone: the backend AI review
-  // and deterministic technical gate must both have completed.
+  // Require the saved technical validation. An explicitly skipped provider
+  // review is not a visual-fidelity claim or Illustrator approval.
   function productionApproved(p=project()){
     if(p.true_vector_ready!==true)return false;
     const status=vectorReview(p)?.status;
     // An unreviewed second correction is not a certified AI review.
     // Backend may supply a separate REVIEW_REQUIRED designer-readiness
     // advisory even when a technically valid SVG is exportable for review.
-    return p.validation?.status==='PASS' && ['PASS','AI_UNAVAILABLE_ADVISORY'].includes(status);
+    return p.validation?.status==='PASS' && ['PASS','AI_UNAVAILABLE_ADVISORY','SKIPPED_DETERMINISTIC'].includes(status);
   }
   function deliveryAcceptance(p=project()){
     const items=(p.surfaces?.length?p.surfaces:p.surface?[p.surface]:[]).filter(part=>!ui.selected.size||ui.selected.has(surfName(part)));
@@ -35,6 +35,7 @@
   function vectorReviewPanel(){
     const p=project();if(!qualityMode(p))return '';
     const gate=vectorReview(p),status=gate?.status||'NOT_REPORTED';
+    if(status==='SKIPPED_DETERMINISTIC')return '';
     const readiness=p.validation?.delivery_readiness;
     const readinessItems=readiness
       ?[...(Array.isArray(readiness.reasons)?readiness.reasons:[]),
@@ -425,9 +426,9 @@
       ['Micro-details',first(v.local_detail_fidelity?.status)],
       ['Raster proof DPI',first(v.dpi,physical.raster_proof_dpi,p.validation?.dpi)],
       ['Editable true vector',p.true_vector_ready===true?'Engine-confirmed':p.true_vector_ready===false?'Not confirmed':'Not reported'],
-      ['AI review gate',qualityMode(p)?first(p.validation?.ai_vector_review?.status):'Not used in Normal Mode'],
-      ['AI review calls',qualityMode(p)?first(p.validation?.ai_vector_review?.rounds):'Not used in Normal Mode'],
-      ['Targeted fix passes',qualityMode(p)?first(p.validation?.ai_vector_review?.fixes):'Not used in Normal Mode'],
+      ['Validation route',first(p.validation?.ai_vector_review?.status)],
+      ['AI review calls',first(p.validation?.ai_vector_review?.rounds)],
+      ['Targeted fix passes',first(p.validation?.ai_vector_review?.fixes)],
       ['Print validation',first(p.validation?.status,v.status)]];
     return `<section class="abv2-production-details" aria-label="Production details"><h2>Production Details</h2><div class="abv2-tech-grid">${specs.map(([label,value])=>`<div><span>${esc(label)}</span><b>${esc(value)}</b></div>`).join('')}</div></section>`;
   }
@@ -872,7 +873,7 @@
       captureJob('Artboard',j);if(ui.cancelRequested){void stop();return;}await jobPoll('artboard','api/artboard/jobs/'+j.job_id,'Production');
       if(ui.cancelRequested||ui.workspaceEpoch!==epoch||project().project_id!==id)return;
       state.artboardResult=await syncedExportProject(id,epoch);
-      if(!productionApproved(state.artboardResult))throw Error('The Quality AI review or technical validation is not confirmed by the engine');
+      if(!productionApproved(state.artboardResult))throw Error('Technical vector validation is not confirmed by the engine');
       ui.productionDone=true;if(!ui.selectionTouched&&!ui.selected.size)ui.selected=new Set(available().map(part=>part.side));ui.phase='processing';ui.processingStage='Validation';ui.stageStatus='completed';ui.visitedStages.add('Validation');state.stage='Vectorization and validation completed';state.progress=100;
       await loadSideAssets(true);
       await reviewUnseenStages(epoch);
@@ -944,7 +945,7 @@
   async function completeSelectedWorkflow(){
     const epoch=ui.workspaceEpoch;
     if(ui.cancelRequested||ui.finishing||ui.exportStarted||!ui.continued||!ui.productionDone)return;
-    if(!productionApproved())return notify('AI review and technical validation have not cleared this production');
+    if(!productionApproved())return notify('Technical vector validation has not cleared this production');
     ui.finishing=true;
     try{
       // The validated SVG already exists. Conversions are requested only when
@@ -998,7 +999,7 @@
     ui.preferInput=false;ui.view=null;ui.phase='processing';ui.processingStage='Vectorization';ui.generationStarted=true;
     ui.productionDone=false;ui.stageStatus='';ui.generationError='';
     await run('Resume saved vectorization without paid artwork regeneration',async()=>{
-      state.activePipeline='Production';state.stage='Reusing saved artwork — guided vector retry and AI review may incur calls';state.progress=null;
+      state.activePipeline='Production';state.stage='Reusing saved artwork — vectorization and technical validation';state.progress=null;
       state.artboardEvents=[];state.artboardEventKeys.clear();render();
       const j=await call('artboard','api/artboard/production',{method:'POST',
         json:{project_id:id,processing_mode:mode,ai_reconstruction:true,resume_from_ai:true}});
@@ -1006,7 +1007,7 @@
       await jobPoll('artboard','api/artboard/jobs/'+j.job_id,'Production');
       if(ui.cancelRequested||ui.workspaceEpoch!==epoch)return;
       state.artboardResult=await call('artboard','api/artboard/projects/'+id);
-      if(!productionApproved(state.artboardResult))throw Error('AI review or technical validation did not approve the saved vector');
+      if(!productionApproved(state.artboardResult))throw Error('Technical validation did not approve the saved vector');
       ui.productionDone=true;ui.stageStatus='completed';ui.phase='processing';ui.processingStage='Validation';
       state.stage='Saved AI artwork vectorized and validated';state.progress=100;
       await loadSideAssets(true);

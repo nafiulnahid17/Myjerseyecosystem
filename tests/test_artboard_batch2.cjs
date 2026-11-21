@@ -60,7 +60,7 @@ assert.equal(engine,'artboard');requests.push({path,opts});
         }
       ]));
     }
-    serverProject.validation={status:'PASS',production_fidelity:{status:'REVIEW_REQUIRED'},ai_vector_review:{status:'PASS',rounds:1,fixes:0,accepted_artwork_source:true}};
+    serverProject.validation={status:'PASS',production_fidelity:{status:'REVIEW_REQUIRED'},ai_vector_review:{status:'SKIPPED_DETERMINISTIC',rounds:0,fixes:0,accepted_artwork_source:true}};
     for(const item of serverProject.surfaces){
       item.validation={...item.validation,valid_svg:true,true_vector:true,embedded_rasters:0,
         gradient_count:2,segment_count:200,total_anchor_count:230,validated_sha256:'a'.repeat(64),
