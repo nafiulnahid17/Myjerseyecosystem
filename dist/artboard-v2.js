@@ -484,7 +484,7 @@
     state.mode.artboard='quality';
     return `${top('Artboard AI','AI JERSEY ARTWORK ENGINE')}<div class="abv2-input-shell">
       <div class="abv2-modes abv2-production-only"><b><span>▱</span> Production Mode</b><div>
-        <div class="abv2-mode-card active"><em>♔</em><span><strong>Maximum Quality Production</strong><small>DeepSeek analysis • Nano Banana 2.1 artwork • AI-guided vectorization</small></span><i>✓</i></div>
+        <div class="abv2-mode-card active"><em>♔</em><span><strong>Maximum Quality Production</strong><small>Gemini 3.8 Flash analysis • Nano Banana 2.1 artwork • DeepSeek-guided vectorization</small></span><i>✓</i></div>
       </div></div>
       <div class="abv2-auto-detect"><span>◎</span><div><b>Automatic Front / Back Detection</b><small>The analyzer identifies every independently visible jersey side. No manual side selection is required.</small></div></div>
       <div class="abv2-source-grid">
@@ -501,7 +501,7 @@
   function select(){ui.phase='artwork';const prepared=available();
     if(!ui.analysisDone)return analyze();
     const ready=prepared.filter(x=>savedArtworkReady(x));
-    const status=ui.generationError?(ready.length?'Artwork partially saved — select a completed side to continue. ':'Production failed: ')+ui.generationError:ui.productionDone?'Generated artwork and validated vectors ready — select Front, Back or Both to review and export':state.busy?'Engine creating flat 2D artwork one side at a time':ready.length?'Artwork ready — select Front, Back or Both, then Next Step':'Waiting for artwork generation';
+    const status=ui.generationError?(ready.length?'Artwork partially saved — select a completed side to continue. ':'Production failed: ')+ui.generationError:ui.productionDone?'Generated artwork and validated vectors ready — select Front, Back or Both to review and export':state.busy?'Engine creating selected flat 2D artwork':ready.length?'Artwork ready — select Front, Back or Both, then Next Step':'Waiting for artwork generation';
     return `${top('Artwork Creation','Review the actual AI-generated artwork, then vectorize only the selected sides.')}<div class="abv2-select-summary" role="status">${esc(status)} • ${ui.selected.size} selected</div>
     <div class="abv2-art-grid-layout">${artworkCard('front_body')}${artworkCard('back_body')}<aside class="abv2-stage-rail">${liveLog()}</aside></div>${workflowRail()}
 
@@ -597,7 +597,7 @@
       ${isVector?'<div class="abv2-path-status">AI guidance informs tracing and optimization. Actual saved SVG geometry appears when available; corrections occur before validation.</div>':''}</div>
       ${isValid?`<div class="abv2-validation-results">${[['Valid SVG',part?.validation?.valid_svg],['True vector',part?.validation?.true_vector],['Raster count',part?.validation?.embedded_rasters],['Editability',part?.validation?.editability_status],['Print readiness',part?.validation?.physical_artboard?.status]].map(([name,value])=>`<span><small>${esc(name)}</small><b class="${value===true?'pass':value===false?'fail':''}">${esc(value===true?'PASS':value===false?'FAILED':value??'Not reported')}</b></span>`).join('')}</div>`:''}
       <div class="abv2-side-note">${esc(ui.stageStatus==='completed'?(verified?'Validated vector saved — Illustrator sign-off pending':'Stage completed'):friendlyActivity(state.stage||'Preparing stage data'))}</div></section>`;
-      }).join('')}<aside class="abv2-stage-rail">${liveLog()}</aside></div>${workflowRail()}${navigation(title)}${state.lastError&&project().ai_reconstruction?.complete===true?`<div class="abv2-commands">${button('↻ Retry saved AI artwork (no image regeneration)','resume-vector','secondary',state.busy)}</div>`:''}`;
+      }).join('')}<aside class="abv2-stage-rail">${liveLog()}</aside></div>${workflowRail()}${navigation(title)}${state.lastError&&chosenSavedParts().length>0&&chosenSavedParts().every(part=>savedArtworkReady(part))?`<div class="abv2-commands">${button('↻ Retry saved AI artwork (no image regeneration)','resume-vector','secondary',state.busy)}</div>`:''}`;
   }
   function v2Downloads(){
     const p=project();const found=[];
