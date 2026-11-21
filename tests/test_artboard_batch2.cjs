@@ -23,11 +23,11 @@ const context={state,Date,setTimeout:(fn)=>setTimeout(fn,1),URL:{revokeObjectURL
  jobPoll:async(engine,path,terminal)=>{
    assert.equal(engine,'artboard');assert.equal(currentJob.job_id,path.split('/').at(-1));
    if(terminal==='Production' && process.env.BATCH2_NO_STAGE_EVENTS !== '1'){
-     const stages=[['Argon analyzing geometry, boundaries and micro-details','Analyzing'],['Generating flat rectangular print artwork','Artwork Creation'],['VTracer tracing vector paths','Vectorization'],['Validating vector fidelity','Validation']];
+     const stages=[['Argon analyzing geometry, boundaries and micro-details','Analyzing'],['Generating flat rectangular print artwork','Artwork Creation'],['AI inspecting generated masters for guided vectorization','Semantic Guidance'],['VTracer tracing vector paths','Vectorization'],['Validating vector fidelity','Validation']];
      const visibleStages=splitSelection?(currentJob.generationOnly?stages.slice(0,2):stages.slice(2)):stages;
      for(const [step,stage] of visibleStages){
        state.stage=step;state.progress=12;state.artboardEvents.push({step,at:'2026-11-01T00:00:00Z',progress:12});context.render();context.updateMonitor();
-       assert(screens.at(-1).includes(stage),`Missing stage while real engine sends ${step}: ${stage}`);
+       assert(screens.at(-1).includes({'Analyzing':'Neural Scan','Artwork Creation':'Artwork Forge','Semantic Guidance':'Semantic Guidance','Vectorization':'Neural Trace','Validation':'Precision Check'}[stage]),`Missing stage while real engine sends ${step}: ${stage}`);
       if(stage==='Analyzing')assert(screens.at(-1).includes('Live Design Analysis'),'Argon event must keep the scan screen visible');
        assert(screens.at(-1).includes('12%'),'Live UI must read the engine event progress field');
      }
@@ -129,7 +129,7 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   if(splitSelection){
     assert.equal(requests.filter(r=>r.path==='api/artboard/production').length,1);
     assert.equal(serverProject.true_vector_ready,false);
-    assert(screens.at(-1).includes('<h1>Artwork Creation</h1>'));
+    assert(screens.at(-1).includes('<h1>Artwork Forge</h1>'));
     const toggle=listeners.change.find(fn=>fn.toString().includes('data-abv2-select'));
     const remove=splitSelection==='front_body'?'back_body':'front_body';
     toggle({target:{closest:s=>s==='[data-abv2-select]'?{dataset:{abv2Select:remove},checked:false}:null}});
@@ -141,7 +141,7 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
     assert.equal(jobs[1].opts.json.resume_from_ai,true);
     assert.deepEqual(Array.from(jobs[1].opts.json.part_ids),[splitSelection]);
     assert.equal(serverProject.surfaces.length,1);assert.equal(serverProject.surfaces[0].side||serverProject.surfaces[0].type,splitSelection);
-    assert(screens.at(-1).includes('<h1>Export Production</h1>'));
+    assert(screens.at(-1).includes('<h1>Production Suite</h1>'));
     console.log('PASS selected-only production: '+splitSelection);return;
   }
   if(recoveryCase){
@@ -151,7 +151,7 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
       await handler(click('select-format:eps'));
       await handler(click('create-format:eps'));
       assert(state.lastError.includes('503'),'Exercise actual failed transition');
-      assert(screens.at(-1).includes('<h1>Export Production</h1>'),'503 must not trap validated artwork');
+      assert(screens.at(-1).includes('<h1>Production Suite</h1>'),'503 must not trap validated artwork');
       assert(screens.at(-1).includes('data-abv2="retry-export"'),'Expose a working format recovery action');
       await handler(click('retry-export'));
       assert(screens.at(-1).includes('Download Front'),'Recovered EPS must appear');
@@ -173,12 +173,12 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   }
   test(27,src.includes('originalPreview()')&&css.includes('.abv2 .abv2-visual>img'));
   test('live-workflow-rail',screens.some(v=>v.includes('Artboard production workflow')&&v.includes('Artwork Creation')));
-  test('dedicated-analyzing',screens.some(screen=>screen.includes('<h1>Analyzing</h1>')&&screen.includes('Live Design Analysis')));
+  test('dedicated-analyzing',screens.some(screen=>screen.includes('<h1>Neural Scan</h1>')&&screen.includes('Live Design Analysis')));
   test('analyzer-engine-events',src.includes('abv2-analysis-live-status')&&src.includes("stageOf(state.stage,state.progress)==='Artwork Creation'"));
   test('analysis-handoff',src.includes('waitForPreparedProject')&&src.includes('Source references ready — syncing artwork inputs'));
-  test(28,src.includes('interimPreview(side)')&&css.includes('abv2-reveal-real-image')&&screens.some(v=>v.includes('<h1>Artwork Creation</h1>')));
+  test(28,src.includes('interimPreview(side)')&&css.includes('abv2-reveal-real-image')&&screens.some(v=>v.includes('<h1>Artwork Forge</h1>')));
   test('real-selectable-parts',screens.at(-1).includes('data-abv2-select="front_body"')&&screens.at(-1).includes('data-abv2-select="back_body"'));
-  test('backend-vector-stage-visible',screens.some(v=>v.includes('<h1>Vectorization</h1>')));
+  test('backend-vector-stage-visible',screens.some(v=>v.includes('<h1>Neural Trace</h1>')));
   test('full-artwork-preview-source',src.split("function artworkCard(side){")[1].split("function analysisProofPanel")[0].includes("const url=ui.generatedUrls[side] ||")&&!src.split("function artworkCard(side){")[1].split("function analysisProofPanel")[0].includes("|| interimPreview(side);"));
   test('proof-panel-removed-from-ui',!screens.at(-1).includes('Analysis → Generation Proof'));
   test('backend-quality-functions-remain',src.includes('function analysisProofPanel')&&src.includes('function vectorReviewPanel')&&src.includes('function productionApproved'));
@@ -195,8 +195,9 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   }
   await handler(click('continue-vectorization'));
   const displayed=screens.map(s=>s.match(/abv2-header[\s\S]*?<h1>(.*?)<\/h1>/)?.[1]||'').filter(Boolean);
-  test(29,displayed.includes('Vectorization')&&src.includes('abv2-real-paths'));
-  test(30,displayed.includes('Validation')&&src.includes('validation-overlay'));
+  test(29,displayed.includes('Neural Trace')&&src.includes('abv2-real-paths'));
+  test('semantic-guidance-stage-visible',displayed.includes('Semantic Guidance')&&displayed.indexOf('Semantic Guidance')<displayed.indexOf('Neural Trace'));
+  test(30,displayed.includes('Precision Check')&&src.includes('validation-overlay'));
   test(31,screens.at(-1).includes('Production Details')&&screens.at(-1).includes('Vector paths')&&screens.at(-1).includes('PostScript level')&&screens.at(-1).includes('Raster proof DPI'));
   test(32,screens.at(-1).includes('<h2>Master ZIP</h2>')&&screens.at(-1).includes('data-abv2="download-master-zip"'));
   test('export-order',screens.at(-1).indexOf('abv2-export-settings')<screens.at(-1).indexOf('abv2-package')&&screens.at(-1).indexOf('abv2-package')<screens.at(-1).indexOf('abv2-illustrator')&&screens.at(-1).indexOf('abv2-illustrator')<screens.at(-1).indexOf('abv2-new-production'));
@@ -244,7 +245,7 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   test('renderer-preserves-report-filenames',screens.at(-1).includes('editability-report.json')&&screens.at(-1).includes('color-groups.json'));
   test(33,screens.at(-1).includes('<h2>Adobe Illustrator</h2>')&&screens.at(-1).includes('Continue to Illustrator')&&!screens.at(-1).includes('Master ZIP & Illustrator'));
   test('scope',!requests.some(r=>r.path.startsWith('api/revector')));
-  test('auto-flow',displayed.indexOf('Vectorization')>=0&&displayed.indexOf('Validation')>displayed.indexOf('Vectorization')&&displayed.indexOf('Export Production')>displayed.indexOf('Validation'));
+  test('auto-flow',displayed.indexOf('Neural Trace')>=0&&displayed.indexOf('Precision Check')>displayed.indexOf('Neural Trace')&&displayed.indexOf('Production Suite')>displayed.indexOf('Precision Check'));
   const beforeReviewCalls=requests.length;
   await handler(click('previous'));
   test('quality-validation-visible',screens.at(-1).includes('<h2>Validation Results</h2>')&&screens.at(-1).includes('Artwork fidelity')&&screens.at(-1).includes('Micro details')&&screens.at(-1).includes('Editability'));
@@ -271,9 +272,9 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   if(process.env.EXPORT_SNAPSHOT==='1')fs.writeFileSync('/mnt/data/artboard_final_work/export-qa.html','<!doctype html><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><style>'+fs.readFileSync('/mnt/data/artboard_v2_draft/artboard-v2.css','utf8')+'\\n'+css+'</style><body style=\"margin:0;background:#010b1b;color:white\">'+screens.at(-1)+'</body>');
   console.log('PASS Batch 02 frontend mocked integration & static checks');
   const beforeStageReview=requests.length;
-  for(const index of [0,1,2,3,4,5]){
+  for(const index of [0,1,2,3,4,5,6]){
     await handler(click('view-stage:'+index));
-    test('review-workflow-stage-'+index,screens.at(-1).includes(['<h1>Artboard AI</h1>','<h1>Analyzing</h1>','<h1>Artwork Creation</h1>','<h1>Vectorization</h1>','<h1>Validation</h1>','<h1>Export Production</h1>'][index]));
+    test('review-workflow-stage-'+index,screens.at(-1).includes(['<h1>Source Hub</h1>','<h1>Neural Scan</h1>','<h1>Artwork Forge</h1>','<h1>Semantic Guidance</h1>','<h1>Neural Trace</h1>','<h1>Precision Check</h1>','<h1>Production Suite</h1>'][index]));
   }
   await handler(click('zoom-in'));test('export-zoom-in',screens.at(-1).includes('--preview-zoom:1.15'));
   await handler(click('zoom-fit'));test('export-zoom-fit',screens.at(-1).includes('--preview-zoom:1'));
@@ -285,7 +286,7 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   const exportsBeforeResume=requests.filter(r=>r.path==='api/artboard/export').length;
   serverProject.exports={};for(const part of serverProject.surfaces)part.exports={};
   context.__studioViews.ui.exportStarted=false;context.__studioViews.ui.finishing=false;state.busy=false;
-  await handler(click('view-stage:4'));await handler(click('next-stage'));await handler(click('select-format:svg'));
+  await handler(click('view-stage:5'));await handler(click('next-stage'));await handler(click('select-format:svg'));
   test('resume-next-offers-saved-vectors',requests.filter(r=>r.path==='api/artboard/export').length===exportsBeforeResume&&screens.at(-1).includes('Download '+(chosen[0]==='back_body'?'Back':'Front')));
   test('resume-next-never-regenerates-artwork',requests.filter(r=>r.path==='api/artboard/production').length===imageJobsBeforeResume);
   context.__studioViews.ui.generatedUrls={};context.__studioViews.ui.vectorUrls={};context.__studioViews.ui.productionDone=false;
@@ -301,10 +302,10 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
     const images={front_body:'assets/artboard-v2/studio-front.webp',back_body:'assets/artboard-v2/studio-back.webp'};
     views.ui.selected=new Set(['front_body','back_body']);views.ui.generatedUrls={...images};views.ui.vectorUrls={...images};
     state.objectURLs.artboard=images.front_body;views.ui.dimensions='2048 × 2048 px';views.ui.startedAt=Date.now()-7400;
-    const stages=['input','analyze','artwork','Vectorization','Validation','export'];
+    const stages=['input','analyze','artwork','Semantic Guidance','Vectorization','Validation','export'];
     const cssNames=['styles.css','artboard-v2.css','artboard-v2-workflow-fixes.css','mockup-alignment.css','artboard-workflow-2026.css'];
     for(const name of stages){
-      views.ui.phase=['Vectorization','Validation'].includes(name)?'processing':name;views.ui.view=null;
+      views.ui.phase=['Semantic Guidance','Vectorization','Validation'].includes(name)?'processing':name;views.ui.view=null;
       views.ui.processingStage=name;views.ui.stageStatus='';state.progress=68;state.busy=!['input','export'].includes(name);
       state.stage=name==='analyze'?'Analyzing design structure':name==='Vectorization'?'Vectorizing paths':name==='Validation'?'Validating vector output':'Generating artwork';
       views.ui.productionDone=name==='export';
@@ -312,6 +313,6 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
       const screen='<section class="abv2" data-abv2-root data-screen="'+name+'">'+page+'</section>';
       fs.writeFileSync(path.join(out,name.toLowerCase()+'.html'),'<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Artboard workflow UI fixture — '+name+'</title>'+cssNames.map(f=>'<link rel="stylesheet" href="'+f+'">').join('')+'<body class="artboard-workspace sidebar-collapsed" style="margin:0"><main id="mainContent" class="content">'+screen+'</main>');
     }
-    console.log('Six Artboard workflow renderer fixtures generated');
+    console.log('Seven Artboard workflow renderer fixtures generated');
   }
 })().catch(e=>{console.error(e);process.exitCode=1});

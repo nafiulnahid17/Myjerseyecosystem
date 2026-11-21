@@ -25,8 +25,10 @@ assert(progressValue&&stageOf,'Stage/progress classifiers must remain inspectabl
 const classify=vm.runInNewContext(progressValue+'\n'+stageOf+'\nstageOf', {});
 for(const [message,pct,expected] of [
   ['Validating production request',3,'Artwork Creation'],
-  ['Reusing saved artwork — vectorization and technical validation',null,'Vectorization'],
-  ['AI inspecting generated masters for guided vectorization',42,'Vectorization'],
+  ['Reusing saved artwork — vectorization and technical validation',null,'Semantic Guidance'],
+  ['AI inspecting generated masters for guided vectorization',42,'Semantic Guidance'],
+  ['Semantic guidance delivered to vectorization engine',46,'Semantic Guidance'],
+  ['Local color guidance delivered to vectorization engine',46,'Semantic Guidance'],
   ['Running reconstruct',48,'Vectorization'],
   ['Artwork ready — select sides for vectorization',98,'Artwork Creation'],
   ['Running vectorize',58,'Vectorization'],
@@ -41,6 +43,7 @@ const stageUi={view:null,finishing:false,generationStarted:true,productionDone:f
 const stageState={activePipeline:'Production',stage:'Validating vector output',progress:92};
 const syncSource=ui.slice(ui.indexOf('  function syncProductionStage(){'),ui.indexOf('  function refresh(){'));
 const syncStage=vm.runInNewContext(syncSource+'\nsyncProductionStage',{ui:stageUi,state:stageState,stageOf:classify,render(){}});
+assert.equal(syncStage(),true);assert.equal(stageUi.processingStage,'Semantic Guidance');assert.equal(stageUi.stageStatus,'completed');
 assert.equal(syncStage(),true);assert.equal(stageUi.processingStage,'Vectorization');assert.equal(stageUi.stageStatus,'completed');
 stageState.stage='Quality check for path fidelity';stageState.progress=42;
 assert.equal(syncStage(),false);assert.equal(stageUi.processingStage,'Vectorization');
@@ -87,5 +90,5 @@ assert(!ui.includes('Production-ready saved result'),'Never claim production del
 
 console.log('Artboard refresh/cancel/re-entry and export naming regression contract passed');
 
-assert(ui.includes('PYTHON / SIMULATION')&&ui.includes('function codeTerminal(stage=currentStage())'));
+assert(ui.includes('abv2-python-brand')&&!ui.includes('PYTHON / SIMULATION')&&ui.includes('function codeTerminal(stage=currentStage())'));
 assert(ui.includes('<summary>Quality report</summary>')&&ui.includes('<summary>Engine activity</summary>'));
