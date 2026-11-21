@@ -208,6 +208,11 @@
     const production=state.activePipeline==='Production';
     let completed=ui.analysisDone?2:id?1:0;
     if(production&&rank>=3)completed=Math.max(completed,rank);
+    const reported=progressValue(state.progress);
+    if(production&&active==='Vectorization'&&reported!==null&&reported>=48&&reported<=87)
+      completed=Math.max(completed,4+Math.min(.99,(reported-48)/44));
+    if(production&&active==='Validation'&&reported!==null&&reported>=92)
+      completed=Math.max(completed,5+Math.min(.99,(reported-92)/8));
     if(production&&events.some(e=>/guidance delivered|reusing verified semantic guidance/i.test(e.step||e.stage||'')))completed=Math.max(completed,4);
     if(ui.productionDone)completed=Math.max(completed,6);
     const finished=ui.phase==='export'&&ui.productionDone&&!state.busy&&!state.lastError;
