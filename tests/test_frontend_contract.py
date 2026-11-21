@@ -176,7 +176,8 @@ def test_mockup_asset_coverage_and_artboard_stage_visuals():
     assert (root/'mockup-alignment.css').is_file()
     assert 'mockup-alignment.css' in shell
     artboard=(root/'artboard-v2.js').read_text()
-    assert 'abv2-centered-brand' in artboard
+    # The current header intentionally removed the duplicate center brand.
+    assert 'abv2-art-grid-layout' in artboard
     assert 'abv2-stage-rail' in artboard
     assert "ui.phase==='analyze'&&state.busy&&stageOf(state.stage,state.progress)==='Analyzing'" in artboard
     assert 'Illustrative visual · awaiting real artwork' in artboard

@@ -179,12 +179,25 @@ async function artboardProxy(request, env, fetchImpl, pathname, search, principa
     const headers = upstreamHeaders(request, { ...config, principal });
     for (const [key, value] of headers) upstreamRequest.headers.set(key, value);
     for (const key of ['x-workspace-key', 'cookie', 'origin', 'referer']) upstreamRequest.headers.delete(key);
-    const response = await fetchImpl(upstreamRequest, { redirect: 'manual' });
-    if (response.status >= 300 && response.status < 400) return json('Unexpected engine redirect', 502);
+    let response = await fetchImpl(upstreamRequest, { redirect: 'manual' });
+    if (response.status >= 300 && response.status < 400) {
+      // Only ownership-checked artifact redirects to a private, signed R2 URL.
+      // Fetch without engine bearer, visitor identity, cookies or user headers.
+      if(response.status!==307||request.method!=='GET'||!path.includes('/artifacts/'))return json('Unexpected engine redirect',502);
+      let signed;try{signed=new URL(response.headers.get('location'));}catch{return json('Invalid artifact redirect',502);}
+      if(signed.protocol!=='https:'||signed.username||signed.password||signed.port||
+         !/^[a-z0-9-]+(?:\.[a-z0-9-]+)*\.r2\.cloudflarestorage\.com$/i.test(signed.hostname)||
+         !signed.searchParams.has('X-Amz-Signature')||!signed.searchParams.has('X-Amz-Credential')||
+         !signed.searchParams.has('X-Amz-Expires')||Number(signed.searchParams.get('X-Amz-Expires'))>600)
+        return json('Unexpected engine redirect',502);
+      response=await fetchImpl(new Request(signed.href,{method:'GET'}),{redirect:'manual'});
+      if(response.status>=300&&response.status<400)return json('Unexpected R2 redirect',502);
+    }
     const responseHeaders = new Headers(response.headers);
     responseHeaders.delete('set-cookie');
     responseHeaders.set('Cache-Control', 'private, no-store');
     responseHeaders.set('X-Content-Type-Options', 'nosniff');
+    if(path.includes('/artifacts/'))responseHeaders.set('Content-Security-Policy',"default-src 'none'; sandbox");
     return new Response(response.body, { status: response.status, headers: responseHeaders });
   } catch {
     return json('Artboard engine unreachable', 502);

@@ -484,7 +484,7 @@
     state.mode.artboard='quality';
     return `${top('Artboard AI','AI JERSEY ARTWORK ENGINE')}<div class="abv2-input-shell">
       <div class="abv2-modes abv2-production-only"><b><span>▱</span> Production Mode</b><div>
-        <div class="abv2-mode-card active"><em>♔</em><span><strong>Maximum Quality Production</strong><small>Gemini analysis • Seedream artwork • AI-guided vectorization</small></span><i>✓</i></div>
+        <div class="abv2-mode-card active"><em>♔</em><span><strong>Maximum Quality Production</strong><small>DeepSeek analysis • Nano Banana 2.1 artwork • AI-guided vectorization</small></span><i>✓</i></div>
       </div></div>
       <div class="abv2-auto-detect"><span>◎</span><div><b>Automatic Front / Back Detection</b><small>The analyzer identifies every independently visible jersey side. No manual side selection is required.</small></div></div>
       <div class="abv2-source-grid">
@@ -964,23 +964,30 @@
   }
   async function loadSideAssets(force=false){
     const p=project(),id=p.project_id,epoch=ui.workspaceEpoch;if(!id||!available().length)return;
-    for(const part of available())for(const [kind,suffix] of [['generated','working/'+part.part_id+'-ai-vectorization-source.png'],['vector','vectors/'+part.part_id+'.svg']]){
-      if(epoch!==ui.workspaceEpoch||project().project_id!==id)return;
+    const tasks=[];
+    const kinds=['generated'];
+    if(ui.productionDone||['Vectorization','Validation'].includes(ui.processingStage))kinds.push('vector');
+    for(const part of available())for(const kind of kinds){
+      const suffix=kind==='generated'?'working/'+part.part_id+'-ai-vectorization-source.png':'vectors/'+part.part_id+'.svg';
+      if(epoch!==ui.workspaceEpoch||project().project_id!==id)break;
       const cache=kind==='generated'?ui.generatedUrls:ui.vectorUrls,key=kind+':'+part.part_id;
       if(cache[part.side]&&!force||ui.assetBusy.has(key)||!force&&Date.now()-(ui.assetRetry[key]||0)<3500)continue;
       // Do not probe before the engine has started production.
       if(!ui.generationStarted)continue;
       ui.assetBusy.add(key);ui.assetRetry[key]=Date.now();
-      try{
+      const started=Date.now();
+      tasks.push((async()=>{try{
         const finalKey=kind==='vector'&&ui.productionDone?(part.exports?.svg||part.previews?.svg||part.exports?.premium_svg):null;
-        const blob=await call('artboard',artifactEndpoint(id,finalKey||'projects/'+id+'/'+suffix),{response:'blob'});
-        if(!blob?.size||epoch!==ui.workspaceEpoch||project().project_id!==id||!available().some(item=>item.part_id===part.part_id&&item.side===part.side))continue;
+        const blob=await call('artboard',artifactEndpoint(id,finalKey||'projects/'+id+'/'+suffix),{response:'blob',timeoutMs:30000});
+        if(!blob?.size||epoch!==ui.workspaceEpoch||project().project_id!==id||!available().some(item=>item.part_id===part.part_id&&item.side===part.side))return;
         // Only a real artifact from the engine becomes a preview, never a mockup.
         const previous=cache[part.side];cache[part.side]=URL.createObjectURL(blob);if(previous)URL.revokeObjectURL(previous);
+        if(typeof log==='function')log(surfaceLabel(part.side)+' '+kind+' preview delivered in '+((Date.now()-started)/1000).toFixed(2)+'s');
         if(state.tool==='artboard')render();
-      }catch(e){/* 404 until generated: normal, no invented preview. */}
-      finally{ui.assetBusy.delete(key)}
+      }catch(e){/* 404 until generated: normal; retry after cooldown. */}
+      finally{if(epoch===ui.workspaceEpoch)ui.assetBusy.delete(key)}})());
     }
+    await Promise.allSettled(tasks);
   }
   let semanticFetchKey='';
   async function syncSemanticReport(){
@@ -1072,10 +1079,17 @@
     try{
       state.artboardEvents=[];state.artboardEventKeys.clear();state.stage='Detecting visible Front / Back artwork';state.progress=null;render();
       const job=await call('artboard','api/artboard/prepare',{method:'POST',json:{project_id:id,detect_visible_surfaces:true,auto:true,self_analysis:false,width_in:22,height_in:31}});
-      captureJob('Artboard',job);if(ui.cancelRequested){void stop();return;}await jobPoll('artboard','api/artboard/jobs/'+job.job_id,'Prepare');
+      captureJob('Artboard',job);if(ui.cancelRequested){void stop();return;}const prepareResult=await jobPoll('artboard','api/artboard/jobs/'+job.job_id,'Prepare');
       if(ui.cancelRequested||epoch!==ui.workspaceEpoch)return;
       state.stage='Source references ready — syncing artwork inputs';state.progress=100;render();
-      await waitForPreparedProject(id,requested);
+      const expected=Array.isArray(prepareResult?.result?.surfaces)?prepareResult.result.surfaces:requested;
+      await waitForPreparedProject(id,expected);
+      const returned=new Set(available().map(part=>part.side));
+      const detection=project().part_identification?.detection_status||{};
+      for(const [side,result] of Object.entries(detection)){
+        if(result.status!=='accepted')log(surfaceLabel(side)+' detection: '+result.status+(result.confidence!=null?' (confidence '+Math.round(result.confidence*100)+'%)':'')+' — not sent to artwork generation');
+      }
+      if(expected.length&&!expected.every(side=>returned.has(side)))throw Error('Prepared artwork sides have not synchronized; do not start a partial paid job');
       if(available().length)prepared=true;
       else throw Error('No independently visible Front or Back artwork was detected');
     }catch(e){lastFailure=e;
@@ -1101,7 +1115,7 @@
         if(!available().some(part=>savedArtworkReady(part)))throw Error('No saved AI artwork was returned by the engine');
         showSavedArtworkSelection();
         state.stage='Artwork ready — select parts for vectorization';state.progress=100;
-        await loadSideAssets(true);render();return;
+        render();void loadSideAssets();return;
       }
       // Compatibility with previously completed full production results.
       ui.awaitingSelection=false;

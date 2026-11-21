@@ -6,7 +6,7 @@ async function run(stale){
  let projectId='p',calls=[],created=[];
  const ui={workspaceEpoch:1,generationStarted:true,productionDone:true,generatedUrls:{},vectorUrls:{},assetBusy:new Set(),assetRetry:{}};
  const parts=['front','back'].map(side=>({side:side+'_body',part_id:side,exports:{svg:'projects/p/exports/'+side+'.svg',premium_svg:'projects/p/exports/'+side+'-recolored.svg'}}));
- const context={ui,state:{tool:'artboard'},Date,project:()=>({project_id:projectId}),available:()=>parts,artifactEndpoint:(_id,path)=>path,render(){},URL:{createObjectURL:b=>{created.push(b);return 'blob:'+created.length},revokeObjectURL(){}},call:async(_engine,path)=>{
+ const context={ui,state:{tool:'artboard'},Date,surfaceLabel:s=>s,project:()=>({project_id:projectId}),available:()=>parts,artifactEndpoint:(_id,path)=>path,render(){},URL:{createObjectURL:b=>{created.push(b);return 'blob:'+created.length},revokeObjectURL(){}},call:async(_engine,path)=>{
   calls.push(path);
   if(stale){projectId='next-project';ui.workspaceEpoch++;ui.generatedUrls={};ui.vectorUrls={};}
   return {size:50,path};

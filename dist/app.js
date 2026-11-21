@@ -285,18 +285,23 @@ function syncArtboardHeader(){
  label.querySelector('strong').textContent=title;label.querySelector('small').textContent=marker.dataset.abv2StageDescription;
 }
 function render(){preserveForm();const pages={home:homeV4,overview:overviewV4,artboard:artboardPageV4,frame:framePageV4,assets:assetsPageV4,autofly:autoflyPageV4,emergency:emergencyPage,credits:creditsPage,users:usersPage,history:historyPage,support:supportPage,'get-support':()=>supportForm('get-support'),report:()=>supportForm('report'),settings:settingsPage};const e=document.querySelector('#mainContent');e.innerHTML=(pages[state.tool]||homeV4)();document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('selected',b.dataset.tool===state.tool));const indicators=document.querySelector('#serviceIndicators');const statuses=Object.entries(state.status);const n=statuses.filter(([k,v])=>v.state==='online').length;const checked=Boolean(statuses.length);const aiReady=state.status.artboard?.ai_configured;const aiLabel=!checked?'Not checked':aiReady===true?'Configured':aiReady===false?'Not configured':'Unknown';const diagnostic=engineDiagnostic('artboard');indicators.innerHTML=state.tool==='artboard'?toolEngineIndicator(state.tool)+`<span class="service-cell artboard-ai-status"><i>⬡</i><b>AI ${aiLabel}</b></span>`:Object.hasOwn(engineMeta,state.tool)?toolEngineIndicator(state.tool):`<span class="service-cell" title="${esc(diagnostic||'Live readiness checks')}"><i>◆</i><small>Engines</small><b>${checked?`${n}/4 ready`:'Not connected'}</b></span><span class="service-cell"><i>⬡</i><small>AI Config</small><b title="${esc(diagnostic||'AI credentials configured; live inference not verified.')}">${aiLabel}</b></span>`;syncArtboardHeader();restoreForm();updateMonitor()}
+let livePreviewRequest=null;
 async function loadArtboardPreview(projectId, path) {
  if(!projectId || !path || !path.startsWith('projects/'+projectId+'/'))return;
- if(state.artboardPreviewPath===path)return;
- state.artboardPreviewPath=path;
- const relative=path.slice(('projects/'+projectId+'/').length);
+ if(state.artboardPreviewPath===path&&state.objectURLs.artboard_live)return;
+ if(livePreviewRequest?.path===path)return;
+ const request={projectId,path};livePreviewRequest=request;
+ const relative=path.slice(('projects/'+projectId+'/').length),start=Date.now();
  try {
-  const file=await call('artboard','api/artboard/projects/'+encodeURIComponent(projectId)+'/artifacts/'+relative.split('/').map(encodeURIComponent).join('/'),{response:'blob'});
+  const file=await call('artboard','api/artboard/projects/'+encodeURIComponent(projectId)+'/artifacts/'+relative.split('/').map(encodeURIComponent).join('/'),{response:'blob',timeoutMs:30000});
+  if(livePreviewRequest!==request||(state.artboardResult?.project_id||state.artboardProject?.project_id)!==projectId)return;
   const url=URL.createObjectURL(file);
   if(state.objectURLs.artboard_live)URL.revokeObjectURL(state.objectURLs.artboard_live);
-  state.objectURLs.artboard_live=url;
+  state.objectURLs.artboard_live=url;state.artboardPreviewPath=path;
+  log('Artwork preview received in '+((Date.now()-start)/1000).toFixed(2)+'s');
   updateArtboardPreview();
  } catch(e){log('Intermediate preview unavailable: '+e.message)}
+ finally{if(livePreviewRequest===request)livePreviewRequest=null}
 }
 function transientJobStatusError(error){
  const code=Number(error?.httpStatus);
@@ -393,7 +398,7 @@ async function jobPoll(engine,path,terminal,limitMs=600000){
   const signature=event?.at||state.stage;
   if(signature!==lastEvent){log(terminal+': '+state.stage+(state.progress!=null?' · '+state.progress+'%':''));lastEvent=signature}
   updateMonitor();
-  if(engine==='artboard'&&j.preview_path)await loadArtboardPreview(j.project_id,j.preview_path);
+  if(engine==='artboard'&&j.preview_path)void loadArtboardPreview(j.project_id,j.preview_path);
   const status=j.status||j.state;
   if(status==='completed'||status==='ready'||status==='review_required'||status==='awaiting_desktop'){
    state.progress=100;state.stage=j.step||terminal+' complete';updateMonitor();
