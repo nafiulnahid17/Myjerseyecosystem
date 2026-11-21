@@ -266,3 +266,18 @@
 .artboard-workspace #mainContent .abv2 .abv2-workflow-dock .abv2-workflow>button{min-width:0;grid-template-columns:minmax(0,1fr);align-content:start}
 .artboard-workspace #mainContent .abv2 .abv2-workflow-dock .abv2-workflow>button>strong{display:block;width:100%;min-width:0;overflow-wrap:anywhere;line-height:1.2;text-align:center}
 @media(max-width:760px){.artboard-workspace #mainContent .abv2 .abv2-workflow-dock{grid-template-columns:minmax(0,3fr) minmax(150px,1fr);overflow-x:auto;gap:6px}.artboard-workspace #mainContent .abv2 .abv2-workflow-dock .abv2-workflow{min-width:350px}.artboard-workspace #mainContent .abv2 .abv2-workflow-dock{grid-template-columns:minmax(350px,3fr) minmax(150px,1fr)}.artboard-workspace #mainContent .abv2 .abv2-workflow-dock .abv2-total{border-top:0;border-left:1px solid #28516b;gap:5px;padding:3px 5px}.artboard-workspace #mainContent .abv2 .abv2-workflow-dock .abv2-total strong{font-size:15px}}
+
+/* Source Hub only: three-column input studio. */
+.artboard-workspace #mainContent .abv2[data-screen="input"] .abv2-input-shell{width:100%!important;max-width:none!important;gap:10px;display:flex;flex-direction:column;min-height:0}
+#mainContent .abv2 .abv2-source-grid{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,4fr) minmax(0,3fr);gap:12px;flex:1;min-height:0}
+#mainContent .abv2 .abv2-source-grid>section{display:flex;flex-direction:column;gap:10px;min-width:0;min-height:0;padding:12px;background:#071b2ee8;border:1px solid #24668b;border-radius:10px;overflow:hidden}
+#mainContent .abv2 .abv2-source-grid h2{font-size:clamp(12px,1.2vw,17px);color:#d8efff;margin:0;flex:none}
+#mainContent .abv2 .abv2-source-grid .abv2-drop{flex:1;min-height:140px!important;max-height:none!important;height:auto!important;padding:12px;overflow:hidden}
+#mainContent .abv2 .abv2-source-grid .abv2-drop>strong{font-size:clamp(12px,1.3vw,20px);text-align:center}
+#mainContent .abv2 .abv2-source-filename{display:grid;gap:4px;overflow-wrap:anywhere;font-size:12px;color:#d8efff}#mainContent .abv2 .abv2-source-filename small{color:#90b7d0}
+#mainContent .abv2 .abv2-source-canvas{display:grid;place-items:center;flex:1;min-height:150px;height:clamp(150px,39vh,520px);overflow:hidden;background:#030e1a;border:1px solid #1e4159;border-radius:6px;color:#8cb4cf;text-align:center;padding:8px;font-size:12px}#mainContent .abv2 .abv2-source-canvas img{width:100%;height:100%;min-height:0;object-fit:contain}
+#mainContent .abv2 .abv2-source-preview-footer{display:flex;justify-content:space-between;gap:8px;font-size:10px;color:#a5c6db}#mainContent .abv2 .abv2-source-preview-footer a{color:#67e8f9}
+#mainContent .abv2 .abv2-source-details dl{margin:0;display:grid;gap:0}#mainContent .abv2 .abv2-source-details dl>div{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid #244158;padding:7px 0;font-size:11px}#mainContent .abv2 .abv2-source-details dt{color:#93b8d0}#mainContent .abv2 .abv2-source-details dd{margin:0;text-align:right;overflow-wrap:anywhere;min-width:0;color:#e4f6ff}
+#mainContent .abv2 .abv2-source-activity{background:#030e19;border:1px solid #19415b;border-radius:6px;padding:10px;font:11px/1.4 monospace;color:#81dcb8;margin-top:auto;overflow:auto}#mainContent .abv2 .abv2-source-activity b{color:#8bc6e8}#mainContent .abv2 .abv2-source-activity p{margin:5px 0}
+#mainContent .abv2 .abv2-source-bottom{flex:none;min-width:0}#mainContent .abv2 .abv2-source-bottom .abv2-commands{margin:6px 0 0;width:100%}
+@media(max-width:820px){#mainContent .abv2 .abv2-source-grid{grid-template-columns:1fr 1fr}#mainContent .abv2 .abv2-source-details{grid-column:1/-1}#mainContent .abv2 .abv2-source-canvas{height:220px}}@media(max-width:480px){#mainContent .abv2 .abv2-source-grid{grid-template-columns:1fr}}
