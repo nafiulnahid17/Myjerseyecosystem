@@ -500,7 +500,7 @@
     const ready=prepared.filter(x=>savedArtworkReady(x));
     const status=ui.generationError?(ready.length?'Artwork partially saved — select a completed side to continue. ':'Production failed: ')+ui.generationError:ui.productionDone?'Generated artwork and validated vectors ready — select Front, Back or Both to review and export':state.busy?'Engine creating flat 2D artwork one side at a time':ready.length?'Artwork ready — select Front, Back or Both, then Next Step':'Waiting for artwork generation';
     return `${top('Artwork Creation','Review the actual AI-generated artwork, then vectorize only the selected sides.')}<div class="abv2-select-summary" role="status">${esc(status)} • ${ui.selected.size} selected</div>
-    <div class="abv2-art-grid-layout">${artworkCard('front_body')}${artworkCard('back_body')}<aside class="abv2-stage-rail">${workflowRail()}${liveLog()}</aside></div>
+    <div class="abv2-art-grid-layout">${artworkCard('front_body')}${artworkCard('back_body')}<aside class="abv2-stage-rail">${liveLog()}</aside></div>${workflowRail()}
 
      <p class="abv2-source-note">Next Step vectorizes only selected, saved artwork. No new artwork generation is requested.</p><div class="abv2-select-actions">${navigation('Artwork Creation')}${ui.analysisDone&&!ui.generationStarted?button('▷ Generate Artwork','produce','primary'):''}</div>`;
   }
