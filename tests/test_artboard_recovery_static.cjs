@@ -25,6 +25,10 @@ assert(progressValue&&stageOf,'Stage/progress classifiers must remain inspectabl
 const classify=vm.runInNewContext(progressValue+'\n'+stageOf+'\nstageOf', {});
 for(const [message,pct,expected] of [
   ['Validating production request',3,'Artwork Creation'],
+  ['Reusing saved artwork — vectorization and technical validation',null,'Vectorization'],
+  ['AI inspecting generated masters for guided vectorization',42,'Vectorization'],
+  ['Running reconstruct',48,'Vectorization'],
+  ['Artwork ready — select sides for vectorization',98,'Artwork Creation'],
   ['Running vectorize',58,'Vectorization'],
   ['Running optimize',72,'Vectorization'],
   ['Running compose',83,'Vectorization'],
@@ -38,6 +42,9 @@ const stageState={activePipeline:'Production',stage:'Validating vector output',p
 const syncSource=ui.slice(ui.indexOf('  function syncProductionStage(){'),ui.indexOf('  function refresh(){'));
 const syncStage=vm.runInNewContext(syncSource+'\nsyncProductionStage',{ui:stageUi,state:stageState,stageOf:classify,render(){}});
 assert.equal(syncStage(),true);assert.equal(stageUi.processingStage,'Vectorization');assert.equal(stageUi.stageStatus,'completed');
+stageState.stage='Quality check for path fidelity';stageState.progress=42;
+assert.equal(syncStage(),false);assert.equal(stageUi.processingStage,'Vectorization');
+stageState.stage='Validating vector output';stageState.progress=92;
 assert.equal(syncStage(),true);assert.equal(stageUi.processingStage,'Validation');
 
 assert(!ui.includes('const candidates=[...(state.artboardEvents'),'Historic events must not skip stages');
@@ -79,3 +86,6 @@ assert(ui.includes('Native Illustrator sign-off is not certified'),'Never claim 
 assert(!ui.includes('Production-ready saved result'),'Never claim production delivery from SVG alone');
 
 console.log('Artboard refresh/cancel/re-entry and export naming regression contract passed');
+
+assert(ui.includes('PYTHON / SIMULATION')&&ui.includes('function codeTerminal(stage=currentStage())'));
+assert(ui.includes('<summary>Quality report</summary>')&&ui.includes('<summary>Engine activity</summary>'));

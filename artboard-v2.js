@@ -164,11 +164,15 @@
     const t=String(message||'').toLowerCase(),p=progressValue(progress);
     // Classify the actual engine event: no generated progress or imaginary micro-detail findings.
     if(/validating production request|validation of production request/.test(t))return 'Artwork Creation';
+    // Explicit engine boundaries take precedence over generic status keywords.
+    if(/^(?:running validate\b|validate completed\b|validation:|saving validated production output\b|validating vector\b)/.test(t))return 'Validation';
+    if(/reusing saved artwork|^running (?:reconstruct|vectorize|optimize|compose)\b|^(?:reconstruct|vectorize|optimize|compose) completed\b/.test(t))return 'Vectorization';
+    if(/artwork ready.*(?:select|vectorization)|flat artwork ready for vectorization/.test(t))return 'Artwork Creation';
+    if(/semantic|guidance|guided vector|protected region|vector plan|vector mapping/.test(t))return 'Vectorization';
     if(/ai vector review|vector review|re.review|targeted fix|targeted correction|quality reviewer|review #/.test(t))return 'Validation';
     if(/running validate|validate completed|validating vector|saving validated|validation passed|print.ready|quality check|preflight|integrity|fidelity/.test(t))
       return 'Validation';
     if(/validat/.test(t))return 'Validation';
-    if(/semantic|guidance|guided vector|protected region|vector plan|vector mapping/.test(t))return 'Vectorization';
     if(/vector|trac|path|vtracer|potrace|optimi|compos|svg/.test(t))return 'Vectorization';
     if(/generat|creating|reconstruct|render|artwork model|image generation|artwork ready/.test(t))return 'Artwork Creation';
     if(/analy|inspect|scann|scan|prepar|surface|locat|geometry|reference|source|fable|detail crop/.test(t))return 'Analyzing';
@@ -218,6 +222,133 @@
       ['Design structure & part detection',available().length>0],['Vectorizing (path optimization)',ui.productionDone||reported(/optimize completed/i)],
       ['Path cleanup & simplification',ui.productionDone||reported(/compose completed/i)],['Vector validation & finalization',productionApproved(p)]];
   }
+  // Presentation-only Python snippets. Never executed and never reported as engine results.
+  const terminalSamples={
+  "Analyzing": [
+    [
+      "# Inspect source geometry",
+      "import numpy as np",
+      "from PIL import Image",
+      "source = Image.open(input_file)",
+      "pixels = np.asarray(source)",
+      "height, width = pixels.shape[:2]"
+    ],
+    [
+      "# Map visible design regions",
+      "import cv2",
+      "edges = cv2.Canny(gray, 60, 140)",
+      "contours, _ = cv2.findContours(",
+      "    edges, cv2.RETR_LIST,",
+      "    cv2.CHAIN_APPROX_SIMPLE",
+      ")"
+    ],
+    [
+      "# Inspect the color structure",
+      "from collections import Counter",
+      "samples = pixels.reshape(-1, channels)",
+      "palette = Counter(map(tuple, samples))"
+    ]
+  ],
+  "Artwork Creation": [
+    [
+      "# Prepare artwork composition",
+      "from PIL import Image, ImageOps",
+      "canvas = Image.new('RGB', size)",
+      "reference = ImageOps.contain(source, size)",
+      "canvas.paste(reference, origin)"
+    ],
+    [
+      "# Assemble separate print surfaces",
+      "from concurrent.futures import ThreadPoolExecutor",
+      "with ThreadPoolExecutor() as pool:",
+      "    drafts = pool.map(prepare_artwork, sides)",
+      "    artwork = list(drafts)"
+    ],
+    [
+      "# Preserve the accepted design",
+      "import hashlib",
+      "for side in artwork:",
+      "    master = side.tobytes()",
+      "    digest = hashlib.sha256(master).hexdigest()"
+    ]
+  ],
+  "Vectorization": [
+    [
+      "# Trace accepted artwork geometry",
+      "import numpy as np",
+      "import cv2",
+      "for region in color_regions:",
+      "    mask = create_mask(region)",
+      "    curves = trace_contours(mask)",
+      "    paths.extend(curves)"
+    ],
+    [
+      "# Optimize editable paths",
+      "from collections import defaultdict",
+      "groups = defaultdict(list)",
+      "for path in paths:",
+      "    curve = simplify_curve(path)",
+      "    groups[path.fill].append(curve)"
+    ],
+    [
+      "# Compose independent vector layers",
+      "from xml.etree.ElementTree import Element",
+      "svg = Element('svg', viewBox=view_box)",
+      "for color, curves in groups.items():",
+      "    layer = Element('g', fill=color)",
+      "    layer.extend(curves)",
+      "    svg.append(layer)"
+    ]
+  ],
+  "Validation": [
+    [
+      "# Inspect vector structure",
+      "from xml.etree import ElementTree as ET",
+      "tree = ET.parse(svg_file)",
+      "root = tree.getroot()",
+      "paths = root.findall('.//{*}path')",
+      "images = root.findall('.//{*}image')"
+    ],
+    [
+      "# Compare reference and proof",
+      "import numpy as np",
+      "reference = np.asarray(master)",
+      "proof = np.asarray(rendered_svg)",
+      "delta = np.abs(",
+      "    reference.astype(float) - proof.astype(float)",
+      ")"
+    ],
+    [
+      "# Prepare technical review",
+      "from dataclasses import dataclass",
+      "@dataclass",
+      "class VectorReport:",
+      "    paths: int",
+      "    embedded_images: int",
+      "    canvas_size: tuple"
+    ]
+  ],
+  "Export": [
+    [
+      "# Package saved vector artifacts",
+      "from pathlib import Path",
+      "from zipfile import ZipFile",
+      "with ZipFile(output_zip, 'w') as archive:",
+      "    for artifact in saved_files:",
+      "        archive.write(artifact, Path(artifact).name)"
+    ]
+  ]
+};
+  const terminalOrder={};
+  function codeTerminal(stage=currentStage()){
+    const samples=terminalSamples[stage]||terminalSamples.Analyzing;
+    const key=stage+':'+(state.artboardJob?.job_id||state.lastJobId||'preview');
+    if(!terminalOrder[key]){if(Object.keys(terminalOrder).length>24)for(const k of Object.keys(terminalOrder))delete terminalOrder[k];const offset=Math.floor(Math.random()*samples.length);terminalOrder[key]=samples.slice(offset).concat(samples.slice(0,offset));}
+    const lines=terminalOrder[key].flatMap(block=>block.concat(['']));
+    const colored=lines.map(line=>'<span class="abv2-code-line'+(line.trim().startsWith('#')?' comment':/^(?:import|from|for|with|class|@)/.test(line.trim())?' keyword':'')+'">'+esc(line||' ')+'</span>').join('');
+    const running=state.busy&&!state.lastError&&ui.stageStatus!=='completed';
+    return '<div class="abv2-code-terminal'+(running?' running':'')+'"><header><span class="abv2-terminal-lights" aria-hidden="true"><i></i><i></i><i></i></span><small>PYTHON / SIMULATION</small></header><div class="abv2-code-window" aria-label="Illustrative Python animation, not live engine execution"><div class="abv2-code-track" style="animation-delay:-'+((Date.now()%18000)/1000)+'s"><pre>'+colored+'</pre><pre aria-hidden="true">'+colored+'</pre></div><span class="abv2-code-cursor" aria-hidden="true"></span></div></div>';
+  }
   function liveLog(){
     const stage=currentStage(),percent=stageProgress(),rows=stageRows(stage),active=rows.findIndex(row=>!row[1]);
     // Do not infer concurrency from row order. The authoritative backend
@@ -231,12 +362,12 @@
     const runningRow=(label,done,i)=>!done&&state.busy&&ui.stageStatus!=='completed'&&
       (i===active||(parallelSides&&isSideRow(label)));
     const step=Math.max(1,Math.min(5,steps.indexOf(stage))),file=state.files.artboard;
-    return `<aside class="abv2-card abv2-log"><header><h2>▤ Working Log</h2><div class="abv2-log-step"><b>Step ${step} of 5</b><span>${[1,2,3,4,5].map(i=>`<i class="${i<=step?'active':''}"></i>`).join('')}</span></div></header>
+    return `<aside class="abv2-card abv2-log abv2-terminal-panel">${codeTerminal(stage)}<details class="abv2-terminal-report"><summary>Engine activity</summary><header><h2>▤ Working Log</h2><div class="abv2-log-step"><b>Step ${step} of 5</b><span>${[1,2,3,4,5].map(i=>`<i class="${i<=step?'active':''}"></i>`).join('')}</span></div></header>
       <div class="abv2-current"><strong>${esc(ui.stageStatus==='completed'?'Saved stage completed':friendlyActivity(state.stage||'Waiting for engine'))}</strong><b>${percent===null?(state.busy?'Live':'—'):Math.round(percent)+'%'}</b><div class="abv2-progress ${state.busy&&percent===null?'indeterminate':''}"><span style="width:${percent??25}%"></span></div></div>
       <ol aria-label="Production activity for this stage">${rows.map(([label,done],i)=>`<li class="${done?'complete':runningRow(label,done,i)?'active':'pending'}"><i>${done?'✓':runningRow(label,done,i)?'◌':'○'}</i><span>${esc(label)}</span><small>${done?'Reported':runningRow(label,done,i)?parallelSides&&isSideRow(label)?'Processing in parallel':'In progress':ui.stageStatus==='completed'?'Not reported':'Pending'}</small></li>`).join('')}</ol>
       ${state.lastError?`<p role="alert" class="abv2-error-details">${esc(state.lastError)}</p>`:''}
       <div class="abv2-log-facts"><span><b>${esc(stage==='Analyzing'?ui.dimensions||'—':available().map(x=>surfaceLabel(x.side)).join(' & ')||'Awaiting surfaces')}</b><small>${stage==='Analyzing'?'Resolution':'Output'}</small></span><span><b>${stage==='Analyzing'?'RGB':'22 × 31 in'}</b><small>${stage==='Analyzing'?'Preview color':'Canvas'}</small></span><span><b>${file?esc(fmtSize(file.size)):'—'}</b><small>Input file</small></span></div>
-      <div class="abv2-log-footer"><span>◷ Elapsed Time: <b data-abv2-elapsed>${elapsed()}</b></span><small>Engine-synced events</small></div></aside>`;
+      <div class="abv2-log-footer"><span>◷ Elapsed Time: <b data-abv2-elapsed>${elapsed()}</b></span><small>Engine-synced events</small></div></details>${state.lastError?`<p role="alert" class="abv2-error-details">${esc(state.lastError)}</p>`:''}</aside>`;
   }
   function originalPreview(){const url=state.objectURLs.artboard;return `<div class="abv2-visual abv2-scan ${ui.phase==='analyze'&&state.busy&&stageOf(state.stage,state.progress)==='Analyzing'?'active':''}">${url?`<img src="${url}" alt="Uploaded original design">`:`<img class="abv2-demo-visual" src="assets/artboard-v2/studio-front.webp" alt="Illustrative preview while the source renderer is unavailable"><span class="abv2-demo-caption">Visualization · source preview unavailable</span>`}<span class="abv2-corners" aria-hidden="true"></span><span class="abv2-beam" aria-hidden="true"></span><div class="abv2-analysis-hud" aria-hidden="true"><i class="abv2-hud-ring"></i><i class="abv2-hud-target"></i><i class="abv2-hud-corner top-left"></i><i class="abv2-hud-corner top-right"></i><i class="abv2-hud-corner bottom-left"></i><i class="abv2-hud-corner bottom-right"></i></div></div>`;}
   function selectedPartsBar(){
@@ -365,12 +496,12 @@
         ${ui.compareSource&&hasCompare?`<div class="abv2-source-comparison"><div><strong>AI artwork master</strong><img src="${esc(ui.generatedUrls[current.side])}" alt="Accepted ${surfaceLabel(current.side)} AI-generated artwork"></div><div><strong>Final vector</strong><img src="${esc(ui.vectorUrls[current.side])}" alt="${surfaceLabel(current.side)} verified SVG vector rendering"></div></div>`:''}
         <div class="abv2-validation-stats"><span><b>${esc(validation.path_count??'—')}</b><small>Total Paths</small></span><span><b>${esc(validation.segment_count??'—')}</b><small>Segments</small></span><span><b>${esc(validation.gradient_count??'—')}</b><small>Gradients</small></span><span><b>${esc(physical.width_in&&physical.height_in?String(physical.width_in)+' × '+String(physical.height_in)+' in':'Not reported')}</b><small>Canvas</small></span></div>
       </section>
-      <section class="abv2-card abv2-validation-checks"><header><h2>Validation Results</h2><b class="${acceptance.passed?'pass':'fail'}">${acceptance.passed?'Quality checks PASS':acceptance.technical?'Review required':'Validation pending'}</b></header>
+      <section class="abv2-card abv2-validation-checks abv2-terminal-panel">${codeTerminal('Validation')}<details class="abv2-terminal-report"><summary>Quality report</summary><header><h2>Validation Results</h2><b class="${acceptance.passed?'pass':'fail'}">${acceptance.passed?'Quality checks PASS':acceptance.technical?'Review required':'Validation pending'}</b></header>
         <div class="abv2-side-switch" role="group" aria-label="Review validation by artwork side">${parts.map(part=>button(surfaceLabel(part.side),'review-side:'+part.side,part.side===selectedSide?'selected':'secondary')).join('')}</div>
         <ul>${checks.map(row=>result(...row)).join('')}</ul>
         ${detail.status==='REVIEW_REQUIRED'?'<p class="abv2-advisory" role="status">Local detail check flagged differences for review. The original AI artwork remains unchanged.</p>':''}
         ${Array.isArray(project().warnings)&&project().warnings.length?`<details class="abv2-warning-details"><summary>Production advisories (${project().warnings.length})</summary><ul>${project().warnings.slice(0,12).map(w=>`<li>${esc(w)}</li>`).join('')}</ul></details>`:''}
-      </section>
+      </details>${state.lastError?`<p role="alert" class="abv2-error-details">${esc(state.lastError)}</p>`:''}</section>
     </div>${workflowRail()}${navigation('Validation')}`;
   }
   function vectorFinishing(sides){
@@ -799,6 +930,8 @@
     if(ui.view||ui.finishing||!ui.generationStarted||ui.productionDone||state.activePipeline!=='Production')return false;
     if(ui.awaitingSelection&&!productionApproved())return false;
     const reportedStage=stageOf(state.stage,state.progress);
+    // Only explicit validation milestones advance the live vector page.
+    if(reportedStage==='Validation'&&!/^(?:running validate\b|validate completed\b|validation:|saving validated production output\b|validating vector\b|validation passed\b)/i.test(String(state.stage||'').trim()))return false;
     const order={'Artwork Creation':0,'Vectorization':1,'Validation':2};
     const currentOrder=order[ui.processingStage||'Artwork Creation']??0;
     const next=order[reportedStage]>currentOrder+1?'Vectorization':reportedStage;
@@ -820,7 +953,7 @@
     if(syncProductionStage())return;
     const monitor=root.querySelector('.abv2-current');
     if(monitor){const v=stageProgress(),events=stageEvents();monitor.querySelector('strong').textContent=ui.stageStatus==='completed'?'Stage completed':state.lastError?'Action needed':state.busy&&events.length?friendlyActivity(events.at(-1)?.step||events.at(-1)?.stage):'Preparing the next update';monitor.querySelector('b').textContent=v==null?(state.busy?'Live':'—'):Math.round(v)+'%';const bar=monitor.querySelector('.abv2-progress');bar?.classList.toggle('indeterminate',state.busy&&v==null);if(bar?.firstElementChild)bar.firstElementChild.style.width=(v??25)+'%';}
-    const logPanel=root.querySelector('.abv2-log');if(logPanel)logPanel.outerHTML=liveLog();
+    const logPanel=root.querySelector('.abv2-log');if(logPanel){const report=logPanel.querySelector?.('.abv2-terminal-report');if(!report?.open)logPanel.outerHTML=liveLog();}
     const status=root.querySelector('.abv2-step-label');if(status)status.textContent=state.stage||statusText();
     if((ui.phase==='artwork'||ui.phase==='processing')&&ui.generationStarted)void loadSideAssets();
     if(ui.phase==='processing'){
@@ -1036,7 +1169,7 @@
     ui.preferInput=false;ui.awaitingSelection=false;ui.view=null;ui.phase='processing';ui.processingStage='Vectorization';ui.generationStarted=true;
     ui.productionDone=false;ui.stageStatus='';ui.generationError='';
     await run('Resume saved vectorization without paid artwork regeneration',async()=>{
-      state.activePipeline='Production';state.stage='Reusing saved artwork — vectorization and technical validation';state.progress=null;
+      state.activePipeline='Production';state.stage='Reusing saved artwork — starting vectorization';state.progress=null;
       state.artboardEvents=[];state.artboardEventKeys.clear();render();
       const j=await call('artboard','api/artboard/production',{method:'POST',
         json:{project_id:id,processing_mode:mode,ai_reconstruction:true,resume_from_ai:true,part_ids:selected.map(part=>part.part_id)}});

@@ -197,3 +197,27 @@
  .artboard-workspace #mainContent .abv2{height:auto!important;min-height:0!important;overflow:visible!important}
  .artboard-workspace #mainContent .abv2 .abv2-process-grid,.artboard-workspace #mainContent .abv2 .abv2-art-grid-layout,.artboard-workspace #mainContent .abv2 .abv2-validation-layout,.artboard-workspace #mainContent .abv2 .abv2-export-grid{flex:none!important;height:auto!important;overflow:visible!important}
 }
+
+/* Artboard simulated Python terminal — visual only, reports remain expandable. */
+#mainContent .abv2 .abv2-terminal-panel{min-width:0;overflow:hidden!important;gap:8px}
+#mainContent .abv2 .abv2-code-terminal{display:flex;flex:1 1 auto;flex-direction:column;min-height:220px;min-width:0;border:1px solid #17677d;border-radius:12px;background:linear-gradient(160deg,#030b15,#041424);box-shadow:inset 0 0 25px #00799522;overflow:hidden}
+#mainContent .abv2 .abv2-code-terminal>header{display:flex;align-items:center;justify-content:space-between;flex:none;padding:10px 12px;border-bottom:1px solid #17465b;color:#9bd7e6;letter-spacing:.08em}
+#mainContent .abv2 .abv2-code-terminal>header small{font:600 10px/1.2 monospace}
+#mainContent .abv2 .abv2-terminal-lights{display:flex;gap:5px}
+#mainContent .abv2 .abv2-terminal-lights i{width:6px;height:6px;border-radius:50%;background:#23e9c5;box-shadow:0 0 8px #23e9c5}
+#mainContent .abv2 .abv2-terminal-lights i:nth-child(2){background:#37b8ff;box-shadow:0 0 8px #37b8ff}
+#mainContent .abv2 .abv2-terminal-lights i:nth-child(3){background:#bb8fff;box-shadow:0 0 8px #bb8fff}
+#mainContent .abv2 .abv2-code-window{position:relative;overflow:hidden;flex:1 1 auto;min-height:180px;height:clamp(180px,32vh,350px);padding:12px;mask-image:linear-gradient(transparent,#000 5%,#000 94%,transparent)}
+#mainContent .abv2 .abv2-code-track{will-change:transform}
+#mainContent .abv2 .abv2-code-window pre{margin:0;padding:0;background:none;border:0;color:#8cf9dc;white-space:pre;overflow:hidden;font:11px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;text-shadow:0 0 7px #30e6bc55}
+#mainContent .abv2 .abv2-code-line{display:block;min-height:1.65em}
+#mainContent .abv2 .abv2-code-line.comment{color:#72a5c6}
+#mainContent .abv2 .abv2-code-line.keyword{color:#c6a4ff}
+#mainContent .abv2 .abv2-code-terminal.running .abv2-code-track{animation:abv2-code-scroll 18s linear infinite}
+#mainContent .abv2 .abv2-code-cursor{position:absolute;left:12px;bottom:9px;width:7px;height:12px;background:#38f5ca;box-shadow:0 0 9px #38f5ca}
+#mainContent .abv2 .abv2-code-terminal.running .abv2-code-cursor{animation:abv2-code-blink .8s steps(2,start) infinite}
+#mainContent .abv2 .abv2-terminal-report{flex:0 0 auto;max-height:40vh;overflow:auto;font-size:11px}
+#mainContent .abv2 .abv2-terminal-report>summary{cursor:pointer;color:#9abbd4;padding:5px}
+@keyframes abv2-code-scroll{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+@keyframes abv2-code-blink{to{visibility:hidden}}
+@media(prefers-reduced-motion:reduce){#mainContent .abv2 .abv2-code-terminal.running .abv2-code-track,#mainContent .abv2 .abv2-code-terminal.running .abv2-code-cursor{animation:none}}
