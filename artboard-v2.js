@@ -1337,7 +1337,7 @@
     cancellationPollInFlight=true;
     try{
       const id=encodeURIComponent(job.job_id);
-      const response=await call('artboard','api/artboard/jobs/'+id+'/cancel',{method:'POST'});
+      const response=await call('artboard','api/artboard/jobs/'+id+'/cancel',{method:'POST',json:{}});
       if(!response.cancellation_requested&&!['cancelled','completed','failed'].includes(response.status))notify('Worker unavailable; checking its stored state');
       for(let attempt=0;attempt<45;attempt++){
         const latest=await call('artboard','api/artboard/jobs/'+id);
