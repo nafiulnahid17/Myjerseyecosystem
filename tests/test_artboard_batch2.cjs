@@ -63,7 +63,7 @@ assert.equal(engine,'artboard');requests.push({path,opts});
     serverProject.validation={status:'PASS',production_fidelity:{status:'REVIEW_REQUIRED'},ai_vector_review:{status:'PASS',rounds:1,fixes:0,accepted_artwork_source:true}};
     for(const item of serverProject.surfaces){
       item.validation={...item.validation,valid_svg:true,true_vector:true,embedded_rasters:0,
-        gradient_count:2,segment_count:200,total_anchor_count:230,
+        gradient_count:2,segment_count:200,total_anchor_count:230,validated_sha256:'a'.repeat(64),
         editability_status:'PASS',production_fidelity:{status:'PASS'},
         local_detail_fidelity:{status:item.type==='front_body'?'REVIEW_REQUIRED':'PASS',total_lost_dark_pixels:item.type==='front_body'?3:0,total_lost_bright_pixels:0},
         physical_artboard:{status:'PASS',width_in:22,height_in:31,raster_proof_dpi:600}};
@@ -90,14 +90,15 @@ assert.equal(engine,'artboard');requests.push({path,opts});
         zip_path:'projects/p1/exports/illustrator-handoff-test_quality.zip'};
       return currentJob={job_id:'j'+(++jobN),project_id:'p1',status:'queued'};
     }
-    serverProject.exports={zip:'projects/p1/export/master.zip'};for(const item of serverProject.surfaces)item.exports={eps:`projects/p1/export/${item.type}.eps`,svg:`projects/p1/export/${item.type}.svg`,pdf:`projects/p1/export/${item.type}.pdf`,png:`projects/p1/export/${item.type}.png`,
-    premium_svg:`projects/p1/export/${item.type}.premium-master.svg`,
-    editability_report:`projects/p1/export/${item.type}.editability-report.json`,
-    color_groups_report:`projects/p1/export/${item.type}.color-groups.json`};return currentJob={job_id:'j'+(++jobN),project_id:'p1',status:'queued'};}
+    for(const item of serverProject.surfaces.filter(x=>opts.json.part_ids.includes(x.part_id)))item.exports={...item.exports,
+      ...Object.fromEntries(opts.json.formats.map(fmt=>[fmt,`projects/p1/export/${item.type}.${fmt}`])),
+      premium_svg:`projects/p1/export/${item.type}.premium-master.svg`,
+      editability_report:`projects/p1/export/${item.type}.editability-report.json`,
+      color_groups_report:`projects/p1/export/${item.type}.color-groups.json`};return currentJob={job_id:'j'+(++jobN),project_id:'p1',status:'queued'};}
   if(path.startsWith('api/artboard/projects/p1/artifacts/')&&opts.response==='blob')return new Blob(['real engine bytes'],{type:path.endsWith('.svg')?'image/svg+xml':'image/png'});
   if(path==='api/artboard/projects/p1'){
     if(serverProject.true_vector_ready&&!serverProject.exports.zip&&productionReadFailures-->0)throw outage();
-    if(serverProject.exports.zip&&exportReadFailures-->0)throw outage();
+    if(serverProject.surfaces.some(part=>part.exports?.eps)&&exportReadFailures-->0)throw outage();
     return serverProject;
   }
   throw Error('Unexpected '+path);
@@ -113,16 +114,20 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   test(35,css.includes('artboard-workspace #menuButton{display:grid!important'));
   await handler(click('start'));
   if(recoveryCase){
+    assert(screens.at(-1).includes('Download Master ZIP'));
+    assert.equal(requests.filter(r=>r.path==='api/artboard/export').length,0,'Validated SVG needs no conversion job');
     if(recoveryCase!=='project-sync'){
+      await handler(click('select-format:eps'));
+      await handler(click('create-format:eps'));
       assert(state.lastError.includes('503'),'Exercise actual failed transition');
-      assert(screens.at(-1).includes('<h1>Export Production</h1>'),'503 must not trap validated artwork on Validation');
-      assert(screens.at(-1).includes('data-abv2="retry-export"'),'Expose a working export recovery action');
+      assert(screens.at(-1).includes('<h1>Export Production</h1>'),'503 must not trap validated artwork');
+      assert(screens.at(-1).includes('data-abv2="retry-export"'),'Expose a working format recovery action');
       await handler(click('retry-export'));
+      assert(screens.at(-1).includes('Download Front'),'Recovered EPS must appear');
     }
     assert.equal(state.lastError,'','Export must recover');
-    assert(screens.at(-1).includes('Download Master ZIP'));
     assert.equal(requests.filter(r=>r.path==='api/artboard/production').length,1,'Never regenerate paid AI artwork');
-    assert.equal(requests.filter(r=>r.path==='api/artboard/export').length,recoveryCase==='submission'?2:1,'Accepted job must be reused');
+    assert.equal(requests.filter(r=>r.path==='api/artboard/export').length,recoveryCase==='project-sync'?0:recoveryCase==='submission'?2:1,'Accepted job must be reused');
     assert.equal(context.__studioViews.ui.exportJob,null,'Clear the retained job only after successful sync');
     console.log('PASS export HTTP 503 recovery: '+recoveryCase);
     return;
@@ -168,6 +173,12 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   await handler(click('select-format:svg'));
   const exportedText=screens.at(-1),sideLabel=side=>side==='back_body'?'Back':'Front';
   test('export-only-selected-parts',chosen.every(side=>exportedText.includes('Download '+sideLabel(side)))&&['front_body','back_body'].filter(side=>!chosen.includes(side)).every(side=>!exportedText.includes('Download '+sideLabel(side))));
+  test('svg-ready-without-export-job',!requests.some(r=>r.path==='api/artboard/export')&&exportedText.includes('Download '+sideLabel(chosen[0])));
+  await handler(click('select-format:eps'));
+  test('eps-generated-on-demand',screens.at(-1).includes('data-abv2="create-format:eps"'));
+  await handler(click('create-format:eps'));
+  const formatJob=requests.filter(r=>r.path==='api/artboard/export').at(-1);
+  test('only-selected-format-requested',formatJob.opts.json.formats.join(',')==='eps'&&formatJob.opts.json.bundle==='selected_files'&&formatJob.opts.json.part_ids.length===chosen.length);
   test('zip-fallback',src.includes('assembleMasterZip(entries)')&&src.includes('download-master-zip')&&src.includes("response:'blob'")&&src.includes('new Blob([...local,...central,end]'));
   test('premium-artifacts-real',screens.at(-1).includes('Illustrator editing files')&&screens.at(-1).includes('Premium Master SVG')&&screens.at(-1).includes('Editability Report')&&screens.at(-1).includes('Color Groups Report'));
   test('native-ai-honest',screens.at(-1).includes('Native .AI requires desktop Illustrator')&&!screens.at(-1).includes('Download Native AI'));
@@ -238,13 +249,13 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   test('stage-review-does-not-create-jobs',requests.length===beforeStageReview);
   test('actual-overlay-has-selected-side',screens.some(v=>v.includes('data-abv2-paths-side="'+chosen[0]+'"')));
   test('no-unexpanded-side-placeholder',!screens.some(v=>v.includes('data-abv2-paths-side="${side}"')));
-  // A resumed completed production may have no export job yet. Next must package it once.
+  // A resumed completed production still has its validated SVG without conversion.
   const imageJobsBeforeResume=requests.filter(r=>r.path==='api/artboard/production').length;
   const exportsBeforeResume=requests.filter(r=>r.path==='api/artboard/export').length;
   serverProject.exports={};for(const part of serverProject.surfaces)part.exports={};
   context.__studioViews.ui.exportStarted=false;context.__studioViews.ui.finishing=false;state.busy=false;
-  await handler(click('view-stage:4'));await handler(click('next-stage'));
-  test('resume-next-packages-existing-vectors',requests.filter(r=>r.path==='api/artboard/export').length===exportsBeforeResume+1);
+  await handler(click('view-stage:4'));await handler(click('next-stage'));await handler(click('select-format:svg'));
+  test('resume-next-offers-saved-vectors',requests.filter(r=>r.path==='api/artboard/export').length===exportsBeforeResume&&screens.at(-1).includes('Download '+(chosen[0]==='back_body'?'Back':'Front')));
   test('resume-next-never-regenerates-artwork',requests.filter(r=>r.path==='api/artboard/production').length===imageJobsBeforeResume);
   context.__studioViews.ui.generatedUrls={};context.__studioViews.ui.vectorUrls={};context.__studioViews.ui.productionDone=false;
   state.pendingArtboardJob={...currentJob,status:'completed',stage:'export'};

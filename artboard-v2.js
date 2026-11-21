@@ -3,7 +3,7 @@
 (() => {
   const ui = {
     startedAt:0, previewZoom:1, vectorOverlaySource:null, analysisDone:false, generationStarted:false, processingStage:'', downloadFormat:'',
-    phase: 'input', preferInput:false, workspaceEpoch:0, exportJob:null, selected: new Set(), prepared: [], inspected: false,
+    phase: 'input', preferInput:false, workspaceEpoch:0, exportJob:null, exportFormat:'', selected: new Set(), prepared: [], inspected: false,
     view: null, visitedStages: new Set(), stageStatus: '', lastPreviewPath:'', dimensions: '', awaitingSurfaces: false, processingStarted: false, cancelRequested: false, productionDone:false, continued:false, finishing:false, exportStarted:false, zipBusy:false, handoffBusy:false, generatedUrls:{}, vectorUrls:{}, assetBusy:new Set(), assetRetry:{}, generationError:"", compareSource:false, validationSide:null, recreatingSide:null, selectionTouched:false, stageProgressHigh:{}, stageProgressJob:null
   };
   const steps = ['Input','Analyzing','Artwork Creation','Vectorization','Validation','Export'];
@@ -127,7 +127,7 @@
       <span><em class="abv2-health-icon">⇧</em><span><strong>Export Engine</strong><b><i class="${exportReady?'ok':'unknown'}"></i>${exportReady?'Online':'Checking'}</b></span></span>
     </div>`;
   }
-  function top(title,description){return `<div class="abv2-top">${health()}<div class="abv2-centered-brand" aria-label="Artboard AI · My Jersey Ecosystem · Atherious Labs"><img src="assets/artboard-ai.svg" alt=""><strong>Artboard AI</strong><i>×</i><img src="assets/my-jersey.svg" alt=""><strong>My Jersey Ecosystem</strong><i>×</i><img src="assets/atherious-labs.svg" alt=""><strong>Atherious Labs</strong></div><div class="abv2-header"><img src="assets/artboard-ai.svg" alt=""><div><h1>${esc(title)}</h1><p>${esc(description)}</p></div><span class="abv2-step-label">${title==='Export Production'&&productionApproved()?(deliveryAcceptance().passed?'Desktop sign-off pending':'Review required'):ui.phase==='input'?'INPUT':esc(state.stage||statusText())}</span></div></div>`;}
+  function top(title,description){return `<div class="abv2-top">${health()}<div class="abv2-centered-brand" aria-label="Artboard AI · My Jersey Ecosystem · Atherious Labs"><img src="assets/artboard-ai.svg" alt=""><strong>Artboard AI</strong><i>×</i><img src="assets/my-jersey.svg" alt=""><strong>My Jersey Ecosystem</strong><i>×</i><img src="assets/atherious-labs.svg" alt=""><strong>Atherious Labs</strong></div><div class="abv2-header"><img src="assets/artboard-ai.svg" alt=""><div><h1>${esc(title)}</h1><p>${esc(description)}</p></div><span class="abv2-step-label">${title==='Export Production'&&productionApproved()?'Vector ready':ui.phase==='input'?'INPUT':esc(state.stage||statusText())}</span></div></div>`;}
   function button(text,action,cls='',disabled=false){return `<button type="button" class="abv2-btn ${cls}" data-abv2="${action}" ${disabled?'disabled':''}>${text}</button>`;}
   function navigation(current){
     const idx=steps.indexOf(current==='Analyze'?'Analyzing':current);
@@ -437,8 +437,14 @@
   function exportedArtifacts(){
     if(!productionApproved())return []; // Never surface stale files from a failed Quality review.
     const p=project(),parts=available().filter(x=>!ui.selected.size||ui.selected.has(x.side)),items=[];
-    for(const part of parts)for(const [format,path] of Object.entries(part.exports||{}))
-      if(typeof path==='string'&&path)items.push({format:format.toLowerCase(),path,label:surfaceLabel(part.side)});
+    for(const part of parts){
+      for(const [format,path] of Object.entries(part.exports||{}))
+        if(typeof path==='string'&&path)items.push({format:format.toLowerCase(),path,label:surfaceLabel(part.side)});
+      // Compose and validation already saved a checked, editable SVG. The
+      // export worker must not hide it merely because conversions are pending.
+      if(part.validation?.validated_sha256&&!part.exports?.svg)
+        items.push({format:'svg',path:`projects/${p.project_id}/vectors/${part.part_id}.svg`,label:surfaceLabel(part.side)});
+    }
     if(ui.selected.size===available().length)for(const [format,path] of Object.entries(p.exports||{}))
       if(typeof path==='string'&&path)items.push({format:format.toLowerCase(),path,label:'Project'});
     return items;
@@ -642,37 +648,38 @@
   function studioSummary(){
     const parts=available().filter(x=>!ui.selected.size||ui.selected.has(x.side));
     const total=key=>parts.length&&parts.every(x=>Number.isFinite(x.validation?.[key]))?parts.reduce((n,x)=>n+x.validation[key],0).toLocaleString():'—';
-    return `<section class="abv2-studio-summary"><div><b>◇ Production Summary</b><small>Final output details and quality report</small></div><span><b>${total('path_count')}</b><small>Total Paths</small></span><span><b>${parts.length||'—'}</b><small>Selected Parts</small></span><span><b>${total('gradient_count')}</b><small>Gradients</small></span><span><b>22 × 31 in</b><small>Canvas Size</small></span><span class="${productionApproved()?'pass':''}"><b>${deliveryAcceptance().passed?'Quality checks PASS':productionApproved()?'Technical Vector PASS':'Review pending'}</b><small>Engine validation status</small></span></section>`;
+    const size=parts[0]?.validation?.physical_artboard;
+    const canvas=size?.width_in&&size?.height_in?`${size.width_in} × ${size.height_in} in`:'See part dimensions';
+    return `<section class="abv2-studio-summary"><div><b>◇ Production Summary</b><small>Final output details and quality report</small></div><span><b>${total('path_count')}</b><small>Total Paths</small></span><span><b>${parts.length||'—'}</b><small>Selected Parts</small></span><span><b>${total('gradient_count')}</b><small>Gradients</small></span><span><b>${esc(canvas)}</b><small>Canvas Size</small></span><span class="${productionApproved()?'pass':''}"><b>${deliveryAcceptance().passed?'Quality checks PASS':productionApproved()?'Technical Vector PASS':'Review pending'}</b><small>Engine validation status</small></span></section>`;
   }
   function exportPage(){
     const p=project(),parts=available().filter(x=>!ui.selected.size||ui.selected.has(x.side)),confirmed=productionApproved(p);
-    const needsReview=!deliveryAcceptance(p).passed;
     const items=exportedArtifacts(),formats=[...new Set(items.map(x=>x.format))];
     const printFormats=['eps','svg','pdf','png'];
     const designerKinds={premium_svg:'Premium Master SVG',editability_report:'Editability Report',color_groups_report:'Color Groups Report'};
     const designerFiles=items.filter(x=>Object.hasOwn(designerKinds,x.format));
-    const format=ui.downloadFormat||(['svg','eps','pdf','png'].find(value=>formats.includes(value))||'');
+    const format=ui.downloadFormat||(['svg','eps','pdf','png'].find(value=>formats.includes(value))||'svg');
     const links=confirmed?items.filter(x=>x.format===format&&printFormats.includes(x.format)):[];
     const dl=item=>`<button type="button" class="abv2-btn" data-download="artboard|${esc(artifactEndpoint(p.project_id,item.path))}">↓ Download ${esc(item.label)}</button>`;
     const hasZip=items.some(x=>x.format==='zip'),canZip=confirmed&&items.length>0;
-    const exportRecovery=confirmed?(state.busy?'<p class="abv2-info" role="status">Preparing saved production files. Your artwork and validation are preserved.</p>':state.lastError||!items.length?'<div class="abv2-advisory" role="status"><p>'+esc(state.lastError||'Export files are not ready yet.')+'</p><p>Artwork and validation are saved. Retry export without regenerating artwork.</p>'+button(ui.exportJob?'↻ Reconnect Export':'↻ Retry Export','retry-export','primary')+'</div>':''):'';
-    return `${top('Export Production','Validated output files — select a format or download the complete available package')}${selectedPartsBar()}${exportRecovery}${needsReview?'<p class="abv2-advisory" role="status">Technical exports are available. The engine flagged artwork fidelity, micro-detail or editability for review; inspect the original artwork against the final vector before client delivery.</p>':''}<div class="abv2-export-grid">
+    const exportRecovery=confirmed&&(ui.exportJob||state.lastError&&state.activePipeline==='Export')?(state.busy?'<p class="abv2-info" role="status">Preparing the selected format. Saved SVG files remain available.</p>':state.lastError?'<div class="abv2-advisory" role="status"><p>'+esc(state.lastError)+'</p>'+button(ui.exportJob?'↻ Reconnect Export':'↻ Retry '+format.toUpperCase(),'retry-export','primary')+'</div>':''):'';
+    return `${top('Export Production','Choose a format or download your validated SVG now')}${selectedPartsBar()}${exportRecovery}<div class="abv2-export-grid">
       <section class="abv2-export-left"><div class="abv2-card abv2-export-preview"><header><div><h2>● Live Preview — Final Output</h2><small>Editable Vector • Clean Paths • Saved engine output</small></div><div class="abv2-zoom-controls">${button('⊖','zoom-out','secondary')}${button('⊕','zoom-in','secondary')}${button('⛶','zoom-fit','secondary')}${button('◫ Compare','toggle-compare','secondary',!parts.some(part=>ui.generatedUrls[part.side]&&ui.vectorUrls[part.side]))}</div></header>
       <div class="abv2-export-arts" style="--preview-zoom:${ui.previewZoom}">${parts.map(part=>`<div><strong>${surfaceLabel(part.side)}</strong>${(ui.compareSource?ui.generatedUrls[part.side]:ui.vectorUrls[part.side])||previewUrl(part)?`<img src="${(ui.compareSource?ui.generatedUrls[part.side]:ui.vectorUrls[part.side])||previewUrl(part)}" alt="Real ${surfaceLabel(part.side)} completed artwork">`:'<p>Preview not available from the engine</p>'}</div>`).join('')||'<p>No final artwork detected.</p>'}</div></div></section>
       <div class="abv2-export-center">
         <section class="abv2-card abv2-export-settings"><header><div><h2>◇ Export Options</h2><small>Choose format and download your production files.</small></div></header><h3>File Format</h3>
-          <div class="abv2-format-grid">${['ai','eps','pdf','svg','png'].map(f=>`<button type="button" class="abv2-format ${format===f?'selected':''}" data-abv2="select-format:${f}" aria-pressed="${format===f}" ${!confirmed||!printFormats.includes(f)||!formats.includes(f)?'disabled':''}><i class="format-${f}">${f==='ai'?'Ai':f.toUpperCase()}</i><strong>${f.toUpperCase()}</strong><small>${f==='ai'?'Desktop only':f==='eps'?'Print':f==='pdf'?'Press ready':f==='svg'?'Web / Vector':'Preview'}</small></button>`).join('')}</div>
-          <p class="abv2-info">${format?'Available '+format.toUpperCase()+' files':'No format preselected. Choose a ready format to download.'}</p>
-          <div class="abv2-format-downloads">${links.map(dl).join('')}</div>${studioSettings()}
+          <div class="abv2-format-grid">${['ai','eps','pdf','svg','png'].map(f=>`<button type="button" class="abv2-format ${format===f?'selected':''}" data-abv2="select-format:${f}" aria-pressed="${format===f}" ${!confirmed||!printFormats.includes(f)?'disabled':''}><i class="format-${f}">${f==='ai'?'Ai':f.toUpperCase()}</i><strong>${f.toUpperCase()}</strong><small>${f==='ai'?'Desktop only':f==='eps'?'Print':f==='pdf'?'Press ready':f==='svg'?'Web / Vector':'Preview'}</small></button>`).join('')}</div>
+          <p class="abv2-info">${links.length?'Available '+format.toUpperCase()+' files':format==='png'?'PNG export can be large at print resolution. The engine will report if the requested size exceeds its limit.':'Generate '+format.toUpperCase()+' from the saved validated vector without another AI call.'}</p>
+          <div class="abv2-format-downloads">${links.length?links.map(dl).join(''):confirmed&&printFormats.includes(format)?button('Generate '+format.toUpperCase(),'create-format:'+format,'primary',state.busy):''}</div>${studioSettings()}
         </section>
-        ${confirmed?'<details class="abv2-color-details"><summary>Edit Artwork Colors</summary>'+colorEditingPanel(parts)+'</details>':''}
+        ${confirmed?'<details class="abv2-color-details"><summary>Edit Artwork Colors</summary>'+(colorEditingPanel(parts)||'<p class="abv2-info">Prepare grouped SVG and color files from the saved validated vectors.</p>'+button('Prepare Editable Color Files','create-format:svg','secondary',state.busy))+'</details>':''}
         <details class="abv2-card abv2-designer-files abv2-optional"><summary>Illustrator editing files · ${designerFiles.length} available</summary>
           <p class="abv2-info">Premium SVG preserves editable vector groups. Reports are metadata, not artwork images.</p>
-          <div class="abv2-designer-list">${designerFiles.length?designerFiles.map(item=>`<button type="button" class="abv2-btn abv2-designer-download" data-download="artboard|${esc(artifactEndpoint(p.project_id,item.path))}"><b>↓ ${esc(designerKinds[item.format])}</b><small>${esc(item.label)} · ${esc(item.path.split('/').pop())}</small></button>`).join(''):'<p class="abv2-info">Editable-master companions are not available for the selected artwork.</p>'}</div>
+          <div class="abv2-designer-list">${designerFiles.length?designerFiles.map(item=>`<button type="button" class="abv2-btn abv2-designer-download" data-download="artboard|${esc(artifactEndpoint(p.project_id,item.path))}"><b>↓ ${esc(designerKinds[item.format])}</b><small>${esc(item.label)} · ${esc(item.path.split('/').pop())}</small></button>`).join(''):'<p class="abv2-info">Grouped color files can be prepared on demand from the saved vectors.</p>'+button('Prepare Editable Color Files','create-format:svg','secondary',state.busy)}</div>
           <p class="abv2-info">Native Illustrator layers require a desktop Illustrator check.</p>
         </details>
       </div>
-      <aside class="abv2-export-right"><div class="abv2-export-primary-actions">${button('↓ Download Master ZIP','download-master-zip','primary',!canZip)}${button('Continue to Illustrator','illustrator','amber',!confirmed||(!formats.includes('svg')&&!formats.includes('premium_svg')))}</div><div class="abv2-export-actions">        <section class="abv2-card abv2-package"><header><h2>Master ZIP</h2><small>Download Package</small></header><ul class="abv2-package-checks">${parts.map(part=>`<li><i>${Object.keys(part.exports||{}).length?'✓':'○'}</i><span>${surfaceLabel(part.side)} Artwork <small>${esc(Object.keys(part.exports||{}).filter(x=>['ai','eps','pdf','svg','png'].includes(x)).join(', ').toUpperCase()||'Awaiting files')}</small></span></li>`).join('')}<li><i>${designerFiles.length?'✓':'○'}</i><span>Editable SVG &amp; color reports</span></li></ul><details class="abv2-optional"><summary>Package details</summary><p>${hasZip?'Download the verified master ZIP returned by the engine.':'Download a ZIP containing all existing, available export files — assembled in your browser without regenerating artwork.'}</p></details>
+      <aside class="abv2-export-right"><div class="abv2-export-primary-actions">${button('↓ Download Master ZIP','download-master-zip','primary',!canZip)}${button('Continue to Illustrator','illustrator','amber',!confirmed||(!formats.includes('svg')&&!formats.includes('premium_svg')))}</div><div class="abv2-export-actions">        <section class="abv2-card abv2-package"><header><h2>Master ZIP</h2><small>Download Package</small></header><ul class="abv2-package-checks">${parts.map(part=>{const ready=items.filter(item=>item.label===surfaceLabel(part.side));return `<li><i>${ready.length?'✓':'○'}</i><span>${surfaceLabel(part.side)} Artwork <small>${esc([...new Set(ready.map(item=>item.format).filter(x=>printFormats.includes(x)))].join(', ').toUpperCase()||'Awaiting files')}</small></span></li>`}).join('')}<li><i>${designerFiles.length?'✓':'○'}</i><span>Editable SVG &amp; color reports</span></li></ul><details class="abv2-optional"><summary>Package details</summary><p>${hasZip?'Download the verified master ZIP returned by the engine.':'Download a ZIP containing all existing, available export files — assembled in your browser without regenerating artwork.'}</p></details>
           <p class="abv2-info" role="status" aria-live="polite" data-abv2-zip-status>${hasZip?'Engine ZIP ready':canZip?'Ready to package '+items.length+' existing exported files':'No downloadable files returned by engine'}</p>
         </section>
         <section class="abv2-card abv2-illustrator"><header><h2>Adobe Illustrator</h2></header>
@@ -809,7 +816,7 @@
     if(['queued','processing','cancelling'].includes(savedJob()?.status))return notify('Resume or cancel existing job before starting a paid production');
     const epoch=++ui.workspaceEpoch;ui.startedAt=Date.now();
     state.pendingArtboardJob=null;state.artboardJob=null;try{sessionStorage.removeItem('mj_artboard_job')}catch{}
-    ui.preferInput=false;ui.exportJob=null;ui.selected.clear();ui.selectionTouched=false;ui.stageProgressHigh={};ui.stageProgressJob=null;ui.prepared=[];ui.visitedStages.clear();ui.stageStatus='';ui.lastPreviewPath='';state.artboardPreviewPath='';ui.view=null;ui.phase='analyze';ui.analysisDone=false;ui.generationStarted=false;ui.processingStage='';ui.downloadFormat='';ui.cancelRequested=false;ui.productionDone=false;ui.continued=false;ui.finishing=false;ui.exportStarted=false;ui.generationError='';ui.compareSource=false;ui.validationSide=null;ui.generatedUrls={};ui.vectorUrls={};ui.assetRetry={};ui.assetBusy.clear();
+    ui.preferInput=false;ui.exportJob=null;ui.exportFormat='';ui.selected.clear();ui.selectionTouched=false;ui.stageProgressHigh={};ui.stageProgressJob=null;ui.prepared=[];ui.visitedStages.clear();ui.stageStatus='';ui.lastPreviewPath='';state.artboardPreviewPath='';ui.view=null;ui.phase='analyze';ui.analysisDone=false;ui.generationStarted=false;ui.processingStage='';ui.downloadFormat='';ui.cancelRequested=false;ui.productionDone=false;ui.continued=false;ui.finishing=false;ui.exportStarted=false;ui.generationError='';ui.compareSource=false;ui.validationSide=null;ui.generatedUrls={};ui.vectorUrls={};ui.assetRetry={};ui.assetBusy.clear();
     state.mode.artboard='quality';
     await run('Artboard source upload',async()=>{state.artboardEvents=[];state.artboardEventKeys.clear();state.artboardJob=null;state.lastMode='quality';state.progress=null;
       const p=await call('artboard','api/artboard/projects',{method:'POST',json:{name:f.name.slice(0,120),processing_mode:state.lastMode}});state.artboardProject=p;state.artboardResult=p;
@@ -940,31 +947,45 @@
     if(!productionApproved())return notify('AI review and technical validation have not cleared this production');
     ui.finishing=true;
     try{
-      // Vectorization and validation already ran in the REAL production job.
-      // Never replay finished stages or move back to 52% to simulate activity.
+      // The validated SVG already exists. Conversions are requested only when
+      // the user chooses a format; the previous all-format ZIP job exhausted
+      // small workers before any file appeared on this screen.
       ui.phase='export';ui.view=null;ui.processingStage='Export';ui.stageStatus='completed';
-      ui.visitedStages.add('Validation');state.activePipeline='Validation';
-      state.stage='Saved vectorization and validation complete';state.progress=100;render();
+      ui.visitedStages.add('Validation');state.activePipeline='Export';
+      state.stage='Validated SVG ready for download';state.progress=null;state.lastError='';
+      ui.exportStarted=true;ui.downloadFormat='svg';render();
       await loadSideAssets(true);
       if(ui.cancelRequested||ui.workspaceEpoch!==epoch)return;
-      if(ui.exportStarted||ui.cancelRequested||ui.workspaceEpoch!==epoch)return;
-      ui.exportStarted=true;
-      const id=project().project_id;
-      await run('Prepare Artboard export files',async()=>{
-        ui.phase='export';ui.processingStage='Export';ui.stageStatus='completed';state.activePipeline='Export';state.stage='Preparing EPS SVG PDF PNG ZIP';state.progress=null;render();
-        // Retain an accepted export job across polling/project-sync outages.
-        // Reconnect to that job on retry instead of submitting another export.
-        const j=ui.exportJob||await call('artboard','api/artboard/export',{method:'POST',json:{project_id:id,formats:['eps','svg','pdf','png','zip'],bundle:'production_pack'}});
-        ui.exportJob=j;captureJob('Artboard',j);if(ui.cancelRequested){void stop();return;}await jobPoll('artboard','api/artboard/jobs/'+j.job_id,'Export');
-        if(ui.cancelRequested||ui.workspaceEpoch!==epoch)return;
-        state.artboardResult=await syncedExportProject(id,epoch);
-        if(!exportedArtifacts().length)throw Error('Engine returned no export files');
-        await loadSideAssets(true);
-        ui.exportJob=null;
-        ui.phase='export';ui.processingStage='Export';ui.downloadFormat='';state.stage='Production complete';state.progress=null;
-      });
-      if(state.lastError){ui.exportStarted=false;if(state.artboardJob?.status==='failed')ui.exportJob=null;}
     }finally{ui.finishing=false;render()}
+  }
+
+  async function createSelectedFormat(format){
+    if(!['eps','pdf','png','svg'].includes(format)||!productionApproved()||state.busy)return;
+    const epoch=ui.workspaceEpoch,id=project().project_id;
+    const selected=available().filter(part=>!ui.selected.size||ui.selected.has(part.side));
+    if(!id||!selected.length)return notify('Select a validated artwork side first');
+    if(ui.exportJob&&ui.exportFormat!==format)return notify('Reconnect the existing export before starting another format');
+    await run('Create '+format.toUpperCase()+' from validated vectors',async()=>{
+      state.activePipeline='Export';state.stage='Preparing '+format.toUpperCase()+' from saved vectors';state.progress=null;render();
+      const job=ui.exportJob||await call('artboard','api/artboard/export',{method:'POST',json:{project_id:id,
+        part_ids:selected.map(part=>part.part_id),formats:[format],bundle:'selected_files'}});
+      ui.exportJob=job;ui.exportFormat=format;captureJob('Artboard',job);
+      const completed=await jobPoll('artboard','api/artboard/jobs/'+job.job_id,'Export');
+      if(ui.cancelRequested||ui.workspaceEpoch!==epoch)return;
+      state.artboardResult=await syncedExportProject(id,epoch);
+      const errors=completed.result?.export_errors||state.artboardResult?.last_export?.errors||{};
+      if(completed.result?.success===false||Object.keys(errors).length)
+        throw Error('Engine could not create '+format.toUpperCase()+': '+Object.values(errors).map(e=>e.message).filter(Boolean).join('; '));
+      const ready=selected.every(part=>{
+        const saved=available().find(item=>item.part_id===part.part_id);
+        return format==='svg'?Boolean(saved?.exports?.svg||saved?.validation?.validated_sha256):Boolean(saved?.exports?.[format]);
+      });
+      if(!ready)throw Error('Engine did not return '+format.toUpperCase()+' for every selected side');
+      ui.exportJob=null;ui.exportFormat='';ui.downloadFormat=format;
+      state.stage=format.toUpperCase()+' ready for download';state.progress=null;state.lastError='';
+    });
+    if(state.lastError&&state.artboardJob?.status==='failed'){ui.exportJob=null;ui.exportFormat='';}
+    render();
   }
 
 
@@ -999,6 +1020,18 @@
     ui.preferInput=false;
     if(old.status==='cancelling')return notify('Cancellation is in progress; check status');
     const isPrepare=old.stage==='artboard-prepare',isExport=old.stage==='export';
+    if(isExport&&project().project_id){
+      try{
+        state.artboardResult=await syncedExportProject(project().project_id,epoch);
+        if(productionApproved(state.artboardResult)){
+          ui.productionDone=true;ui.continued=true;ui.exportStarted=true;ui.generationStarted=true;
+          ui.phase='export';ui.view=null;ui.processingStage='Export';ui.downloadFormat='svg';
+          state.stage='Validated SVG ready for download';state.progress=null;state.lastError='';
+          await loadSideAssets(true);
+          render();return;
+        }
+      }catch(e){log('Saved vector manifest unavailable: '+e.message)}
+    }
     ui.view=null;ui.phase=isPrepare?'analyze':isExport?'processing':stageOf(old.step||old.stage,old.progress)==='Analyzing'?'analyze':'artwork';
     ui.processingStage=isPrepare?'Analyzing':isExport?'Export':ui.phase==='analyze'?'Analyzing':'Artwork Creation';
     ui.analysisDone=!isPrepare&&available().length>0;
@@ -1076,7 +1109,7 @@
   }
   function reset(force=false){
     if(state.busy&&!force)return notify('Cancel the active job before starting a new input');
-    ++ui.workspaceEpoch;ui.exportJob=null;ui.preferInput=false;ui.phase='input';ui.view=null;ui.analysisDone=false;ui.generationStarted=false;ui.processingStage='';ui.downloadFormat='';ui.prepared=[];ui.recreatingSide=null;
+    ++ui.workspaceEpoch;ui.exportJob=null;ui.exportFormat='';ui.preferInput=false;ui.phase='input';ui.view=null;ui.analysisDone=false;ui.generationStarted=false;ui.processingStage='';ui.downloadFormat='';ui.prepared=[];ui.recreatingSide=null;
     ui.selected.clear();ui.selectionTouched=false;ui.stageProgressHigh={};ui.stageProgressJob=null;ui.visitedStages.clear();ui.stageStatus='';ui.lastPreviewPath='';ui.continued=false;
     ui.productionDone=false;ui.finishing=false;ui.exportStarted=false;ui.cancelRequested=false;ui.handoffBusy=false;
     ui.generationError='';ui.compareSource=false;ui.validationSide=null;ui.assetBusy.clear();ui.assetRetry={};
@@ -1094,7 +1127,7 @@
     const b=e.target.closest('button[data-abv2]');if(!b)return;
     e.preventDefault();e.stopPropagation();const a=b.dataset.abv2;
     if(a==='toggle-navigation'){document.querySelector('#menuButton')?.click();return;}
-    if(a==='retry-export'){if(state.busy)return;ui.continued=true;await completeSelectedWorkflow();return;}
+    if(a==='retry-export'){if(state.busy)return;if(ui.exportJob||ui.downloadFormat&&ui.exportStarted)return createSelectedFormat(ui.exportFormat||ui.downloadFormat);ui.continued=true;await completeSelectedWorkflow();return;}
     if(a==='next-stage'||a.startsWith('view-stage:')){
       const index=a==='next-stage'?Math.min(5,steps.indexOf(currentStage())+1):Number(a.split(':')[1]);
       const live=steps.indexOf(stageOf(state.stage,state.progress));
@@ -1124,7 +1157,7 @@
     if(a==='illustrator-handoff')return downloadIllustratorHandoff(false);
     if(a.startsWith('recolor:'))return downloadRecolored(a.slice('recolor:'.length));
     if(a==='illustrator-handoff-reference')return downloadIllustratorHandoff(true);
-    if(a==='illustrator')return continueSelectedIllustrator();if(a==='download-master-zip')return downloadMasterZip();if(a.startsWith('select-format:')){ui.downloadFormat=a.split(':')[1];render();return;}
+    if(a==='illustrator')return continueSelectedIllustrator();if(a==='download-master-zip')return downloadMasterZip();if(a.startsWith('create-format:'))return createSelectedFormat(a.split(':')[1]);if(a.startsWith('select-format:')){ui.downloadFormat=a.split(':')[1];render();return;}
     if(a==='previous'){
       if(state.busy)return notify('Active job: cancel processing before changing stages');
       const index=Math.max(0,steps.indexOf(currentStage())-1);
