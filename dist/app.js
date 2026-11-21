@@ -21,7 +21,7 @@ const fmtSize=n=>n==null?'':n<1048576?`${(n/1024).toFixed(1)} KB`:`${(n/1048576)
 const m=()=>state.mode[state.tool]||'quality';
 const displayState=t=>state.status[t]?.state||'unknown';
 const connected=t=>displayState(t)==='online';
-const healthText=t=>({online:'Ready',not_configured:'Not configured',unreachable:'Unreachable',not_ready:'Not ready',missing_identity:'Missing identity',unknown:'Not checked'})[displayState(t)]||'Not checked';
+const healthText=t=>({online:'Live API reachable',not_configured:'Not configured',unreachable:'Unreachable',not_ready:'Not ready',missing_identity:'Missing identity',unknown:'Not checked'})[displayState(t)]||'Not checked';
 const engineDiagnostic=t=>[state.status[t]?.error_code, ...(state.status[t]?.failed_checks||[])].filter(Boolean).join(' · ');
 function notify(s){const e=document.querySelector('#notification');e.textContent=s;e.hidden=false;clearTimeout(notify._t);notify._t=setTimeout(()=>e.hidden=true,4500)}
 function stamp(){return new Date().toLocaleTimeString('en-GB',{hour12:false})}
