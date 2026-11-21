@@ -41,7 +41,7 @@ async function call(engine,path,{method='GET',json=null,body=null,response='json
    error.httpStatus=r.status;
    throw error;
   }
-  return response==='blob'?r.blob():r.json();
+  return await (response==='blob'?r.blob():r.json());
  }catch(e){
   if(e?.name==='AbortError')throw Error(engine+': request timed out while waiting for the server');
   throw e;

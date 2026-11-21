@@ -115,3 +115,33 @@ test('readiness failures survive HTTP 503 while unrecognized HTML cannot be onli
  const invalid=await handleRequest(req('/api/status'),e,async()=>new Response('<html>login</html>'));
  assert.equal((await invalid.json()).engines.artboard.state,'not_ready');
 });
+
+test('private R2 artifact redirect streams with no engine bearer or cookie',async()=>{
+ const p='/api/engine/artboard/api/artboard/projects/a/artifacts/working/front.png';
+ const signed='https://account.r2.cloudflarestorage.com/private/projects/a/working/front.png?X-Amz-Signature=fake&X-Amz-Credential=fake&X-Amz-Expires=120';
+ let calls=0;
+ const response=await handleRequest(req(p),env(),async incoming=>{
+   calls++;
+   if(calls===1){
+     assert.equal(incoming.headers.get('authorization'),'Bearer '+ENGINE);
+     return new Response(null,{status:307,headers:{Location:signed}});
+   }
+   assert.equal(incoming.url,signed);
+   assert.equal(incoming.headers.has('authorization'),false);
+   assert.equal(incoming.headers.has('cookie'),false);
+   assert.equal(incoming.headers.has('x-artboard-user'),false);
+   return new Response('actual artwork',{headers:{'content-type':'image/png'}});
+ });
+ assert.equal(calls,2);
+ assert.equal(response.status,200);
+ assert.equal(await response.text(),'actual artwork');
+ assert.equal(response.headers.get('cache-control'),'private, no-store');
+});
+test('artifact gateway refuses non-R2 redirect and unauthorized request',async()=>{
+ const p='/api/engine/artboard/api/artboard/projects/a/artifacts/working/front.png';
+ let calls=0;
+ const evil=await handleRequest(req(p),env(),async()=>{calls++;return new Response(null,{status:307,headers:{Location:'https://evil.example/file?X-Amz-Signature=fake&X-Amz-Credential=fake&X-Amz-Expires=120'}})});
+ assert.equal(evil.status,502);assert.equal(calls,1);
+ const denied=await handleRequest(req(p),env(),async()=>Response.json({detail:'not found'},{status:404}));
+ assert.equal(denied.status,404);
+});

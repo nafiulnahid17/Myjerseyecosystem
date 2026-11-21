@@ -101,3 +101,18 @@ async function scenario({ failedGets, failureCode = 503, alwaysFail = false, ter
   assert(ui.includes('Check the persistent volume'));
   console.log('Artboard transient 503 polling recovery and no-paid-retry checks passed');
 })().catch(error => { console.error(error); process.exitCode = 1; });
+
+;(async()=>{
+ const state={activePipeline:'',artboardEvents:[],artboardEventKeys:new Set()};
+ const sandbox={state,Date,log(){},updateMonitor(){},
+   loadArtboardPreview:()=>new Promise(()=>{}),
+   call:async()=>({job_id:'j',project_id:'p',status:'completed',progress:100,preview_path:'projects/p/working/a.png',events:[]})};
+ const api=vm.runInNewContext(functions+'\njobPoll',sandbox);
+ let timer;
+ try{
+   const result=await Promise.race([api('artboard','api/artboard/jobs/j','Production'),
+      new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('preview blocked completed job polling')),1000)})]);
+   assert.equal(result.status,'completed');
+ }finally{clearTimeout(timer)}
+ console.log('Slow preview cannot block completed job polling');
+})().catch(error=>{console.error(error);process.exitCode=1});

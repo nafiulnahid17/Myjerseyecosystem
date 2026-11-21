@@ -972,8 +972,15 @@
       if(epoch!==ui.workspaceEpoch||project().project_id!==id)break;
       const cache=kind==='generated'?ui.generatedUrls:ui.vectorUrls,key=kind+':'+part.part_id;
       if(cache[part.side]&&!force||ui.assetBusy.has(key)||!force&&Date.now()-(ui.assetRetry[key]||0)<3500)continue;
-      // Do not probe before the engine has started production.
+      // During a real generation job, request only announced/accepted
+      // generated assets. Avoid repeated expensive missing-file requests.
       if(!ui.generationStarted)continue;
+      if(kind==='generated'&&!force&&!ui.productionDone&&state.artboardJob?.job_id){
+        const readyPath='projects/'+id+'/'+suffix;
+        const announced=state.artboardJob.preview_path===readyPath||
+          (state.artboardEvents||[]).some(event=>event.preview_path===readyPath);
+        if(!announced&&!savedArtworkReady(part,p))continue;
+      }
       ui.assetBusy.add(key);ui.assetRetry[key]=Date.now();
       const started=Date.now();
       tasks.push((async()=>{try{
