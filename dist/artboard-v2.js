@@ -194,9 +194,44 @@
     if(current!==null){ui.stageProgressHigh[stage]=Math.max(ui.stageProgressHigh[stage]||0,current);return ui.stageProgressHigh[stage];}
     return ui.stageProgressHigh[stage]??null;
   }
+  // Overall completion is a count of confirmed workflow milestones, not a time prediction.
+  let totalRun={id:'',start:0,end:0,high:0};
+  function totalSnapshot(){
+    const id=project().project_id||'',job=state.artboardJob||{},phase=ui.processingStage||'',events=state.artboardEvents||[];
+    if(id&&totalRun.id!==id){
+      let saved=null;try{saved=JSON.parse(sessionStorage.getItem('mj_artboard_total:'+id)||'null')}catch{}
+      totalRun=saved?.id===id?saved:{id,start:ui.startedAt||Date.parse(job.started_at||'')||0,end:0,high:0};
+    }
+    const start=totalRun.start||ui.startedAt||Date.parse(job.started_at||'')||0;
+    if(start)totalRun.start=start;
+    const active=stageOf(state.stage,state.progress),rank=steps.indexOf(active);
+    const production=state.activePipeline==='Production';
+    let completed=ui.analysisDone?2:id?1:0;
+    if(production&&rank>=3)completed=Math.max(completed,rank);
+    if(production&&events.some(e=>/guidance delivered|reusing verified semantic guidance/i.test(e.step||e.stage||'')))completed=Math.max(completed,4);
+    if(ui.productionDone)completed=Math.max(completed,6);
+    const finished=ui.phase==='export'&&ui.productionDone&&!state.busy&&!state.lastError;
+    if(finished)completed=7;
+    totalRun.high=Math.max(totalRun.high||0,completed);
+    if(finished||ui.cancelRequested){if(!totalRun.end)totalRun.end=Date.now();}
+    else if(state.busy)totalRun.end=0;
+    if(id&&start)try{sessionStorage.setItem('mj_artboard_total:'+id,JSON.stringify(totalRun))}catch{}
+    const seconds=start?Math.max(0,Math.floor(((totalRun.end||Date.now())-start)/1000)):0;
+    const time=[Math.floor(seconds/3600),Math.floor(seconds/60)%60,seconds%60].map(x=>String(x).padStart(2,'0')).join(':');
+    return {percent:Math.round(100*totalRun.high/steps.length),time:start?time:'00:00:00'};
+  }
+  function totalDisplay(){
+    const t=totalSnapshot();
+    return '<div class="abv2-total" title="Overall completion based on confirmed workflow stages; elapsed wall-clock time from production start"><div><small>Total Progress</small><strong data-abv2-total-percent>'+t.percent+'%</strong><div class="abv2-total-track"><i data-abv2-total-fill style="width:'+t.percent+'%"></i></div></div><div><small>Total Time</small><strong data-abv2-total-time>'+t.time+'</strong></div></div>';
+  }
+  function updateTotal(){
+    const root=document.querySelector('.abv2-total');if(!root)return;
+    const t=totalSnapshot();root.querySelector('[data-abv2-total-percent]').textContent=t.percent+'%';root.querySelector('[data-abv2-total-time]').textContent=t.time;root.querySelector('[data-abv2-total-fill]').style.width=t.percent+'%';
+  }
+  if(typeof setInterval==='function')setInterval(updateTotal,1000);
   function workflowRail(){
     const active=currentStage(),current=Math.max(0,steps.indexOf(active));
-    return `<nav class="abv2-workflow" aria-label="Artboard production workflow">${steps.map((step,index)=>`<button type="button" data-abv2="view-stage:${index}" class="${index<current?'complete':index===current?'current':'pending'}" ${index>current&&!ui.productionDone&&!ui.visitedStages.has(step)&&!(step==='Semantic Guidance'&&active==='Artwork Creation'&&canContinueArtwork())?'disabled':''}><b>${index<current?'✓':index===current?'◌':index+1}</b><strong>${esc(stageLabel(step))}</strong></button>`).join('')}</nav>`;
+    return `<div class="abv2-workflow-dock"><nav class="abv2-workflow" aria-label="Artboard production workflow">${steps.map((step,index)=>`<button type="button" data-abv2="view-stage:${index}" class="${index<current?'complete':index===current?'current':'pending'}" ${index>current&&!ui.productionDone&&!ui.visitedStages.has(step)&&!(step==='Semantic Guidance'&&active==='Artwork Creation'&&canContinueArtwork())?'disabled':''}><b>${index<current?'✓':index===current?'◌':index+1}</b><strong>${esc(stageLabel(step))}</strong></button>`).join('')}</nav>${totalDisplay()}</div>`;
   }
   function elapsed(){const job=state.artboardJob||{},start=Date.parse(job.started_at||'')||ui.startedAt;const end=['completed','failed','cancelled'].includes(job.status)?Date.parse(job.completed_at||job.finished_at||job.updated_at||''):NaN;return start?new Date(Math.max(0,(Number.isFinite(end)?end:Date.now())-start)).toISOString().slice(14,19):'—';}
   function stageRows(stage){
@@ -968,7 +1003,7 @@
     return false;
   }
   function refresh(){
-    const root=document.querySelector('.abv2');if(!root)return;
+    const root=document.querySelector('.abv2');if(!root)return;updateTotal();
     // Move from the dedicated analyzer screen only when the engine actually
     // reports artwork generation. No synthetic timers or invented percentages.
     if(ui.phase==='analyze'&&ui.generationStarted&&state.activePipeline==='Production'&&!ui.view&&stageOf(state.stage,state.progress)==='Artwork Creation'){
@@ -996,7 +1031,7 @@
   }
   async function start(){const f=state.files.artboard;if(!f)return notify('Upload a supported file first');if(!connected('artboard'))return notify('Artboard engine is unavailable');
     if(['queued','processing','cancelling'].includes(savedJob()?.status))return notify('Resume or cancel existing job before starting a paid production');
-    const epoch=++ui.workspaceEpoch;ui.startedAt=Date.now();
+    const epoch=++ui.workspaceEpoch;ui.startedAt=Date.now();totalRun={id:'',start:ui.startedAt,end:0,high:0};
     state.pendingArtboardJob=null;state.artboardJob=null;try{sessionStorage.removeItem('mj_artboard_job')}catch{}
     ui.preferInput=false;ui.exportJob=null;ui.exportFormat='';ui.selected.clear();ui.selectionTouched=false;ui.awaitingSelection=false;ui.stageProgressHigh={};ui.stageProgressJob=null;ui.prepared=[];ui.visitedStages.clear();ui.stageStatus='';ui.lastPreviewPath='';state.artboardPreviewPath='';ui.view=null;ui.phase='analyze';ui.analysisDone=false;ui.generationStarted=false;ui.processingStage='';ui.downloadFormat='';ui.cancelRequested=false;ui.productionDone=false;ui.continued=false;ui.finishing=false;ui.exportStarted=false;ui.generationError='';ui.compareSource=false;ui.validationSide=null;ui.generatedUrls={};ui.vectorUrls={};ui.assetRetry={};ui.assetBusy.clear();
     state.mode.artboard='quality';
@@ -1316,7 +1351,7 @@
   }
   function reset(force=false){
     if(state.busy&&!force)return notify('Cancel the active job before starting a new input');
-    ++ui.workspaceEpoch;ui.exportJob=null;ui.exportFormat='';ui.preferInput=false;ui.phase='input';ui.view=null;ui.analysisDone=false;ui.generationStarted=false;ui.processingStage='';ui.downloadFormat='';ui.prepared=[];ui.recreatingSide=null;
+    ++ui.workspaceEpoch;ui.startedAt=0;totalRun={id:'',start:0,end:0,high:0};ui.exportJob=null;ui.exportFormat='';ui.preferInput=false;ui.phase='input';ui.view=null;ui.analysisDone=false;ui.generationStarted=false;ui.processingStage='';ui.downloadFormat='';ui.prepared=[];ui.recreatingSide=null;
     ui.selected.clear();ui.selectionTouched=false;ui.awaitingSelection=false;ui.stageProgressHigh={};ui.stageProgressJob=null;ui.visitedStages.clear();ui.stageStatus='';ui.lastPreviewPath='';ui.continued=false;
     ui.productionDone=false;ui.finishing=false;ui.exportStarted=false;ui.cancelRequested=false;ui.handoffBusy=false;
     ui.generationError='';ui.compareSource=false;ui.validationSide=null;ui.assetBusy.clear();ui.assetRetry={};
