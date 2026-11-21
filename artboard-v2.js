@@ -119,7 +119,7 @@
     const value=state.status?.artboard?.state,ok=value==='online';
     return '<div class="abv2-health abv2-health-single" aria-label="Artboard engine status"><span><span><b class="'+(ok?'online':'unavailable')+'"><i class="'+(ok?'ok':'bad')+'"></i>Engine '+(ok?'Online':value?'Offline':'Checking')+'</b></span></span></div>';
   }
-  function top(title,description){return `<div class="abv2-top">${health()}<div class="abv2-centered-brand" aria-label="Artboard AI · My Jersey Ecosystem · Atherious Labs"><img src="assets/artboard-ai.svg" alt=""><strong>Artboard AI</strong><i>×</i><img src="assets/my-jersey.svg" alt=""><strong>My Jersey Ecosystem</strong><i>×</i><img src="assets/atherious-labs.svg" alt=""><strong>Atherious Labs</strong></div><div class="abv2-header"><img src="assets/artboard-ai.svg" alt=""><div><h1>${esc(stageLabel(title))}</h1><p>${esc(description)}</p></div><span class="abv2-step-label">${title==='Export Production'&&productionApproved()?'Vector ready':ui.phase==='input'?'SOURCE':esc(state.stage||statusText())}</span></div></div>`;}
+  function top(title,description){return '<span hidden data-abv2-stage-title="'+esc(stageLabel(title))+'" data-abv2-stage-description="'+esc(description)+'"></span>';}
   function button(text,action,cls='',disabled=false){return `<button type="button" class="abv2-btn ${cls}" data-abv2="${action}" ${disabled?'disabled':''}>${text}</button>`;}
   // A generated artwork is ready only when the backend accepted and saved
   // it. A source crop or decorative preview is not a production master.
@@ -523,7 +523,7 @@
     ];
     const hasCompare=Boolean(ui.generatedUrls[current.side]&&ui.vectorUrls[current.side]);
     const selectedSide=current.side||'front_body';
-    return `${top('Validation','Verified quality results for the accepted AI artwork and final vector')}${selectedPartsBar()}<div class="abv2-validation-layout">
+    return `${top('Validation','Verified quality results for the accepted AI artwork and final vector')}<div class="abv2-validation-layout">
       <section class="abv2-card abv2-validation-meter"><div class="abv2-gauge" style="--value:${percent??0}"><div><strong>${percent===null?'—':Math.round(percent)+'%'}</strong><small>${verified?'Processing complete':'Validation running'}</small></div></div><ol>
         <li class="complete"><i>✓</i><span>Source Hub &amp; Neural Scan</span><b>Complete</b></li><li class="complete"><i>✓</i><span>Artwork Forge</span><b>Complete</b></li><li class="complete"><i>✓</i><span>Semantic Guidance</span><b>${project().semantic_guidance?.status==='LOCAL_RASTER_FALLBACK'?'Local fallback':'Handoff'}</b></li><li class="complete"><i>✓</i><span>Neural Trace</span><b>Complete</b></li><li class="${verified?'complete':'active'}"><i>${verified?'✓':'◌'}</i><span>Precision Check</span><b>${verified?'Complete':percent===null?'Checking':Math.round(percent)+'%'}</b></li><li><i>○</i><span>Production Suite</span><b>Waiting</b></li>
       </ol><p class="abv2-source-note">Vector validation does not automatically certify perfect visual fidelity or native Illustrator layers.</p></section>
@@ -565,7 +565,7 @@
     const verified=guide.status==='AI_GUIDED'&&guide.ai_semantics_verified===true;
     const active=state.busy&&!state.lastError&&ui.stageStatus!=='completed'&&!delivered;
     const status=fallback?'Local guidance fallback':verified?'AI guidance verified':delivered?'Guidance delivered':ui.stageStatus==='completed'?'Review saved artwork':'Preparing guidance';
-    return `${top('Semantic Guidance','Shape mapping, color families, gradients and protected detail guidance')}${selectedPartsBar()}
+    return `${top('Semantic Guidance','Shape mapping, color families, gradients and protected detail guidance')}
     <div class="abv2-art-grid-layout abv2-semantic-layout ${sides.length===1?'single':''}">${sides.map(side=>{const part=available().find(x=>x.side===side),url=ui.generatedUrls[side],metrics=part?.semantic_editing||{};return `<section class="abv2-card abv2-artwork"><header><h2>${surfaceLabel(side)} · Semantic Guidance</h2><span>${esc(status)}</span></header><div class="abv2-art-canvas abv2-semantic-canvas ${active?'active':''}">${url?`<img class="abv2-genuine-image" src="${esc(url)}" alt="Accepted ${surfaceLabel(side)} artwork for guidance">`:'<p class="abv2-info">Awaiting saved artwork preview</p>'}<span class="abv2-art-grid" aria-hidden="true"></span>${active?'<span class="abv2-semantic-scan" aria-hidden="true"></span>':''}</div><div class="abv2-semantic-info"><span>Shape &amp; region mapping</span><span>Color families &amp; gradients</span><span>Micro-detail protection</span></div>${metrics.status==='MEASURED'?`<div class="abv2-semantic-metrics"><span>${esc(metrics.matched_shapes)} measured shapes</span><span>${esc(metrics.selectable_color_families)} color families</span><span>${esc(metrics.protected_regions)} protected regions</span></div>`:''}</section>`}).join('')}<aside class="abv2-stage-rail">${liveLog()}</aside></div>${workflowRail()}${navigation('Semantic Guidance')}`;
   }
   function processing(){const title=ui.processingStage||processTitle();
@@ -575,7 +575,7 @@
     const verified=productionApproved();
     if(title==='Semantic Guidance')return semanticView(onlyValid);
     if(isValid)return validationView(onlyValid,verified);
-    return `${top(title,title==='Validation'?'Live production-quality and print-readiness review':isVector?'AI-guided vector tracing, optimization and grouping':'Live artwork creation' )}${selectedPartsBar()}
+    return `${top(title,title==='Validation'?'Live production-quality and print-readiness review':isVector?'AI-guided vector tracing, optimization and grouping':'Live artwork creation' )}
     <div class="abv2-art-grid-layout ${onlyValid.length===1?'single':''}">${onlyValid.map(side=>{
       const part=available().find(x=>x.side===side),url=(isVector||isValid?ui.vectorUrls[side]:ui.generatedUrls[side]) || previewUrl(part) || ui.generatedUrls[side] || interimPreview(side);
       const active=(state.busy&&state.activePipeline==='Production'&&ui.stageStatus!=='completed')||(isValid&&ui.finishing);
@@ -865,7 +865,7 @@
     const dl=item=>`<button type="button" class="abv2-btn" data-download="artboard|${esc(artifactEndpoint(p.project_id,item.path))}">↓ Download ${esc(item.label)}</button>`;
     const hasZip=items.some(x=>x.format==='zip'),canZip=confirmed&&items.length>0;
     const exportRecovery=confirmed&&(ui.exportJob||state.lastError&&state.activePipeline==='Export')?(state.busy?'<p class="abv2-info" role="status">Preparing the selected format. Saved SVG files remain available.</p>':state.lastError?'<div class="abv2-advisory" role="status"><p>'+esc(state.lastError)+'</p>'+button(ui.exportJob?'↻ Reconnect Export':'↻ Retry '+format.toUpperCase(),'retry-export','primary')+'</div>':''):'';
-    return `${top('Export Production','Choose a format or download your validated SVG now')}${selectedPartsBar()}${exportRecovery}<div class="abv2-export-grid">
+    return `${top('Export Production','Choose a format or download your validated SVG now')}${exportRecovery}<div class="abv2-export-grid">
       <section class="abv2-export-left"><div class="abv2-card abv2-export-preview"><header><div><h2>● Live Preview — Final Output</h2><small>Editable Vector • Clean Paths • Saved engine output</small></div><div class="abv2-zoom-controls">${button('⊖','zoom-out','secondary')}${button('⊕','zoom-in','secondary')}${button('⛶','zoom-fit','secondary')}${button('◫ Compare','toggle-compare','secondary',!parts.some(part=>ui.generatedUrls[part.side]&&ui.vectorUrls[part.side]))}</div></header>
       <div class="abv2-export-arts" style="--preview-zoom:${ui.previewZoom}">${parts.map(part=>`<div><strong>${surfaceLabel(part.side)}</strong>${(ui.compareSource?ui.generatedUrls[part.side]:ui.vectorUrls[part.side])||previewUrl(part)?`<img src="${(ui.compareSource?ui.generatedUrls[part.side]:ui.vectorUrls[part.side])||previewUrl(part)}" alt="Real ${surfaceLabel(part.side)} completed artwork">`:'<p>Preview not available from the engine</p>'}</div>`).join('')||'<p>No final artwork detected.</p>'}</div></div></section>
       <div class="abv2-export-center">
@@ -1412,7 +1412,7 @@
     if(a.startsWith('recreate:'))return recreateSurface(a.slice('recreate:'.length));
     if(a.startsWith('recreate:'))return notify('AI missing-side recreation is not exposed through this frontend’s existing Artboard gateway allowlist. No request was submitted.');
   },true);
-  document.addEventListener('change',e=>{const b=e.target.closest('[data-abv2-select]');if(!b)return;const side=b.dataset.abv2Select;if(!available().some(item=>item.side===side))return;if(!b.checked&&ui.selected.size<=1){b.checked=true;notify('Keep at least one Front or Back part selected');return;}if(b.checked)ui.selected.add(side);else ui.selected.delete(side);ui.selectionTouched=true;ui.validationSide=ui.selected.has(ui.validationSide)?ui.validationSide:[...ui.selected][0];render();},true);
+  document.addEventListener('change',e=>{const b=e.target.closest('[data-abv2-select]');if(!b)return;if(currentStage()!=='Artwork Creation'||(state.busy&&state.activePipeline==='Production'&&ui.phase==='processing')){b.checked=ui.selected.has(b.dataset.abv2Select);return;}const side=b.dataset.abv2Select;if(!available().some(item=>item.side===side))return;if(!b.checked&&ui.selected.size<=1){b.checked=true;notify('Keep at least one Front or Back part selected');return;}if(b.checked)ui.selected.add(side);else ui.selected.delete(side);ui.selectionTouched=true;ui.validationSide=ui.selected.has(ui.validationSide)?ui.validationSide:[...ui.selected][0];render();},true);
   document.addEventListener('change',e=>{if(e.target?.dataset?.file!=='artboard')return;ui.dimensions='';const f=e.target.files?.[0];if(!f||!f.type.startsWith('image/')||f.type.includes('svg'))return;const image=new Image();const url=URL.createObjectURL(f);image.onload=()=>{ui.dimensions=`${image.naturalWidth} × ${image.naturalHeight} px`;URL.revokeObjectURL(url);if(state.files.artboard===f)render()};image.onerror=()=>URL.revokeObjectURL(url);image.src=url;});
   // Preserve the ecosystem menu behavior, but collapse the sidebar when Artboard opens.
   document.addEventListener('click',e=>{const t=e.target.closest('[data-tool]');if(t?.dataset.tool==='artboard'){ui.view=null;ui.phase='input';ui.preferInput=Boolean(savedJob()?.job_id);document.body.classList.add('sidebar-collapsed');if(typeof closeMenu==='function')closeMenu()}},true);

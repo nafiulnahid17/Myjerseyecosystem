@@ -274,7 +274,17 @@ function toolEngineIndicator(tool){
  const value=displayState(tool),online=value==='online',label=online?'Engine Online':value==='unknown'?'Engine Checking':'Engine Offline';
  return '<span class="service-cell tool-engine-status" title="'+esc(engineMeta[tool]?.name||'Engine')+'"><i aria-hidden="true">'+(online?'●':'○')+'</i><b>'+label+'</b></span>';
 }
-function render(){preserveForm();const pages={home:homeV4,overview:overviewV4,artboard:artboardPageV4,frame:framePageV4,assets:assetsPageV4,autofly:autoflyPageV4,emergency:emergencyPage,credits:creditsPage,users:usersPage,history:historyPage,support:supportPage,'get-support':()=>supportForm('get-support'),report:()=>supportForm('report'),settings:settingsPage};const e=document.querySelector('#mainContent');e.innerHTML=(pages[state.tool]||homeV4)();document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('selected',b.dataset.tool===state.tool));const indicators=document.querySelector('#serviceIndicators');const statuses=Object.entries(state.status);const n=statuses.filter(([k,v])=>v.state==='online').length;const checked=Boolean(statuses.length);const aiReady=state.status.artboard?.ai_configured;const aiLabel=!checked?'Not checked':aiReady===true?'Configured':aiReady===false?'Not configured':'Unknown';const diagnostic=engineDiagnostic('artboard');indicators.innerHTML=Object.hasOwn(engineMeta,state.tool)?toolEngineIndicator(state.tool):`<span class="service-cell" title="${esc(diagnostic||'Live readiness checks')}"><i>◆</i><small>Engines</small><b>${checked?`${n}/4 ready`:'Not connected'}</b></span><span class="service-cell"><i>⬡</i><small>AI Config</small><b title="${esc(diagnostic||'AI credentials configured; live inference not verified.')}">${aiLabel}</b></span>`;restoreForm();updateMonitor()}
+function syncArtboardHeader(){
+ const brands=document.querySelector('.topbar .brands');if(!brands)return;
+ let label=brands.querySelector('.artboard-stage-brand');
+ if(state.tool!=='artboard'){label?.remove();return;}
+ const marker=document.querySelector('[data-abv2-stage-title]');if(!marker)return;
+ if(!label){label=document.createElement('div');label.className='artboard-stage-brand';const icon=document.createElement('span');icon.className='artboard-stage-icon';icon.setAttribute('aria-hidden','true');const copy=document.createElement('div');copy.append(document.createElement('strong'),document.createElement('small'));label.append(icon,copy);brands.append(label);}
+ const title=marker.dataset.abv2StageTitle;
+ label.querySelector('.artboard-stage-icon').textContent=({'Source Hub':'↥','Neural Scan':'⌖','Artwork Forge':'✦','Semantic Guidance':'◇','Neural Trace':'⌁','Precision Check':'✓','Production Suite':'⇩'})[title]||'◇';
+ label.querySelector('strong').textContent=title;label.querySelector('small').textContent=marker.dataset.abv2StageDescription;
+}
+function render(){preserveForm();const pages={home:homeV4,overview:overviewV4,artboard:artboardPageV4,frame:framePageV4,assets:assetsPageV4,autofly:autoflyPageV4,emergency:emergencyPage,credits:creditsPage,users:usersPage,history:historyPage,support:supportPage,'get-support':()=>supportForm('get-support'),report:()=>supportForm('report'),settings:settingsPage};const e=document.querySelector('#mainContent');e.innerHTML=(pages[state.tool]||homeV4)();document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('selected',b.dataset.tool===state.tool));const indicators=document.querySelector('#serviceIndicators');const statuses=Object.entries(state.status);const n=statuses.filter(([k,v])=>v.state==='online').length;const checked=Boolean(statuses.length);const aiReady=state.status.artboard?.ai_configured;const aiLabel=!checked?'Not checked':aiReady===true?'Configured':aiReady===false?'Not configured':'Unknown';const diagnostic=engineDiagnostic('artboard');indicators.innerHTML=state.tool==='artboard'?toolEngineIndicator(state.tool)+`<span class="service-cell artboard-ai-status"><i>⬡</i><b>AI ${aiLabel}</b></span>`:Object.hasOwn(engineMeta,state.tool)?toolEngineIndicator(state.tool):`<span class="service-cell" title="${esc(diagnostic||'Live readiness checks')}"><i>◆</i><small>Engines</small><b>${checked?`${n}/4 ready`:'Not connected'}</b></span><span class="service-cell"><i>⬡</i><small>AI Config</small><b title="${esc(diagnostic||'AI credentials configured; live inference not verified.')}">${aiLabel}</b></span>`;syncArtboardHeader();restoreForm();updateMonitor()}
 async function loadArtboardPreview(projectId, path) {
  if(!projectId || !path || !path.startsWith('projects/'+projectId+'/'))return;
  if(state.artboardPreviewPath===path)return;
@@ -561,3 +571,6 @@ window.addEventListener('resize',syncNavigation);
 syncNavigation();
 render();
 statusCheck();
+
+// Stage titles update even when Artboard replaces its own workspace independently.
+if(typeof MutationObserver!=='undefined'){const root=document.querySelector('#mainContent');if(root)new MutationObserver(syncArtboardHeader).observe(root,{childList:true,subtree:true});}
