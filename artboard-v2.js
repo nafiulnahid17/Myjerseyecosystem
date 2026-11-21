@@ -1173,7 +1173,7 @@
     if(a==='retry-export'){if(state.busy)return;if(ui.exportJob||ui.downloadFormat&&ui.exportStarted)return createSelectedFormat(ui.exportFormat||ui.downloadFormat);ui.continued=true;await completeSelectedWorkflow();return;}
     if(a==='next-stage'||a.startsWith('view-stage:')){
       const index=a==='next-stage'?Math.min(5,steps.indexOf(currentStage())+1):Number(a.split(':')[1]);
-      if(index===3&&currentStage()==='Artwork Creation')return continueToVectorization();
+      if(index===3&&currentStage()==='Artwork Creation'&&!ui.productionDone)return continueToVectorization();
       const live=steps.indexOf(stageOf(state.stage,state.progress));
       if(index>live&&!ui.productionDone&&!ui.visitedStages.has(steps[index]))return notify('This stage is still awaiting the engine');
       if(index===5&&!exportedArtifacts().length){
