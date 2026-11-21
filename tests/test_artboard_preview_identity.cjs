@@ -2,9 +2,9 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const src=fs.readFileSync(path.join(__dirname,'../artboard-v2.js'),'utf8');
 const source=src.slice(src.indexOf('  async function loadSideAssets('),src.indexOf('  function syncProductionStage()'));
-async function run(stale){
+async function run(stale,productionDone=true){
  let projectId='p',calls=[],created=[];
- const ui={workspaceEpoch:1,generationStarted:true,productionDone:true,generatedUrls:{},vectorUrls:{},assetBusy:new Set(),assetRetry:{}};
+ const ui={workspaceEpoch:1,generationStarted:true,productionDone,processingStage:'Vectorization',generatedUrls:{},vectorUrls:{},assetBusy:new Set(),assetRetry:{}};
  const parts=['front','back'].map(side=>({side:side+'_body',part_id:side,exports:{svg:'projects/p/exports/'+side+'.svg',premium_svg:'projects/p/exports/'+side+'-recolored.svg'}}));
  const context={ui,state:{tool:'artboard'},Date,surfaceLabel:s=>s,project:()=>({project_id:projectId}),available:()=>parts,artifactEndpoint:(_id,path)=>path,render(){},URL:{createObjectURL:b=>{created.push(b);return 'blob:'+created.length},revokeObjectURL(){}},call:async(_engine,path)=>{
   calls.push(path);
@@ -23,5 +23,8 @@ async function run(stale){
  assert.equal(stale.calls.length,1,'Stop obsolete workspace fetches');
  assert.equal(stale.created.length,0,'Discard old project response before creating a preview URL');
  assert.deepEqual(stale.ui.vectorUrls,{});
+ const tracing=await run(false,false);
+ assert(!tracing.calls.some(p=>p.includes('/vectors/')),
+   'A running trace has no final SVG: do not poll missing artifacts repeatedly');
  console.log('Front/back print artifact identity and stale project response tests passed');
 })().catch(e=>{console.error(e);process.exitCode=1});
