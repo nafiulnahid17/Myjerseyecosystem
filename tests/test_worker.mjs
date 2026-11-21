@@ -71,6 +71,9 @@ test('wrangler has rate limit bindings and safe compatibility date', async()=>{
  const c=JSON.parse(readFileSync(new URL('../wrangler.jsonc',import.meta.url),'utf8'));
  assert.ok(c.compatibility_date<=new Date().toISOString().slice(0,10));
  assert.deepEqual(c.ratelimits.map(x=>x.name),['API_LIMITER','AI_LIMITER']);
+ assert.equal(c.keep_vars,true,'Preserve dashboard runtime variables across deployment');
+ assert.equal(c.vars.ARTBOARD_V031_URL,'https://artboard-ai-resolution-independent-production.up.railway.app/');
+ assert.ok(!Object.hasOwn(c.vars,'ARTBOARD_V031_TOKEN')&&!Object.hasOwn(c.vars,'MYJERSEY_ACCESS_TOKEN'),'Secrets must remain runtime-only');
 });
 
 test('Artboard URL and token alone support isolated anonymous sessions',async()=>{

@@ -26,5 +26,9 @@
         "period": 60
       }
     }
-  ]
+  ],
+  "keep_vars": true,
+  "vars": {
+    "ARTBOARD_V031_URL": "https://artboard-ai-resolution-independent-production.up.railway.app/"
+  }
 }
