@@ -966,7 +966,10 @@
     const p=project(),id=p.project_id,epoch=ui.workspaceEpoch;if(!id||!available().length)return;
     const tasks=[];
     const kinds=['generated'];
-    if(ui.productionDone||['Vectorization','Validation'].includes(ui.processingStage))kinds.push('vector');
+    // The engine publishes vectors/{part_id}.svg only after optimize/compose.
+    // During trace it saves vectors/{part_id}.raw.svg instead, so requesting
+    // the final SVG every few seconds only creates 404s and noisy error logs.
+    if(ui.productionDone||ui.processingStage==='Validation')kinds.push('vector');
     for(const part of available())for(const kind of kinds){
       const suffix=kind==='generated'?'working/'+part.part_id+'-ai-vectorization-source.png':'vectors/'+part.part_id+'.svg';
       if(epoch!==ui.workspaceEpoch||project().project_id!==id)break;
@@ -981,6 +984,8 @@
           (state.artboardEvents||[]).some(event=>event.preview_path===readyPath);
         if(!announced&&!savedArtworkReady(part,p))continue;
       }
+      if(kind==='vector'&&!ui.productionDone&&!part.validation?.validated_sha256 &&
+         !/(?:optimize completed|compose completed|running validate|validation:)/i.test(state.stage||''))continue;
       ui.assetBusy.add(key);ui.assetRetry[key]=Date.now();
       const started=Date.now();
       tasks.push((async()=>{try{
