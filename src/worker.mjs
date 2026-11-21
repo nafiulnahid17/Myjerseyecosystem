@@ -43,10 +43,15 @@ async function sign(value, secret) {
   return Array.from(new Uint8Array(signature), x => x.toString(16).padStart(2, "0")).join("");
 }
 async function visitorSession(request, env) {
-  // Reuse the existing Cloudflare-only secret as the cookie signing key.
-  // It is never sent to the browser; cookies contain only a signed random ID.
-  const secret = env.MYJERSEY_ACCESS_TOKEN;
-  if (typeof secret !== "string" || secret.length < 32) return null;
+  // Existing session secret stays authoritative to preserve browser identities.
+  // For an Artboard-only setup, derive a separate signing key from the strong
+  // server-side engine token using a fixed domain separator. Never expose it.
+  let secret = env.MYJERSEY_ACCESS_TOKEN;
+  if (typeof secret !== "string" || secret.length < 32) {
+    const token = env.ARTBOARD_V031_TOKEN;
+    if (typeof token !== "string" || token.length < 32) return null;
+    secret = await sign("myjersey/anonymous-session-signing/v1", token);
+  }
   const rawCookie = request.headers.get("cookie") || "";
   const found = rawCookie.match(/(?:^|;\s*)mj_visitor=([0-9a-f]{32})\.([0-9a-f]{64})(?:;|$)/);
   if (found && await sign(found[1], secret) === found[2]) {
@@ -83,10 +88,11 @@ async function throttle(request, env, route) {
 function engineConfig(env) {
   const origin = artboardOrigin(env);
   const token = env.ARTBOARD_V031_TOKEN;
-  const principal = env.MYJERSEY_ARTBOARD_PRINCIPAL;
-  if (!origin || typeof token !== 'string' || token.length < 32) return { state: 'not_configured' };
-  if (!identityValid(principal)) return { state: 'missing_identity' };
-  return { origin, token, principal };
+  // Identity is the signed, unique per-browser principal. A legacy shared
+  // principal is neither used nor required in the anonymous Cloudflare flow.
+  if (!origin) return { state: 'not_configured', error_code: 'ARTBOARD_URL_INVALID_OR_MISSING' };
+  if (typeof token !== 'string' || token.length < 32) return { state: 'not_configured', error_code: 'ARTBOARD_TOKEN_MISSING_OR_SHORT' };
+  return { origin, token };
 }
 
 function upstreamHeaders(request, config) {
@@ -104,7 +110,7 @@ async function statusResponse(env, fetchImpl, principal) {
                     assets: { state: 'not_configured' }, autofly: { state: 'not_configured' } };
   const config = engineConfig(env);
   if (config.state) {
-    engines.artboard = { state: config.state };
+    engines.artboard = { state: config.state, error_code: config.error_code, reachable: false };
   } else {
     try {
       const response = await fetchImpl(config.origin + '/health/ready', {
@@ -112,20 +118,39 @@ async function statusResponse(env, fetchImpl, principal) {
         redirect: 'manual',
         signal: AbortSignal.timeout(9000),
       });
-      if (response.ok) {
-        const report = await response.json();
-        engines.artboard = {
-          state: report && report.status === 'ready' ? 'online' : 'not_ready',
-          ai_configured: report?.ai_configured === true,
-          primary_ai_ready: report?.primary_ai_ready === true || report?.ai_configured === true,
-          fallback_ai_ready: report?.fallback_ai_ready !== false && report?.ai_configured === true,
-          export_engine_ready: report?.export_engine_ready === true || report?.status === 'ready',
-        };
-      } else {
-        engines.artboard = { state: 'not_ready', http_status: response.status };
-      }
+      // A structured 503 can carry actionable worker readiness diagnostics.
+      // HTTP reachability is distinct from readiness to spend credits.
+      const report = await response.json().catch(() => null);
+      const rawCode = report?.error?.code;
+      const safeCodes = new Set([
+        'ARTBOARD_WORKER_NOT_CONFIGURED', 'ARTBOARD_WORKER_UNREACHABLE',
+        'ARTBOARD_WORKER_REDIRECT', 'ENGINE_AUTH_NOT_CONFIGURED',
+        'UNAUTHORIZED', 'DURABLE_JOB_WORKER_REQUIRED', 'IDENTITY_REQUIRED',
+      ]);
+      const recognized = report?.engine === 'Artboard AI' ||
+        safeCodes.has(rawCode) || (response.ok && report?.status === 'ready');
+      const ready = response.ok && recognized && report?.status === 'ready';
+      const checks = { ...report?.segments?.engine?.checks, ...report?.segments?.tool?.checks };
+      const safeChecks = new Set(['engine_initialized','opencv','renderer','vector_validator',
+        'vector_render','storage','gateway_auth','queue','vector_conversion',
+        'ai_artwork_generation','durable_storage','durable_job_execution','r2_remote_read_write']);
+      const failedChecks = Object.keys(checks).filter(k => safeChecks.has(k) && checks[k] === false);
+      const boolOrNull = v => typeof v === 'boolean' ? v : null;
+      engines.artboard = {
+        state: ready ? 'online' : 'not_ready',
+        reachable: recognized,
+        http_status: response.status,
+        error_code: ready ? null : safeCodes.has(rawCode) ? rawCode :
+          response.status === 401 || response.status === 403 ? 'ENGINE_AUTH_REJECTED' :
+          recognized ? 'ENGINE_NOT_READY' : 'UNRECOGNIZED_ENGINE_RESPONSE',
+        failed_checks: failedChecks,
+        ai_configured: boolOrNull(report?.ai_configured),
+        primary_ai_ready: boolOrNull(report?.primary_ai_ready),
+        fallback_ai_ready: boolOrNull(report?.fallback_ai_ready),
+        export_engine_ready: boolOrNull(report?.export_engine_ready),
+      };
     } catch {
-      engines.artboard = { state: 'unreachable' };
+      engines.artboard = { state: 'unreachable', reachable: false, error_code: 'ENGINE_NETWORK_OR_TIMEOUT' };
     }
   }
   return new Response(JSON.stringify({ engines, source: 'live_health_requests' }), {
@@ -139,7 +164,7 @@ async function artboardProxy(request, env, fetchImpl, pathname, search, principa
     return json('Unsupported engine operation', 404);
   }
   const config = engineConfig(env);
-  if (config.state) return json(config.state === 'missing_identity' ? 'Artboard identity is missing' : 'Artboard engine is not configured', 503);
+  if (config.state) return json(config.error_code, 503);
   if (request.method === 'POST') {
     const type = request.headers.get('content-type') || '';
     if (!(type.startsWith('application/json') || type.startsWith('multipart/form-data;'))) {
@@ -180,7 +205,7 @@ export async function handleRequest(request, env, fetchImpl = fetch) {
   const limit = await throttle(request, env, url.pathname);
   if (limit) return limit;
   const visitor = await visitorSession(request, env);
-  if (!visitor) return json("Server-side session signing secret is not configured", 503);
+  if (!visitor) return json("Configure ARTBOARD_V031_TOKEN (32+ characters) or MYJERSEY_ACCESS_TOKEN for browser session signing", 503);
   if (request.method === "GET" && url.pathname === "/api/status")
     return attachSession(await statusResponse(env, fetchImpl, visitor.principal), visitor);
   if (url.pathname.startsWith("/api/engine/artboard/"))

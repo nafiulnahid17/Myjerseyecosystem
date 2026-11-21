@@ -57,7 +57,7 @@ test('worker denies cross-origin writes, unsupported methods and paths',async()=
  assert.equal((await handleRequest(req('/api/engine/artboard/api/artboard/admin'),e)).status,404);
 });
 test('invalid key configuration and unconfigured engine fail securely',async()=>{
- const e=env();delete e.MYJERSEY_ACCESS_TOKEN;
+ const e=env();delete e.MYJERSEY_ACCESS_TOKEN;delete e.ARTBOARD_V031_TOKEN;
  assert.equal((await handleRequest(req('/api/status'),e)).status,503);
  const f=env();delete f.ARTBOARD_V031_TOKEN;
  assert.equal((await handleRequest(req('/api/status'),f)).status,200);
@@ -71,4 +71,44 @@ test('wrangler has rate limit bindings and safe compatibility date', async()=>{
  const c=JSON.parse(readFileSync(new URL('../wrangler.jsonc',import.meta.url),'utf8'));
  assert.ok(c.compatibility_date<=new Date().toISOString().slice(0,10));
  assert.deepEqual(c.ratelimits.map(x=>x.name),['API_LIMITER','AI_LIMITER']);
+});
+
+test('Artboard URL and token alone support isolated anonymous sessions',async()=>{
+ const e=env();delete e.MYJERSEY_ACCESS_TOKEN;delete e.MYJERSEY_ARTBOARD_PRINCIPAL;
+ const identities=[];
+ const upstream=async(url,opts)=>{
+  identities.push(new Headers(opts.headers).get('x-artboard-user'));
+  return Response.json({status:'ready',ai_configured:true});
+ };
+ const first=await handleRequest(req('/api/status'),e,upstream);
+ assert.equal(first.status,200);
+ const cookie=first.headers.get('set-cookie').split(';')[0];
+ await handleRequest(req('/api/status',{headers:{Cookie:cookie}}),e,upstream);
+ await handleRequest(req('/api/status'),e,upstream);
+ assert.equal(identities[0],identities[1]);
+ assert.notEqual(identities[0],identities[2]);
+ assert.equal((await first.json()).engines.artboard.state,'online');
+});
+test('503 worker response exposes safe diagnostic without claiming ready', async()=>{
+ const e=env();
+ const upstream=async()=>Response.json({status:'not_ready',ai_configured:false,
+  error:{code:'ARTBOARD_WORKER_NOT_CONFIGURED',message:'private upstream detail'}},{status:503});
+ const response=await handleRequest(req('/api/status'),e,upstream);
+ const report=(await response.json()).engines.artboard;
+ assert.equal(report.state,'not_ready');
+ assert.equal(report.error_code,'ARTBOARD_WORKER_NOT_CONFIGURED');
+ assert.equal(report.ai_configured,false);
+ assert.equal(report.reachable,true);
+ assert.ok(!JSON.stringify(report).includes('private upstream detail'));
+});
+test('readiness failures survive HTTP 503 while unrecognized HTML cannot be online',async()=>{
+ const e=env();
+ const response=await handleRequest(req('/api/status'),e,async()=>Response.json({
+  status:'not_ready',engine:'Artboard AI',ai_configured:true,
+  segments:{tool:{checks:{durable_job_execution:false,queue:true}}}},{status:503}));
+ const art=(await response.json()).engines.artboard;
+ assert.deepEqual(art.failed_checks,['durable_job_execution']);
+ assert.equal(art.state,'not_ready');assert.equal(art.ai_configured,true);
+ const invalid=await handleRequest(req('/api/status'),e,async()=>new Response('<html>login</html>'));
+ assert.equal((await invalid.json()).engines.artboard.state,'not_ready');
 });
