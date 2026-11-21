@@ -5,6 +5,7 @@ const css=fs.readFileSync(path.resolve(__dirname,'..','artboard-v2-workflow-fixe
 let listeners={},screens=[],requests=[],downloads=[],serverProject=null,jobN=0,currentJob=null,mode='normal';
 let bodyClasses=new Set();
 const recoveryCase=process.env.ARTBOARD_EXPORT_RECOVERY||'';
+const splitSelection=process.env.ARTBOARD_SPLIT_SELECTION||'';
 let productionReadFailures=recoveryCase==='project-sync'?3:0;
 let exportReadFailures=recoveryCase==='accepted-job-sync'?5:0;
 let rejectedExport=recoveryCase==='submission';
@@ -22,7 +23,9 @@ const context={state,Date,setTimeout:(fn)=>setTimeout(fn,1),URL:{revokeObjectURL
  jobPoll:async(engine,path,terminal)=>{
    assert.equal(engine,'artboard');assert.equal(currentJob.job_id,path.split('/').at(-1));
    if(terminal==='Production' && process.env.BATCH2_NO_STAGE_EVENTS !== '1'){
-     for(const [step,stage] of [['Argon analyzing geometry, boundaries and micro-details','Analyzing'],['Generating flat rectangular print artwork','Artwork Creation'],['VTracer tracing vector paths','Vectorization'],['Validating vector fidelity','Validation']]){
+     const stages=[['Argon analyzing geometry, boundaries and micro-details','Analyzing'],['Generating flat rectangular print artwork','Artwork Creation'],['VTracer tracing vector paths','Vectorization'],['Validating vector fidelity','Validation']];
+     const visibleStages=splitSelection?(currentJob.generationOnly?stages.slice(0,2):stages.slice(2)):stages;
+     for(const [step,stage] of visibleStages){
        state.stage=step;state.progress=12;state.artboardEvents.push({step,at:'2026-11-01T00:00:00Z',progress:12});context.render();context.updateMonitor();
        assert(screens.at(-1).includes(stage),`Missing stage while real engine sends ${step}: ${stage}`);
       if(stage==='Analyzing')assert(screens.at(-1).includes('Live Design Analysis'),'Argon event must keep the scan screen visible');
@@ -38,7 +41,17 @@ assert.equal(engine,'artboard');requests.push({path,opts});
   if(path==='api/artboard/projects'&&opts.method==='POST'){serverProject={project_id:'p1',surfaces:[],true_vector_ready:false,exports:{}};return serverProject;}
   if(path==='api/artboard/upload')return serverProject;
   if(path==='api/artboard/prepare'){assert.equal(opts.json.detect_visible_surfaces,true);const detected=process.env.ARTBOARD_MISSING_BACK==='1'?['front_body']:['front_body','back_body'];serverProject.surfaces=detected.map(x=>({type:x,name:x,part_id:x,exports:{},validation:{path_count:x==='front_body'?123:287,color_mode:'CMYK',postscript_level:2,dpi:300}}));return currentJob={job_id:'j'+(++jobN),project_id:'p1',status:'queued'};}
-  if(path==='api/artboard/production'){serverProject.true_vector_ready=true;
+  if(path==='api/artboard/production'){
+    if(splitSelection&&opts.json.generate_only){
+      serverProject.ai_reconstruction={complete:true,processing_mode:'quality',by_part:Object.fromEntries(serverProject.surfaces.map(part=>[part.part_id,{accepted:true}]))};
+      return currentJob={job_id:'j'+(++jobN),project_id:'p1',status:'queued',generationOnly:true};
+    }
+    if(splitSelection){
+      assert.equal(opts.json.resume_from_ai,true);
+      assert.deepEqual(Array.from(opts.json.part_ids),[splitSelection]);
+      serverProject.surfaces=serverProject.surfaces.filter(part=>opts.json.part_ids.includes(part.part_id));
+    }
+    serverProject.true_vector_ready=true;
     if(process.env.ARTBOARD_PROOF_MISSING!=='1'){
       serverProject.analysis_generation_audit=Object.fromEntries(serverProject.surfaces.map(item=>[
         item.part_id,{
@@ -113,6 +126,24 @@ const test=(id,pass,reason)=>{assert(pass,reason||`Issue #${id}`);console.log('P
   test(34,css.includes('artboard-workspace.sidebar-collapsed .shell')&&bodyClasses.has('sidebar-collapsed'));
   test(35,css.includes('artboard-workspace #menuButton{display:grid!important'));
   await handler(click('start'));
+  if(splitSelection){
+    assert.equal(requests.filter(r=>r.path==='api/artboard/production').length,1);
+    assert.equal(serverProject.true_vector_ready,false);
+    assert(screens.at(-1).includes('<h1>Artwork Creation</h1>'));
+    const toggle=listeners.change.find(fn=>fn.toString().includes('data-abv2-select'));
+    const remove=splitSelection==='front_body'?'back_body':'front_body';
+    toggle({target:{closest:s=>s==='[data-abv2-select]'?{dataset:{abv2Select:remove},checked:false}:null}});
+    assert(screens.at(-1).includes('1 selected'));
+    assert(screens.at(-1).includes('data-abv2="next-stage" >Next Step'));
+    await handler(click('next-stage'));
+    const jobs=requests.filter(r=>r.path==='api/artboard/production');
+    assert.equal(jobs.length,2);assert.equal(jobs[0].opts.json.generate_only,true);
+    assert.equal(jobs[1].opts.json.resume_from_ai,true);
+    assert.deepEqual(Array.from(jobs[1].opts.json.part_ids),[splitSelection]);
+    assert.equal(serverProject.surfaces.length,1);assert.equal(serverProject.surfaces[0].side||serverProject.surfaces[0].type,splitSelection);
+    assert(screens.at(-1).includes('<h1>Export Production</h1>'));
+    console.log('PASS selected-only production: '+splitSelection);return;
+  }
   if(recoveryCase){
     assert(screens.at(-1).includes('Download Master ZIP'));
     assert.equal(requests.filter(r=>r.path==='api/artboard/export').length,0,'Validated SVG needs no conversion job');
