@@ -484,7 +484,7 @@
     state.mode.artboard='quality';
     return `${top('Artboard AI','AI JERSEY ARTWORK ENGINE')}<div class="abv2-input-shell">
       <div class="abv2-modes abv2-production-only"><b><span>▱</span> Production Mode</b><div>
-        <div class="abv2-mode-card active"><em>♔</em><span><strong>Maximum Quality Production</strong><small>DeepSeek V4.1 Flash analysis • Seedream 5.0 Flash artwork (2K) • DeepSeek-guided vectorization</small></span><i>✓</i></div>
+        <div class="abv2-mode-card active"><em>♔</em><span><strong>Maximum Quality Production</strong><small>Gemini 4 Argon analysis • Nano Banana 2.1 artwork (Native 4K) • Gemini 4 Carbon-guided vectorization</small></span><i>✓</i></div>
       </div></div>
       <div class="abv2-auto-detect"><span>◎</span><div><b>Automatic Front / Back Detection</b><small>The analyzer identifies every independently visible jersey side. No manual side selection is required.</small></div></div>
       <div class="abv2-source-grid">
