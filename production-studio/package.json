@@ -1,0 +1,31 @@
+{
+  "name": "my-jersey-studio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit && vite build --mode ecosystem-client && vite build --mode ecosystem-worker",
+    "check": "tsc --noEmit",
+    "toolkit": "python3 scripts/package_toolkit.py"
+  },
+  "dependencies": {
+    "fflate": "^0.8.3",
+    "lucide-react": "latest",
+    "motion": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "latest",
+    "@cloudflare/workers-types": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@vitejs/plugin-react": "latest",
+    "typescript": "latest",
+    "vite": "latest",
+    "wrangler": "latest"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

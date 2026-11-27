@@ -1,147 +1,83 @@
-import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import test from 'node:test';
 import { handleRequest } from '../src/worker.mjs';
-const BASE='https://myjersey.example';
-const ENGINE='e'.repeat(64);
-const ORIGIN='https://artboard-ai-resolution-independent-production.up.railway.app';
-const env=()=>({
-  MYJERSEY_ACCESS_TOKEN:'w'.repeat(64),
-  ARTBOARD_V031_TOKEN:ENGINE,ARTBOARD_V031_URL:ORIGIN,
-  MYJERSEY_ARTBOARD_PRINCIPAL:'legacy_unused',
-  API_LIMITER:{limit:async()=>({success:true})},
-  AI_LIMITER:{limit:async()=>({success:true})},
-  ASSETS:{fetch:async()=>new Response('STATIC')}
-});
-const req=(path,options={})=>new Request(BASE+path,options);
-test('static frontend served normally without login',async()=>{
- assert.equal(await(await handleRequest(req('/'),env())).text(),'STATIC');
-});
-test('public status creates signed HttpOnly browser identity',async()=>{
- const upstream=async(url,opts)=>{assert.equal(url,ORIGIN+'/health/ready');return Response.json({status:'ready',ai_configured:true})};
- const response=await handleRequest(req('/api/status'),env(),upstream);
- assert.equal(response.status,200);
- assert.match(response.headers.get('set-cookie'),/HttpOnly; Secure; SameSite=Lax/);
- assert.equal((await response.json()).engines.artboard.state,'online');
-});
-test('two separate visitors do not share an Artboard principal',async()=>{
- const e=env(), who=[];
- const upstream=async incoming=>{
-   who.push(incoming.headers.get('x-artboard-user'));
-   assert.equal(incoming.headers.get('authorization'),'Bearer '+ENGINE);
-   assert.equal(incoming.headers.has('cookie'),false);
-   return Response.json({project_id:'a'}, {status:201});
- };
- const p='/api/engine/artboard/api/artboard/projects';
- const options={method:'POST',headers:{'Content-Type':'application/json'},body:'{"processing_mode":"quality"}'};
- const one=await handleRequest(req(p,options),e,upstream);
- const two=await handleRequest(req(p,options),e,upstream);
- assert.notEqual(who[0],who[1]);
- const cookie=one.headers.get('set-cookie').split(';')[0];
- await handleRequest(req(p,{...options,headers:{'Content-Type':'application/json','Cookie':cookie}}),e,upstream);
- assert.equal(who[0],who[2]);
- assert.match(who[0],/^guest_[a-f0-9]{32}$/);
- assert.equal(two.status,201);
-});
-test('production paid calls fail closed if limiter unavailable and block when exceeded',async()=>{
- const e=env(),path='/api/engine/artboard/api/artboard/production';
- delete e.AI_LIMITER;
- const body={method:'POST',headers:{'Content-Type':'application/json'},body:'{"project_id":"a"}'};
- assert.equal((await handleRequest(req(path,body),e)).status,503);
- e.AI_LIMITER={limit:async()=>({success:false})};
- assert.equal((await handleRequest(req(path,body),e)).status,429);
-});
-test('worker denies cross-origin writes, unsupported methods and paths',async()=>{
- const e=env(),path='/api/engine/artboard/api/artboard/projects';
- assert.equal((await handleRequest(req(path,{method:'POST',headers:{origin:'https://evil.example','Content-Type':'application/json'},body:'{}'}),e)).status,403);
- assert.equal((await handleRequest(req(path,{method:'DELETE'}),e)).status,405);
- assert.equal((await handleRequest(req('/api/engine/artboard/api/artboard/admin'),e)).status,404);
-});
-test('invalid key configuration and unconfigured engine fail securely',async()=>{
- const e=env();delete e.MYJERSEY_ACCESS_TOKEN;delete e.ARTBOARD_V031_TOKEN;
- assert.equal((await handleRequest(req('/api/status'),e)).status,503);
- const f=env();delete f.ARTBOARD_V031_TOKEN;
- assert.equal((await handleRequest(req('/api/status'),f)).status,200);
-});
-test('redirects rejected so server-side bearer is never leaked',async()=>{
- const resp=await handleRequest(req('/api/engine/artboard/api/artboard/projects/a'),env(),async()=>new Response(null,{status:302,headers:{Location:'https://evil.example'}}));
- assert.equal(resp.status,502);
-});
-test('wrangler has rate limit bindings and safe compatibility date', async()=>{
- const {readFileSync}=await import('node:fs');
- const c=JSON.parse(readFileSync(new URL('../wrangler.jsonc',import.meta.url),'utf8'));
- assert.ok(c.compatibility_date<=new Date().toISOString().slice(0,10));
- assert.deepEqual(c.ratelimits.map(x=>x.name),['API_LIMITER','AI_LIMITER']);
- assert.equal(c.keep_vars,true,'Preserve dashboard runtime variables across deployment');
- assert.equal(c.vars.ARTBOARD_V031_URL,'https://artboard-ai-resolution-independent-production.up.railway.app/');
- assert.ok(!Object.hasOwn(c.vars,'ARTBOARD_V031_TOKEN')&&!Object.hasOwn(c.vars,'MYJERSEY_ACCESS_TOKEN'),'Secrets must remain runtime-only');
+
+const origin = 'https://myjerseyecosystem.atheriouslabs.workers.dev';
+const id = '76afb400-33ca-49ed-ac22-2b0ce9aa0132';
+const limiter = { limit: async () => ({ success: true }) };
+const env = {
+  API_LIMITER: limiter,
+  AI_LIMITER: limiter,
+  ASSETS: { fetch: async req => new Response(new URL(req.url ?? req).pathname) },
+};
+const request = (path, init) => new Request(origin + path, init);
+
+test('the ecosystem and Studio documents resolve', async () => {
+  assert.equal(await (await handleRequest(request('/'), env)).text(), '/');
+  for (const link of ['/production-studio', '/artboard', '/artboard-ai']) {
+    const response = await handleRequest(request(link), env);
+    assert.equal(response.status, 308);
+    assert.equal(response.headers.get('location'), origin + '/production-studio/');
+  }
+  for (const route of ['/production-studio/', '/production-studio/production/' + id, '/production-studio/export/' + id]) {
+    assert.equal(await (await handleRequest(request(route), env)).text(), '/production-studio/');
+  }
 });
 
-test('Artboard URL and token alone support isolated anonymous sessions',async()=>{
- const e=env();delete e.MYJERSEY_ACCESS_TOKEN;delete e.MYJERSEY_ARTBOARD_PRINCIPAL;
- const identities=[];
- const upstream=async(url,opts)=>{
-  identities.push(new Headers(opts.headers).get('x-artboard-user'));
-  return Response.json({status:'ready',ai_configured:true});
- };
- const first=await handleRequest(req('/api/status'),e,upstream);
- assert.equal(first.status,200);
- const cookie=first.headers.get('set-cookie').split(';')[0];
- await handleRequest(req('/api/status',{headers:{Cookie:cookie}}),e,upstream);
- await handleRequest(req('/api/status'),e,upstream);
- assert.equal(identities[0],identities[1]);
- assert.notEqual(identities[0],identities[2]);
- assert.equal((await first.json()).engines.artboard.state,'online');
-});
-test('503 worker response exposes safe diagnostic without claiming ready', async()=>{
- const e=env();
- const upstream=async()=>Response.json({status:'not_ready',ai_configured:false,
-  error:{code:'ARTBOARD_WORKER_NOT_CONFIGURED',message:'private upstream detail'}},{status:503});
- const response=await handleRequest(req('/api/status'),e,upstream);
- const report=(await response.json()).engines.artboard;
- assert.equal(report.state,'not_ready');
- assert.equal(report.error_code,'ARTBOARD_WORKER_NOT_CONFIGURED');
- assert.equal(report.ai_configured,false);
- assert.equal(report.reachable,true);
- assert.ok(!JSON.stringify(report).includes('private upstream detail'));
-});
-test('readiness failures survive HTTP 503 while unrecognized HTML cannot be online',async()=>{
- const e=env();
- const response=await handleRequest(req('/api/status'),e,async()=>Response.json({
-  status:'not_ready',engine:'Artboard AI',ai_configured:true,
-  segments:{tool:{checks:{durable_job_execution:false,queue:true}}}},{status:503}));
- const art=(await response.json()).engines.artboard;
- assert.deepEqual(art.failed_checks,['durable_job_execution']);
- assert.equal(art.state,'not_ready');assert.equal(art.ai_configured,true);
- const invalid=await handleRequest(req('/api/status'),e,async()=>new Response('<html>login</html>'));
- assert.equal((await invalid.json()).engines.artboard.state,'not_ready');
+test('unconfigured Studio shows a pending workspace and prevents job submission', async () => {
+  const status = await handleRequest(request('/api/studio/workspace'), env);
+  assert.deepEqual(await status.json(), {
+    available: false, setupPending: true, signedIn: false, deviceWorkspace: false, email: null,
+  });
+  const jobs = await handleRequest(request('/api/studio/jobs', { method: 'POST', headers: { origin } }), env);
+  assert.equal(jobs.status, 503);
+  const health = await (await handleRequest(request('/api/status'), env)).json();
+  assert.equal(health.source, 'live_health_requests');
+  assert.deepEqual(Object.keys(health.engines), ['studio', 'frame', 'assets', 'autofly']);
+  assert.equal(health.engines.studio.state, 'not_configured');
 });
 
-test('private R2 artifact redirect streams with no engine bearer or cookie',async()=>{
- const p='/api/engine/artboard/api/artboard/projects/a/artifacts/working/front.png';
- const signed='https://account.r2.cloudflarestorage.com/private/projects/a/working/front.png?X-Amz-Signature=fake&X-Amz-Credential=fake&X-Amz-Expires=120';
- let calls=0;
- const response=await handleRequest(req(p),env(),async incoming=>{
-   calls++;
-   if(calls===1){
-     assert.equal(incoming.headers.get('authorization'),'Bearer '+ENGINE);
-     return new Response(null,{status:307,headers:{Location:signed}});
-   }
-   assert.equal(incoming.url,signed);
-   assert.equal(incoming.headers.has('authorization'),false);
-   assert.equal(incoming.headers.has('cookie'),false);
-   assert.equal(incoming.headers.has('x-artboard-user'),false);
-   return new Response('actual artwork',{headers:{'content-type':'image/png'}});
- });
- assert.equal(calls,2);
- assert.equal(response.status,200);
- assert.equal(await response.text(),'actual artwork');
- assert.equal(response.headers.get('cache-control'),'private, no-store');
+test('configured Studio receives the original origin, authorization assertion and request body', async () => {
+  const ready = { ...env, DB: {}, BUCKET: {}, PRODUCTION: {} };
+  const visited = [];
+  const studio = {
+    async fetch(req) {
+      visited.push(req.url);
+      assert.equal(req.headers.get('cf-access-jwt-assertion'), 'test-assertion');
+      if (req.method === 'POST') {
+        assert.equal(req.headers.get('origin'), origin);
+        assert.equal(req.headers.get('idempotency-key'), id);
+        assert.equal(await req.text(), 'reference');
+      }
+      return Response.json({ available: true, signedIn: true });
+    },
+  };
+  const headers = { origin, 'cf-access-jwt-assertion': 'test-assertion', 'idempotency-key': id };
+  await handleRequest(request('/api/studio/jobs', { method: 'POST', headers, body: 'reference' }), ready, studio);
+  await handleRequest(request('/api/studio/jobs/' + id + '/files/master.zip', { headers }), ready, studio);
+  await handleRequest(request('/api/status', { headers }), ready, studio);
+  assert.deepEqual(visited, [
+    origin + '/api/jobs', origin + '/api/jobs/' + id + '/files/master.zip', origin + '/api/workspace',
+  ]);
 });
-test('artifact gateway refuses non-R2 redirect and unauthorized request',async()=>{
- const p='/api/engine/artboard/api/artboard/projects/a/artifacts/working/front.png';
- let calls=0;
- const evil=await handleRequest(req(p),env(),async()=>{calls++;return new Response(null,{status:307,headers:{Location:'https://evil.example/file?X-Amz-Signature=fake&X-Amz-Credential=fake&X-Amz-Expires=120'}})});
- assert.equal(evil.status,502);assert.equal(calls,1);
- const denied=await handleRequest(req(p),env(),async()=>Response.json({detail:'not found'},{status:404}));
- assert.equal(denied.status,404);
+
+test('private runtime, retired Artboard endpoints and unrelated operations stay inaccessible', async () => {
+  for (const path of ['/_pipeline/launch.py', '/_pipeline/manifest.json',
+    '/api/engine/artboard/api/artboard/projects', '/api/studio/engine/key', '/api/unknown']) {
+    assert.equal((await handleRequest(request(path), env)).status, 404, path);
+  }
+});
+
+test('the gateway rejects cross-origin writes and limits paid submissions', async () => {
+  const ready = { ...env, DB: {}, BUCKET: {}, PRODUCTION: {} };
+  const studio = { fetch: async () => assert.fail('Should not reach production') };
+  for (const source of ['https://untrusted.test', '']) {
+    assert.equal((await handleRequest(request('/api/studio/jobs', {
+      method: 'POST', headers: { origin: source },
+    }), ready, studio)).status, 403);
+  }
+  const blocked = { ...ready, AI_LIMITER: { limit: async () => ({ success: false }) } };
+  const post = request('/api/studio/jobs', { method: 'POST', headers: { origin } });
+  assert.equal((await handleRequest(post, blocked, studio)).status, 429);
+  assert.equal((await handleRequest(post, { ...ready, AI_LIMITER: undefined }, studio)).status, 503);
 });

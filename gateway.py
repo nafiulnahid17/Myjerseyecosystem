@@ -11,13 +11,12 @@ from urllib.parse import urlparse
 
 import httpx
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.background import BackgroundTask
 
 ROOT = Path(__file__).resolve().parent
 ENGINES = {
-    "artboard": ("ARTBOARD_V031_URL", "ARTBOARD_V031_TOKEN", "/health/ready"),
     "frame": ("FRAMEFORGE_URL", "FRAMEFORGE_TOKEN", "/api/healthz"),
     "assets": ("ASSETSX_URL", "ASSETSX_TOKEN", "/health"),
     "autofly": ("AUTOFLY_URL", "AUTOFLY_TOKEN", "/api/healthz"),
@@ -25,14 +24,6 @@ ENGINES = {
 ID = r"[A-Za-z0-9_-]{1,100}"
 FILENAME = r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}"
 PATHS = {
-    "artboard": [
-        ("POST", r"api/artboard/projects"), ("GET", rf"api/artboard/projects/{ID}"),
-        ("POST", r"api/artboard/upload"), ("POST", r"api/artboard/prepare"),
-        ("POST", r"api/artboard/recreate"),
-        ("POST", r"api/artboard/production"), ("POST", r"api/artboard/export"),
-        ("GET", rf"api/artboard/jobs/{ID}"), ("POST", rf"api/artboard/jobs/{ID}/cancel"),
-        ("GET", rf"api/artboard/projects/{ID}/artifacts/(?:{FILENAME}/)*{FILENAME}"),
-    ],
     "frame": [
         ("GET", r"api/frameforge/capabilities"), ("GET", r"api/frameforge/templates"),
         ("GET", rf"api/frameforge/templates/{ID}/preview\.svg"),
@@ -90,7 +81,7 @@ def authenticate(req: Request):
 @app.get("/api/status")
 async def status(req: Request):
     authenticate(req)
-    output = {}
+    output = {"studio": {"state": "not_configured"}}
     async with httpx.AsyncClient(timeout=httpx.Timeout(7, connect=3), follow_redirects=False) as client:
         for name in ENGINES:
             config = details(name)
@@ -99,12 +90,6 @@ async def status(req: Request):
                 continue
             base, secret, health = config
             headers = {"Authorization": "Bearer " + secret}
-            if name == "artboard":
-                principal = os.getenv("MYJERSEY_ARTBOARD_PRINCIPAL", "").strip()
-                if not re.fullmatch(r"[A-Za-z0-9_:.@-]{1,128}", principal):
-                    output[name] = {"state": "missing_identity"}
-                    continue
-                headers["X-Artboard-User"] = principal
             try:
                 response = await client.get(base + health, headers=headers)
                 if response.status_code == 200:
@@ -113,15 +98,8 @@ async def status(req: Request):
                     if not isinstance(data, dict):
                         output[name] = {"state": "not_ready"}
                         continue
-                    expected = {"artboard": data.get("status") == "ready", "frame": data.get("status") == "ok", "assets": data.get("ok") is True, "autofly": data.get("status") == "ok"}
+                    expected = {"frame": data.get("status") == "ok", "assets": data.get("ok") is True, "autofly": data.get("status") == "ok"}
                     output[name] = {"state": "online" if expected[name] else "not_ready", "version": data.get("version")}
-                    if name == "artboard":
-                        output[name].update({
-                            "ai_configured": data.get("ai_configured") is True,
-                            "primary_ai_ready": data.get("primary_ai_ready") is True or data.get("ai_configured") is True,
-                            "fallback_ai_ready": data.get("fallback_ai_ready") is not False and data.get("ai_configured") is True,
-                            "export_engine_ready": data.get("export_engine_ready") is True or data.get("status") == "ready",
-                        })
                 else:
                     output[name] = {"state": "not_ready", "http_status": response.status_code}
             except (httpx.HTTPError, ValueError):
@@ -139,11 +117,6 @@ async def proxy(engine: str, path: str, req: Request):
         raise HTTPException(503, "Engine not configured with HTTPS URL and server-side token")
     base, token, _ = config
     headers = {"Authorization": "Bearer " + token, "Accept": "application/json, application/octet-stream, image/*"}
-    if engine == "artboard":
-        identity = os.getenv("MYJERSEY_ARTBOARD_PRINCIPAL", "").strip()
-        if not re.fullmatch(r"[A-Za-z0-9_:.@-]{1,128}", identity):
-            raise HTTPException(503, "Server-side Artboard identity is missing")
-        headers["X-Artboard-User"] = identity
     if req.method == "POST":
         content_type = req.headers.get("content-type", "")
         if not (content_type.startswith("multipart/form-data;") or content_type.startswith("application/json")):
@@ -197,3 +170,43 @@ def frontend_js():
 
 app.mount("/templates", StaticFiles(directory=str(ROOT / "templates")), name="templates")
 app.mount("/assets", StaticFiles(directory=str(ROOT / "assets")), name="assets")
+
+# The Python gateway can preview the Studio shell with its local connection status.
+# Production requests use the Cloudflare Workflow and its private account bindings.
+@app.get("/api/studio/workspace", include_in_schema=False)
+def studio_workspace():
+    return {"available": False, "setupPending": True, "signedIn": False,
+            "deviceWorkspace": False, "email": None}
+
+
+@app.get("/artboard", include_in_schema=False)
+@app.get("/artboard-ai", include_in_schema=False)
+@app.get("/production-studio", include_in_schema=False)
+def studio_entry():
+    return RedirectResponse("/production-studio/", status_code=308)
+
+
+@app.get("/production-studio/", include_in_schema=False)
+def studio_frontend():
+    return FileResponse(ROOT / "dist" / "production-studio" / "index.html", media_type="text/html",
+                        headers={"Cache-Control": "no-cache"})
+
+
+@app.get("/production-studio/{stage}/{job_id}", include_in_schema=False)
+def studio_deep_link(stage: str, job_id: str):
+    if stage not in {"production", "export"} or not re.fullmatch(r"[0-9a-f-]{36}", job_id, flags=re.I):
+        raise HTTPException(404, "Studio route not found")
+    return studio_frontend()
+
+
+app.mount("/production-studio/assets", StaticFiles(directory=str(ROOT / "dist" / "production-studio" / "assets")),
+          name="production-studio-assets")
+
+def asset_response(filename: str):
+    def serve():
+        return FileResponse(ROOT / filename)
+    return serve
+
+
+for filename in ("mockup-alignment.css", "home-theme.css", "home-theme.js", "favicon.ico"):
+    app.add_api_route("/" + filename, asset_response(filename), methods=["GET"], include_in_schema=False)

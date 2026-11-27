@@ -13,3 +13,11 @@ venv/
 node_modules/
 .DS_Store
 *.log
+
+# Generated studio dependencies, runtime bundle and account-specific bindings.
+production-studio/dist/
+production-studio/.runtime/
+production-studio/.toolkit/
+dist/_pipeline/
+.wrangler/
+wrangler.studio.jsonc

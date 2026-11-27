@@ -63,9 +63,9 @@
 .home-card-art>img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 57%}
 .home-lock-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:grid;place-items:center;width:clamp(43px,3.9vw,73px);height:clamp(43px,3.9vw,73px);border:2px solid #d0ffdc;border-radius:50%;background:radial-gradient(#0a3d26db,#001a14ed);color:#fff;box-shadow:0 0 9px #d0ffb5,0 0 18px var(--home-tone),inset 0 0 12px var(--home-tone)}
 .home-lock-overlay .home-icon{width:48%;height:48%;stroke-width:2.3}
-.reference-revector,.reference-artboard,.reference-frame,.reference-assets{grid-row:1}
+.reference-revector,.reference-studio,.reference-frame,.reference-assets{grid-row:1}
 .reference-artflux,.reference-tracelock,.reference-batchpilot,.reference-filecreator{grid-row:2}
-.reference-revector,.reference-artflux{grid-column:1}.reference-artboard,.reference-tracelock{grid-column:2}.reference-frame,.reference-batchpilot{grid-column:3}.reference-assets,.reference-filecreator{grid-column:4}
+.reference-revector,.reference-artflux{grid-column:1}.reference-studio,.reference-tracelock{grid-column:2}.reference-frame,.reference-batchpilot{grid-column:3}.reference-assets,.reference-filecreator{grid-column:4}
 .reference-autofly{grid-column:5;grid-row:1/3;aspect-ratio:auto;--home-tone:#ffd600;align-items:center;text-align:center;background:radial-gradient(ellipse at 50% 110%,#b48a00,#332500 38%,#100e00 75%);border-color:#ba9300;padding:20px 5px;isolation:isolate}
 .home-bonus-pill{font-weight:800;color:#ffef4b;font-size:clamp(10px,.86vw,17px);border:1px solid #ffde00;border-radius:30px;padding:5px 13px;background:#0c0c00}
 .home-bonus-bolt{width:clamp(36px,3.7vw,70px);height:clamp(36px,3.7vw,70px);color:#ffe83b;fill:#b98600;filter:drop-shadow(0 0 12px #ffcc00);margin:10px 0 0}

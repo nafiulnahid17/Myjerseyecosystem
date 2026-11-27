@@ -1,12 +1,19 @@
 {
   "name": "myjerseyecosystem",
-  "main": "src/worker.mjs",
-  "compatibility_date": "2026-10-31",
+  "main": "src/cloudflare.mjs",
+  "compatibility_date": "2026-11-27",
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
     "run_worker_first": [
-      "/api/*"
+      "/api/*",
+      "/production-studio",
+      "/production-studio/production/*",
+      "/production-studio/export/*",
+      "/artboard",
+      "/artboard-ai",
+      "/_pipeline",
+      "/_pipeline/*"
     ]
   },
   "ratelimits": [
@@ -27,8 +34,5 @@
       }
     }
   ],
-  "keep_vars": true,
-  "vars": {
-    "ARTBOARD_V031_URL": "https://artboard-ai-resolution-independent-production.up.railway.app/"
-  }
+  "keep_vars": true
 }

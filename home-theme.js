@@ -22,7 +22,7 @@
  const icon=(name,cls='')=>`<svg class="home-icon ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${paths[name]||paths.layers}"/></svg>`;
  const cards=[
  ['revector','ReVector AI','Multi-Pattern Vectorization',null,true,'layers','lime'],
- ['artboard','Artboard AI','Create Designs, Instantly','artboard',false,'layers','green'],
+ ['studio','Production Studio','Front & Back Artwork and EPS','studio',false,'layers','green'],
  ['frame','Frame Forge AI','AI Video Creation Tool','frame',false,'film','cyan'],
  ['assets','AssetsX AI','Turn Assets into Possibilities','assets',false,'cube','violet'],
  ['artflux','ArtFlux AI','AI Creative Design Studio',null,false,'brush','pink'],
@@ -30,9 +30,9 @@
  ['batchpilot','BatchPilot AI','AI-Powered Bulk Production',null,true,'layers','gold'],
  ['filecreator','AI File Creator','Native Illustrator (.ai)',null,true,'file','lime']
  ];
- const card=([asset,name,subtitle,tool,locked,symbol,tone])=>`<button type="button" class="reference-card reference-${asset} home-tone-${tone}" ${tool?`data-tool="${tool}"`:'disabled'} aria-label="${name} — ${subtitle}${locked?' — Locked':tool?'':' — Coming soon'}" ${!tool?'title="Coming soon"':''}>
+ const card=([asset,name,subtitle,tool,locked,symbol,tone])=>{const tag=tool==='studio'?'a':'button';return `<${tag} class="reference-card reference-${asset} home-tone-${tone}" ${workspaceAction(tool)} aria-label="${name} — ${subtitle}${locked?' — Locked':tool?'':' — Coming soon'}" ${!tool?'title="Coming soon"':''}>
  <span class="home-card-heading"><i>${icon(symbol)}</i><span><strong>${name}</strong><small>${subtitle}</small></span><b class="${locked?'home-locked-badge':'home-open-badge'}">${locked?'Locked':'−'}</b></span>
- <span class="home-card-art"><img src="${root}${asset}.${asset==='filecreator'?'svg':'webp'}" width="1536" height="1024" alt="" decoding="async">${locked?`<span class="home-lock-overlay">${icon('lock')}</span>`:''}</span></button>`;
+ <span class="home-card-art"><img src="${root}${asset}.${asset==='filecreator'?'svg':'webp'}" width="1536" height="1024" alt="" decoding="async">${locked?`<span class="home-lock-overlay">${icon('lock')}</span>`:''}</span></${tag}>`;};
  homeV4=function(){return `<section class="reference-home" aria-label="My Jersey Ecosystem dashboard">
  <section class="reference-hero"><img class="home-hero-art" src="${root}hero.webp" width="1536" height="1024" alt="Neon green digital jersey floating over a holographic production podium" fetchpriority="high"><img class="home-hero-insignia" src="${root}atherious-mark.svg" alt="" aria-hidden="true"><span class="home-hero-float layers">${icon('layers')}</span><span class="home-hero-float film">${icon('film')}</span><span class="home-hero-float ai" aria-hidden="true">Ai</span><div class="home-hero-copy"><h1>My Jersey <span>Ecosystem</span></h1><p>A complete AI ecosystem for jersey design, production &amp; management</p><div class="home-hero-badges"><span>${icon('bolt')}AI Powered</span><span>${icon('layers')}All-in-One</span><span>${icon('cube')}Production Ready</span><span>${icon('users')}For Brands &amp; Teams</span></div></div></section>
  <section class="reference-tools" aria-labelledby="reference-tools-heading"><header class="home-tools-heading"><h2 id="reference-tools-heading">${icon('grid')}All Tools</h2><p>8 Powerful AI Tools for Your Jersey Journey</p><b>8 TOOLS</b></header><div class="reference-board">${cards.map(card).join('')}<button type="button" class="reference-card reference-autofly" data-tool="autofly" aria-label="Open AutoFly — Private Tech bonus"><span class="home-bonus-pill">🎁 BONUS</span>${icon('bolt','home-bonus-bolt')}<strong>AutoFly</strong><small>Private Tech</small><span class="home-bonus-open">Open →</span><img src="${root}bonus-platform.svg" width="400" height="350" alt="" class="home-bonus-platform"></button></div></section>

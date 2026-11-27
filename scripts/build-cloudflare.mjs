@@ -1,46 +1,64 @@
-// Publish only explicit browser assets; never deploy .env, Python gateway or source/tests.
+// Publish the shell, Studio client and only the explicitly approved static assets.
 import { readdirSync, readFileSync, mkdirSync, writeFileSync, rmSync, existsSync } from 'node:fs';
 import { resolve, join, relative, extname } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
 const output = resolve(root, 'dist');
-const files = ['index.html', 'styles.css', 'app.js', 'artboard-v2.css', 'artboard-v2.js', 'artboard-v2-workflow-fixes.css', 'mockup-alignment.css', 'artboard-workflow-2026.css', 'home-theme.css', 'home-theme.js', 'favicon.ico'];
-for (const folder of ['assets', 'templates']) {
-  const walk = dir => {
-    for (const entry of readdirSync(resolve(root, dir), { withFileTypes: true })) {
-      const item = join(dir, entry.name);
-      if (entry.isDirectory()) walk(item);
-      else if (entry.isFile() && ['.svg', '.webp'].includes(extname(entry.name))) files.push(item);
-    }
-  };
-  walk(folder);
+const browser = resolve(root, 'production-studio/dist/client');
+const studioWorker = resolve(root, 'production-studio/dist/worker/production-studio.mjs');
+const workerTarget = resolve(root, 'src/production-studio.mjs');
+const runtime = resolve(root, 'production-studio/.runtime');
+
+if (!existsSync(studioWorker)) throw Error('Build Production Studio with npm --prefix production-studio run build.');
+
+const files = new Map();
+for (const name of ['index.html', 'styles.css', 'app.js', 'mockup-alignment.css', 'home-theme.css', 'home-theme.js', 'favicon.ico']) {
+  files.set(name, resolve(root, name));
 }
-files.sort();
-const check = process.argv.includes('--check');
-if (check) {
-  if (!existsSync(output)) throw Error('dist/ is missing: run node scripts/build-cloudflare.mjs');
+
+function walk(dir, outputPrefix, allowed) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const source = join(dir, entry.name);
+    const target = join(outputPrefix, entry.name);
+    if (entry.isDirectory()) walk(source, target, allowed);
+    else if (entry.isFile() && allowed(entry.name)) files.set(target, source);
+  }
+}
+
+for (const name of ['assets', 'templates']) {
+  walk(resolve(root, name), name, name => ['.svg', '.webp'].includes(extname(name)));
+}
+walk(browser, 'production-studio', name => ['.html', '.js', '.css', '.webp'].includes(extname(name)));
+
+if (existsSync(resolve(runtime, 'manifest.json'))) {
+  walk(runtime, '_pipeline', name => /^(?:manifest\.json|launch\.py|runtime\.part\d{2})$/.test(name));
+}
+
+if (process.argv.includes('--check')) {
   const actual = [];
-  const walk = dir => {
+  function collect(dir) {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
       const path = join(dir, entry.name);
-      if (entry.isDirectory()) walk(path);
+      if (entry.isDirectory()) collect(path);
       else if (entry.isFile()) actual.push(relative(output, path));
     }
-  };
-  walk(output);
-  if (actual.sort().join('\n') !== files.join('\n')) throw Error('Public dist file manifest differs from approved source files');
-  for (const file of files) {
-    if (!readFileSync(resolve(root, file)).equals(readFileSync(resolve(output, file)))) {
-      throw Error('Stale Cloudflare dist file: ' + file);
-    }
   }
-  console.log('Cloudflare dist matches all ' + files.length + ' approved assets');
+  collect(output);
+  if (actual.sort().join('\n') !== [...files.keys()].sort().join('\n')) {
+    throw Error('Public dist manifest differs from the approved frontend and Studio build.');
+  }
+  for (const [name, source] of files) {
+    if (!readFileSync(source).equals(readFileSync(resolve(output, name)))) throw Error('Stale Cloudflare asset: ' + name);
+  }
+  if (!readFileSync(studioWorker).equals(readFileSync(workerTarget))) throw Error('Stale Studio Worker bundle.');
+  console.log('Cloudflare build verified: ' + files.size + ' assets and the Studio Worker.');
 } else {
   rmSync(output, { recursive: true, force: true });
-  for (const file of files) {
-    const target = resolve(output, file);
+  for (const [name, source] of files) {
+    const target = resolve(output, name);
     mkdirSync(resolve(target, '..'), { recursive: true });
-    writeFileSync(target, readFileSync(resolve(root, file)));
+    writeFileSync(target, readFileSync(source));
   }
-  console.log('Built Cloudflare dist with ' + files.length + ' public files');
+  writeFileSync(workerTarget, readFileSync(studioWorker));
+  console.log('Built Cloudflare dist with ' + files.size + ' assets and the Studio Worker.');
 }
